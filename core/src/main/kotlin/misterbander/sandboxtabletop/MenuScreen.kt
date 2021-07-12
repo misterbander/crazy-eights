@@ -17,12 +17,14 @@ import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.scene2d.*
 import misterbander.sandboxtabletop.scene2d.JoinRoomDialog
+import misterbander.sandboxtabletop.scene2d.MessageDialog
 
 class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 {
 //	var client: SandboxTabletopClient? = null
 	
-	private val joinRoomDialog = JoinRoomDialog(this)
+	val joinRoomDialog = JoinRoomDialog(this)
+	val messageDialog = MessageDialog(this)
 //	val connectingDialog = MessageDialog(this, "")
 	
 	private val mainTable: Table by lazy {
@@ -86,7 +88,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 	private fun showTable(table: Table)
 	{
 		uiStage.addCaptureListener(ignoreTouchDown)
-		activeTable += Actions.fadeOut(ANIMATION_DURATION, Interpolation.exp5In) then Actions.run {
+		activeTable += Actions.alpha(0F) then Actions.run {
 			activeTable.isVisible = false
 			table.isVisible = true
 			table += Actions.fadeIn(ANIMATION_DURATION, Interpolation.exp5Out) then Actions.run {
@@ -104,11 +106,11 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 			game.shapeDrawer.setColor(ACCENT_COLOR)
 			game.shapeDrawer.filledRectangle(
 				80F, 96F, viewport.worldWidth - 96, viewport.worldHeight - 96,
-				4 * MathUtils.degRad
+				4*MathUtils.degRad
 			)
 		}
 	}
-	
+
 //	fun connectionOpened(connection: Connection)
 //	{
 //		Gdx.app.log("SandboxTabletopClient | INFO", "Connected to " + connection.remoteAddress)

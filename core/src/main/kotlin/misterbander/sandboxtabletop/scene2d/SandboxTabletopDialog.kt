@@ -7,7 +7,6 @@ import com.badlogic.gdx.utils.Align
 import ktx.actors.alpha
 import ktx.actors.centerPosition
 import ktx.actors.onChange
-import ktx.actors.then
 import misterbander.gframework.scene2d.AccessibleInputDialog
 import misterbander.sandboxtabletop.ANIMATION_DURATION
 import misterbander.sandboxtabletop.SandboxTabletop
@@ -55,18 +54,8 @@ abstract class SandboxTabletopDialog(
 		hide(
 			Actions.parallel(
 				Actions.fadeOut(ANIMATION_DURATION, Interpolation.exp5In),
-				Actions.scaleTo(scaleFactor, scaleFactor, ANIMATION_DURATION, Interpolation.exp5In)
-			)
-		)
-	}
-	
-	fun hide(hideAction: () -> Unit)
-	{
-		hide(
-			Actions.parallel(
-				Actions.fadeOut(ANIMATION_DURATION, Interpolation.exp5In),
 				Actions.scaleTo(0.95F, 0.95F, ANIMATION_DURATION, Interpolation.exp5In)
-			) then Actions.run(hideAction)
+			)
 		)
 	}
 }

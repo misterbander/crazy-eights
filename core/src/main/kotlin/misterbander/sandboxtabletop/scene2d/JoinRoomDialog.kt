@@ -36,7 +36,13 @@ class JoinRoomDialog(screen: MenuScreen) : SandboxTabletopDialog(screen, "Join R
 			pad(0F, 16F, 16F, 16F)
 			defaults().space(16F)
 			add(scene2d.textButton("Join", "textbuttonstyle", game.skin) {
-				onChange { screen.click.play(); }
+				onChange {
+					screen.click.play()
+					hide()
+					screen.messageDialog.show("Join Room", "Joining room...", "Cancel") {
+						screen.joinRoomDialog.show()
+					}
+				}
 			}).prefWidth(224F)
 			add(scene2d.textButton("Cancel", "textbuttonstyle", game.skin) {
 				onChange { screen.click.play(); hide() }

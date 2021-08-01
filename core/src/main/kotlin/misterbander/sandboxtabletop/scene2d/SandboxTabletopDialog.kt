@@ -9,8 +9,10 @@ import ktx.actors.centerPosition
 import ktx.actors.onChange
 import misterbander.gframework.scene2d.AccessibleInputDialog
 import misterbander.sandboxtabletop.ANIMATION_DURATION
+import misterbander.sandboxtabletop.CLOSE_BUTTON_STYLE
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.SandboxTabletopScreen
+import misterbander.sandboxtabletop.WINDOW_STYLE
 
 /**
  * Represents generic windows. All windows will inherit from this class.
@@ -18,10 +20,10 @@ import misterbander.sandboxtabletop.SandboxTabletopScreen
 abstract class SandboxTabletopDialog(
 	protected val screen: SandboxTabletopScreen,
 	title: String,
-) : AccessibleInputDialog(title, screen.game.skin, "windowstyle")
+) : AccessibleInputDialog(title, screen.game.skin, WINDOW_STYLE)
 {
 	protected val game: SandboxTabletop = screen.game
-	val closeButton: Button = Button(game.skin, "closebuttonstyle").apply {
+	val closeButton: Button = Button(game.skin, CLOSE_BUTTON_STYLE).apply {
 		onChange { screen.click.play(); hide() }
 	}
 	private val scaleFactor = 0.95F

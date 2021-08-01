@@ -9,7 +9,7 @@ import misterbander.sandboxtabletop.HUE_SLIDER_STYLE
 import misterbander.sandboxtabletop.MenuScreen
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 
-class ColorPickerDialog(screen: MenuScreen, parent: JoinRoomDialog) : SandboxTabletopDialog(screen, "Choose Your Color")
+class ColorPickerDialog(screen: MenuScreen, parent: RoomDialog) : SandboxTabletopDialog(screen, "Choose Your Color")
 {
 	private val colorCircle = Image(game.skin.get<Drawable>("colorcircle"))
 	private val hueSlider = scene2d.slider(min = 0F, max = 360F, step = 1F, style = HUE_SLIDER_STYLE, skin = game.skin) {

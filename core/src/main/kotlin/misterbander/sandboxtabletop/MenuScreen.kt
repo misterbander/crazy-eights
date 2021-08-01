@@ -16,6 +16,7 @@ import ktx.actors.then
 import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.scene2d.*
+import misterbander.sandboxtabletop.scene2d.CreateRoomDialog
 import misterbander.sandboxtabletop.scene2d.JoinRoomDialog
 import misterbander.sandboxtabletop.scene2d.MessageDialog
 
@@ -23,6 +24,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 {
 //	var client: SandboxTabletopClient? = null
 	
+	val createRoomDialog = CreateRoomDialog(this)
 	val joinRoomDialog = JoinRoomDialog(this)
 	val messageDialog = MessageDialog(this)
 //	val connectingDialog = MessageDialog(this, "")
@@ -43,7 +45,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
 			textButton("Create Room", TEXT_BUTTON_STYLE, game.skin) {
-				onChange { click.play(); }
+				onChange { click.play(); createRoomDialog.show() }
 			}
 			row()
 			textButton("Join Room", TEXT_BUTTON_STYLE, game.skin) {

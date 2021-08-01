@@ -13,18 +13,24 @@ class JoinRoomDialog(screen: MenuScreen) : SandboxTabletopDialog(screen, "Join R
 	val usernameTextField = scene2d.mbTextField(this, "", "formtextfieldstyle", game.skin) {
 		maxLength = 20
 	}
+	val colorButton = scene2d.imageButton("colorbuttonstyle", game.skin) {
+		image.color.fromHsv(game.userColor.toHsv(FloatArray(3))[0], 0.8F, 0.8F)
+		onChange { screen.click.play(); colorPickerDialog.show() }
+	}
 	private val ipTextField = MBTextField(this@JoinRoomDialog, "", game.skin, "formtextfieldstyle")
 	private val portTextField = scene2d.mbTextField(this@JoinRoomDialog, "", "formtextfieldstyle", game.skin) {
 		textFieldFilter = MBTextField.MBTextFieldFilter.DigitsOnlyFilter()
 	}
 	
+	private val colorPickerDialog = ColorPickerDialog(screen, this)
+	
 	init
 	{
 		contentTable.apply {
-			pad(16F)
 			defaults().left().space(16F)
 			add(Label("Username:", game.skin, "infolabelstyle"))
 			add(usernameTextField).prefWidth(288F)
+			add(colorButton)
 			row()
 			add(Label("Server IP Address:", game.skin, "infolabelstyle"))
 			add(ipTextField).prefWidth(288F)
@@ -33,8 +39,6 @@ class JoinRoomDialog(screen: MenuScreen) : SandboxTabletopDialog(screen, "Join R
 			add(portTextField).prefWidth(288F)
 		}
 		buttonTable.apply {
-			pad(0F, 16F, 16F, 16F)
-			defaults().space(16F)
 			add(scene2d.textButton("Join", "textbuttonstyle", game.skin) {
 				onChange {
 					screen.click.play()

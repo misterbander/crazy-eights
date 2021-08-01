@@ -11,9 +11,14 @@ import ktx.assets.getValue
 import ktx.assets.load
 import ktx.freetype.generateFont
 import ktx.log.info
+import ktx.preferences.get
+import ktx.preferences.set
 import ktx.style.*
 import misterbander.gframework.GFramework
 import misterbander.gframework.scene2d.mbTextField
+import misterbander.sandboxtabletop.model.User
+import java.util.UUID
+import kotlin.random.Random
 
 val BACKGROUND_COLOR = Color(0x5F1F56FF)
 val ACCENT_COLOR = Color(0x7C2870FF)
@@ -105,6 +110,9 @@ class SandboxTabletop : GFramework()
 				over = this@skin["buttonover"]
 				down = this@skin["buttondown"]
 			}
+			imageButton("colorbuttonstyle", "imagebuttonstylebase") {
+				imageUp = this@skin["colorcircle"]
+			}
 			imageButton("menubuttonstyle", "imagebuttonstylebase") {
 				imageUp = this@skin["menuicon"]
 				imageDown = this@skin["menuicondown"]
@@ -129,8 +137,17 @@ class SandboxTabletop : GFramework()
 				background = this@skin["textfield"]
 				focusedBackground = this@skin["textfieldfocused"]
 			}
+			slider("huesliderstyle") {
+				background = this@skin["hueslider"]
+				knob = this@skin["huesliderknob"]
+				knobOver = this@skin["huesliderknobover"]
+				knobDown = this@skin["huesliderknobdown"]
+			}
 		}
 	}
+	
+	lateinit var user: User
+	val userColor = Color(0F, 0F, 0F, 1F)
 	
 	override fun create()
 	{
@@ -142,7 +159,33 @@ class SandboxTabletop : GFramework()
 		
 		info("SandboxTabletop | INFO") { "Finished loading assets!" }
 		
+		// Load settings
+		val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
+		val uuidStr: String? = preferences["uuid"]
+		val uuid = if (uuidStr != null) UUID.fromString(uuidStr) else UUID.randomUUID()
+		val username: String = preferences["username", ""]
+		val userColorStr: String? = preferences["color"]
+		
+		user = User(uuid, username)
+		if (userColorStr != null)
+			Color.valueOf(userColorStr, userColor)
+		else
+		{
+			val random = Random(uuid.hashCode().toLong())
+			userColor.fromHsv(random.nextFloat()*360, 0.8F, 0.8F)
+		}
+		savePreferences()
+		
 		addScreen(MenuScreen(this))
 		setScreen<MenuScreen>()
+	}
+	
+	fun savePreferences()
+	{
+		val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
+		preferences["uuid"] = user.uuid.toString()
+		preferences["username"] = user.username
+		preferences["color"] = userColor.toString()
+		preferences.flush()
 	}
 }

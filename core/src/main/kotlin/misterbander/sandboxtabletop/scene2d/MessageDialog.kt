@@ -9,9 +9,7 @@ import misterbander.sandboxtabletop.SandboxTabletopScreen
 /**
  * Represents pop up message dialogs. Contains a message and a button. Used to display error messages and status messages.
  */
-class MessageDialog(
-	screen: SandboxTabletopScreen
-) : SandboxTabletopDialog(screen, "")
+class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(screen, "")
 {
 	private val messageLabel = Label("", game.skin, "infolabelstyle")
 	private val textButton: TextButton = TextButton("", game.skin, "textbuttonstyle").apply {
@@ -27,14 +25,8 @@ class MessageDialog(
 	
 	init
 	{
-		contentTable.apply {
-			pad(16F)
-			add(messageLabel)
-		}
-		buttonTable.apply {
-			pad(0F, 16F, 16F, 16F)
-			add(textButton)
-		}
+		contentTable.add(messageLabel)
+		buttonTable.add(textButton)
 	}
 	
 	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)?)

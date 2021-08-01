@@ -30,9 +30,12 @@ abstract class SandboxTabletopDialog(
 	{
 		titleTable.add(closeButton).right()
 		titleTable.pad(2F, 16F, 0F, 8F)
+		contentTable.pad(16F)
+		buttonTable.pad(0F, 16F, 16F, 16F)
+		buttonTable.defaults().space(16F)
 	}
 	
-	fun show()
+	open fun show()
 	{
 		pack()
 		setOrigin(Align.center)

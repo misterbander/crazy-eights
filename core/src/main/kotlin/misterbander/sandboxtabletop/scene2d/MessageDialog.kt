@@ -4,15 +4,17 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import ktx.actors.onChange
 import misterbander.gframework.util.wrap
+import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.SandboxTabletopScreen
+import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 
 /**
  * Represents pop up message dialogs. Contains a message and a button. Used to display error messages and status messages.
  */
 class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(screen, "")
 {
-	private val messageLabel = Label("", game.skin, "infolabelstyle")
-	private val textButton: TextButton = TextButton("", game.skin, "textbuttonstyle").apply {
+	private val messageLabel = Label("", game.skin, INFO_LABEL_STYLE)
+	private val textButton: TextButton = TextButton("", game.skin, TEXT_BUTTON_STYLE).apply {
 		labelCell.prefWidth(192F)
 		onChange {
 			screen.click.play()

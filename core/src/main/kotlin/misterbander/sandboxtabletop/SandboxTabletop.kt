@@ -20,10 +20,6 @@ import misterbander.sandboxtabletop.model.User
 import java.util.UUID
 import kotlin.random.Random
 
-val BACKGROUND_COLOR = Color(0x5F1F56FF)
-val ACCENT_COLOR = Color(0x7C2870FF)
-const val ANIMATION_DURATION = 0.2F
-
 /**
  * [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.
  */
@@ -68,31 +64,31 @@ class SandboxTabletop : GFramework()
 	val skin by lazy {
 		skin {
 			addRegions(guiAtlas)
-			label("infolabelstyle") { font = jhengheiuiMini; fontColor = Color.WHITE }
-			label("chatlabelstyle", "infolabelstyle") {
+			label(INFO_LABEL_STYLE) { font = jhengheiuiMini; fontColor = Color.WHITE }
+			label(CHAT_LABEL_STYLE, INFO_LABEL_STYLE) {
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 4F
 				background.leftWidth = 16F
 				background.rightWidth = 16F
 				background.bottomHeight = 4F
 			}
-			label("playernametaglabelstyle") {
+			label(PLAYER_NAMETAG_LABEL_STYLE) {
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 2F
 				background.leftWidth = 12F
 				background.rightWidth = 12F
 				background.bottomHeight = 2F
 			}
-			window("windowstyle") {
+			window(WINDOW_STYLE) {
 				background = this@skin["window"]
 				titleFont = jhengheiuiMini
 				titleFontColor = Color.WHITE
 			}
-			scrollPane("scrollpanestyle") {
+			scrollPane(SCROLL_PANE_STYLE) {
 				background = this@skin.newDrawable("chatbackground")
 				vScrollKnob = this@skin["textcursor"]
 			}
-			textButton("textbuttonstyle") {
+			textButton(TEXT_BUTTON_STYLE) {
 				up = this@skin["button"]
 				over = this@skin["buttonover"]
 				down = this@skin["buttondown"]
@@ -100,24 +96,26 @@ class SandboxTabletop : GFramework()
 				fontColor = Color.WHITE
 				downFontColor = Color.BLACK
 			}
-			button("closebuttonstyle") {
+			button(CLOSE_BUTTON_STYLE) {
 				up = this@skin["closebutton"]
 				over = this@skin["closebuttonover"]
 				down = this@skin["closebuttondown"]
 			}
-			imageButton("imagebuttonstylebase") {
+			val imageButtonStyleBase = "imagebuttonstylebase"
+			imageButton(imageButtonStyleBase) {
 				up = this@skin["button"]
 				over = this@skin["buttonover"]
 				down = this@skin["buttondown"]
 			}
-			imageButton("colorbuttonstyle", "imagebuttonstylebase") {
+			imageButton(COLOR_BUTTON_STYLE, imageButtonStyleBase) {
 				imageUp = this@skin["colorcircle"]
 			}
-			imageButton("menubuttonstyle", "imagebuttonstylebase") {
+			imageButton(MENU_BUTTON_STYLE, imageButtonStyleBase) {
 				imageUp = this@skin["menuicon"]
 				imageDown = this@skin["menuicondown"]
 			}
-			mbTextField("mbtextfieldstylebase") {
+			val mbTextFieldStyleBase = "mbtextfieldstylebase"
+			mbTextField(mbTextFieldStyleBase) {
 				font = jhengheiuiMini
 				fontColor = Color.WHITE
 				messageFontColor = Color.GRAY
@@ -126,18 +124,18 @@ class SandboxTabletop : GFramework()
 				selection = this@skin["textselection"]
 				disabledFontColor = Color(0xAAAAAAFF.toInt())
 			}
-			mbTextField("chattextfieldstyle", "mbtextfieldstylebase") {
+			mbTextField(CHAT_TEXT_FIELD_STYLE, mbTextFieldStyleBase) {
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 16F
 				background.leftWidth = 16F
 				background.rightWidth = 16F
 				background.bottomHeight = 16F
 			}
-			mbTextField("formtextfieldstyle", "mbtextfieldstylebase") {
+			mbTextField(FORM_TEXT_FIELD_STYLE, mbTextFieldStyleBase) {
 				background = this@skin["textfield"]
 				focusedBackground = this@skin["textfieldfocused"]
 			}
-			slider("huesliderstyle") {
+			slider(HUE_SLIDER_STYLE) {
 				background = this@skin["hueslider"]
 				knob = this@skin["huesliderknob"]
 				knobOver = this@skin["huesliderknobover"]

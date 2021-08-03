@@ -1,9 +1,24 @@
 package misterbander.gframework.util
 
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.MathUtils
 import space.earlygrey.shapedrawer.ShapeDrawer
 import kotlin.math.min
+
+/**
+ * Creates a new `Pixmap` from a `TextureRegion`.
+ */
+fun TextureRegion.toPixmap(): Pixmap
+{
+	val textureData = texture.textureData
+	if (!textureData.isPrepared)
+		textureData.prepare()
+	val pixmap = Pixmap(regionWidth, regionHeight, textureData.format)
+	pixmap.drawPixmap(textureData.consumePixmap(), 0, 0, regionX, regionY, regionWidth, regionHeight)
+	return pixmap
+}
 
 /**
  * Draws a line with rounded caps.

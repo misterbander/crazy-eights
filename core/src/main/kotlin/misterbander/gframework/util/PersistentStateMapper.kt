@@ -71,8 +71,5 @@ class PersistentStateMapper
 		outputStream.close()
 	}
 	
-	fun write(outputStream: ObjectOutputStream)
-	{
-		outputStream.writeObject(stateMap)
-	}
+	fun write(outputStream: ObjectOutputStream) = outputStream.writeObject(stateMap)
 }

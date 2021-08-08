@@ -15,7 +15,5 @@ inline fun Skin.mbTextField(
 	name: String = defaultStyle,
 	extend: String? = null,
 	init: (@SkinDsl MBTextField.MBTextFieldStyle).() -> Unit = {}
-): MBTextField.MBTextFieldStyle
-{
-	return addStyle(name, if (extend == null) MBTextField.MBTextFieldStyle() else MBTextField.MBTextFieldStyle(get(extend)), init)
-}
+): MBTextField.MBTextFieldStyle =
+	addStyle(name, if (extend == null) MBTextField.MBTextFieldStyle() else MBTextField.MBTextFieldStyle(get(extend)), init)

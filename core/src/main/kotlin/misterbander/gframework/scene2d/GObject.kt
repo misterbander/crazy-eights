@@ -22,7 +22,7 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	 * Called when this `GObject` is spawned to the world and added to the stage. You can set up your
 	 * `Box2D` bodies and fixtures here.
 	 */
-	open fun onSpawn() {}
+	open fun onSpawn() = Unit
 	
 	/**
 	 * "Update" method for the `GObject`. This gets called every frame. If overridden, make sure to call `super.act()`.

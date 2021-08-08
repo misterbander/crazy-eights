@@ -13,5 +13,5 @@ abstract class GModule<T : GFramework>(protected val parent: GObject<T>)
 	 * Gets called every frame.
 	 * @param delta time after the last frame
 	 */
-	open fun update(delta: Float) {}
+	open fun update(delta: Float) = Unit
 }

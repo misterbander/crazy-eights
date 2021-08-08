@@ -22,10 +22,7 @@ fun angle(x1: Int, y1: Int, x2: Int, y2: Int): Float = angle(x1.toFloat(), y1.to
  * @return The angle from the first point to the second point, in degrees, where 0 is to the right and increases
  * anti-clockwise. Angles are between 0 and 360.
  */
-fun angle(x1: Float, y1: Float, x2: Float, y2: Float): Float
-{
-	return tempVec.set(x2 - x1, y2 - y1).angleDeg()
-}
+fun angle(x1: Float, y1: Float, x2: Float, y2: Float): Float = tempVec.set(x2 - x1, y2 - y1).angleDeg()
 
 /**
  * Treats a range as a cycle and "wraps" an int within the cycle.

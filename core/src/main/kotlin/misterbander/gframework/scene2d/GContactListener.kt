@@ -12,11 +12,11 @@ interface GContactListener
 	 * Called when this GObject begins contact with another fixture.
 	 * @param otherFixture the other fixture in contact
 	 */
-	fun beginContact(otherFixture: Fixture) {}
+	fun beginContact(otherFixture: Fixture) = Unit
 	
 	/**
 	 * Called when this GObject stops contact with another fixture.
 	 * @param otherFixture the other fixture in contact
 	 */
-	fun endContact(otherFixture: Fixture) {}
+	fun endContact(otherFixture: Fixture) = Unit
 }

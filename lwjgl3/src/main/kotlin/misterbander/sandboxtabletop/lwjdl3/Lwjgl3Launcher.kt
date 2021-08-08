@@ -13,10 +13,7 @@ object Lwjgl3Launcher
 		createApplication()
 	}
 	
-	private fun createApplication(): Lwjgl3Application
-	{
-		return Lwjgl3Application(SandboxTabletop(), defaultConfiguration)
-	}
+	private fun createApplication(): Lwjgl3Application = Lwjgl3Application(SandboxTabletop(), defaultConfiguration)
 	
 	private val defaultConfiguration: Lwjgl3ApplicationConfiguration
 		get()

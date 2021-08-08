@@ -23,7 +23,4 @@ inline fun <S> KWidget<S>.mbTextField(
 	style: String,
 	skin: Skin,
 	init: (@Scene2dDsl MBTextField).(S) -> Unit = {}
-): MBTextField
-{
-	return actor(MBTextField(accessibleInputDialog, text, skin, style), init)
-}
+): MBTextField = actor(MBTextField(accessibleInputDialog, text, skin, style), init)

@@ -89,9 +89,9 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen, ContactListener
 			(contact.fixtureB.body.userData as GContactListener).endContact(contact.fixtureA)
 	}
 	
-	override fun preSolve(contact: Contact, oldManifold: Manifold) {}
+	override fun preSolve(contact: Contact, oldManifold: Manifold) = Unit
 	
-	override fun postSolve(contact: Contact, impulse: ContactImpulse) {}
+	override fun postSolve(contact: Contact, impulse: ContactImpulse) = Unit
 	
 	override fun resize(width: Int, height: Int)
 	{
@@ -145,8 +145,5 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen, ContactListener
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 	}
 	
-	override fun dispose()
-	{
-		stage.dispose()
-	}
+	override fun dispose() = stage.dispose()
 }

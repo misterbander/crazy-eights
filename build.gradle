@@ -27,7 +27,7 @@ configure(subprojects - project(':android')) {
 }
 
 subprojects {
-	version = '0.0.1'
+	version = '0.1'
 	ext.appName = 'SandboxTabletop'
 	repositories {
 		mavenLocal()

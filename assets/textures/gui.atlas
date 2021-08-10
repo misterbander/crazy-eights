@@ -411,28 +411,35 @@ cardspadesqueen
   index: -1
 chatbackground
   rotate: false
-  xy: 1298, 44
+  xy: 1442, 238
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 closebutton
   rotate: false
-  xy: 1442, 238
+  xy: 1586, 448
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-closebuttondown
+closebuttondisabled
   rotate: false
   xy: 394, 972
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
+closebuttondown
+  rotate: false
+  xy: 434, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
 closebuttonover
   rotate: false
-  xy: 1882, 972
+  xy: 1298, 44
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -446,7 +453,7 @@ colorcircle
   index: -1
 cursorbase
   rotate: false
-  xy: 434, 2
+  xy: 1882, 972
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -497,14 +504,14 @@ huesliderknobover
   index: -1
 menuicon
   rotate: false
-  xy: 1586, 448
+  xy: 1622, 516
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 menuicondown
   rotate: false
-  xy: 1622, 516
+  xy: 1690, 584
   size: 32, 32
   orig: 32, 32
   offset: 0, 0

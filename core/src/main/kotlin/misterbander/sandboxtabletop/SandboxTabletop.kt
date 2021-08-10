@@ -7,8 +7,11 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.esotericsoftware.minlog.Log
 import ktx.assets.getValue
 import ktx.assets.load
+import ktx.async.KtxAsync
+import ktx.async.newSingleThreadAsyncContext
 import ktx.freetype.generateFont
 import ktx.log.info
 import ktx.preferences.get
@@ -100,6 +103,7 @@ class SandboxTabletop : GFramework()
 				up = this@skin["closebutton"]
 				over = this@skin["closebuttonover"]
 				down = this@skin["closebuttondown"]
+				disabled = this@skin["closebuttondisabled"]
 			}
 			val imageButtonStyleBase = "imagebuttonstylebase"
 			imageButton(imageButtonStyleBase) {
@@ -147,14 +151,17 @@ class SandboxTabletop : GFramework()
 	lateinit var user: User
 	val userColor = Color(0F, 0F, 0F, 1F)
 	
+	val asyncContext = newSingleThreadAsyncContext()
+	
 	override fun create()
 	{
-		super.create()
+		KtxAsync.initiate()
 		Gdx.app.logLevel = Application.LOG_DEBUG
 		assetManager.load("textures/logo.png", Texture::class.java)
 		assetManager.load("sounds/click.wav", Sound::class.java)
 		assetManager.finishLoading()
 		
+		Log.set(Log.LEVEL_DEBUG)
 		info("SandboxTabletop | INFO") { "Finished loading assets!" }
 		
 		// Load settings
@@ -175,6 +182,7 @@ class SandboxTabletop : GFramework()
 		savePreferences()
 		
 		addScreen(MenuScreen(this))
+		addScreen(RoomScreen(this))
 		setScreen<MenuScreen>()
 	}
 	

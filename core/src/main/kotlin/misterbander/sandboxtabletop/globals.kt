@@ -2,6 +2,11 @@ package misterbander.sandboxtabletop
 
 import com.badlogic.gdx.graphics.Color
 
+const val MAJOR_VERSION = 0
+const val MINOR_VERSION = 1
+const val VERSION_STRING = "v$MAJOR_VERSION.$MINOR_VERSION"
+
+val TRANSPARENT_COLOR = Color(0x00000000)
 val BACKGROUND_COLOR = Color(0x5F1F56FF)
 val ACCENT_COLOR = Color(0x7C2870FF)
 const val ANIMATION_DURATION = 0.2F

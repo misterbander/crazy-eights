@@ -5,28 +5,32 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.esotericsoftware.kryonet.Connection
+import com.esotericsoftware.kryonet.Listener
 import ktx.actors.alpha
 import ktx.actors.onChange
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.collections.plusAssign
 import ktx.graphics.use
+import ktx.log.info
 import ktx.scene2d.*
+import misterbander.sandboxtabletop.net.Network
+import misterbander.sandboxtabletop.net.packets.Handshake
+import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.scene2d.CreateRoomDialog
+import misterbander.sandboxtabletop.scene2d.InfoDialog
 import misterbander.sandboxtabletop.scene2d.JoinRoomDialog
 import misterbander.sandboxtabletop.scene2d.MessageDialog
 
-class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
+class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
-//	var client: SandboxTabletopClient? = null
-	
-	val createRoomDialog = CreateRoomDialog(this)
+	private val createRoomDialog = CreateRoomDialog(this)
 	val joinRoomDialog = JoinRoomDialog(this)
 	val messageDialog = MessageDialog(this)
+	val infoDialog = InfoDialog(this)
 //	val connectingDialog = MessageDialog(this, "")
 	
 	private val mainTable: Table by lazy {
@@ -58,14 +62,6 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		}
 	}
 	private var activeTable: Table
-	private val ignoreTouchDown: InputListener = object : InputListener()
-	{
-		override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
-		{
-			event.cancel()
-			return false
-		}
-	}
 	
 	init
 	{
@@ -84,6 +80,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		playTable.alpha = 0F
 		playTable.isVisible = false
 		
+		keyboardHeightObservers += createRoomDialog
 		keyboardHeightObservers += joinRoomDialog
 	}
 	
@@ -104,43 +101,31 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 	{
 		Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, 1F)
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
-		game.batch.use {
-			game.shapeDrawer.setColor(ACCENT_COLOR)
-			game.shapeDrawer.filledRectangle(
+		game.batch.use(uiCamera) {
+			val shapeDrawer = game.shapeDrawer
+			shapeDrawer.update()
+			shapeDrawer.setColor(ACCENT_COLOR)
+			shapeDrawer.filledRectangle(
 				80F, 96F, viewport.worldWidth - 96, viewport.worldHeight - 96,
 				4*MathUtils.degRad
 			)
 		}
 	}
-
-//	fun connectionOpened(connection: Connection)
-//	{
-//		Gdx.app.log("SandboxTabletopClient | INFO", "Connected to " + connection.remoteAddress)
-//		assert(client != null)
-//		val user = User(connectWindow.usernameTextField.getText(), game.uuid)
-//		val roomScreen = RoomScreen(game, client, user)
-//		client.send(user)
-//		client.setConnectionEventListener(roomScreen)
-//		game.setScreen<KtxScreen>(roomScreen)
-//		Gdx.app.log("SandboxTabletopClient | INFO", "Joining game as $user")
-//	}
-//
-//	fun connectionClosed(connection: Connection, e: Exception?)
-//	{
-//		Gdx.app.log("SandboxTabletopClient | INFO", "Disconnected from " + connection.remoteAddress)
-//		client = null
-//	}
-//
-//	fun connectionFailed(e: IOException)
-//	{
-//		// Exception occurred because cannot connect to remote server
-//		connectingDialog.show(
-//			"Connection Failed", "Failed to connect to server.\n$e"
-//				+ if (e.cause != null) """
-//
-// 	${e.cause}
-// 	""".trimIndent() else "", "OK", connectWindow::show
-//		)
-//		e.printStackTrace()
-//	}
+	
+	override fun received(connection: Connection, `object`: Any)
+	{
+		infoDialog.hide()
+		if (`object` is Handshake) // Handshake is successful
+		{
+			info("Client | INFO") { "Handshake successful. Joining as ${game.user.username} (UUID: ${game.user.uuid})..." }
+			connection.sendTCP(game.user)
+		}
+		else if (`object` is RoomState)
+		{
+			val roomScreen = game.getScreen<RoomScreen>()
+			Network.client!!.removeListener(this)
+			Network.client!!.addListener(roomScreen)
+			transition.start(targetScreen = roomScreen)
+		}
+	}
 }

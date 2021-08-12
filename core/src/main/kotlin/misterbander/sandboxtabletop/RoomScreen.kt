@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.actions.AlphaAction
 import com.badlogic.gdx.scenes.scene2d.actions.DelayAction
 import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction
 import com.badlogic.gdx.scenes.scene2d.ui.Container
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
 import com.esotericsoftware.kryonet.Connection
@@ -42,8 +41,8 @@ import kotlin.math.min
 
 class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
-	private val menuButton = ImageButton(game.skin, MENU_BUTTON_STYLE)
-	private val chatTextField = scene2d.mbTextField(null, "", CHAT_TEXT_FIELD_STYLE, game.skin) {
+	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE)
+	private val chatTextField = scene2d.mbTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
 		messageText = if (Gdx.app.type == Application.ApplicationType.Android) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
 		setFocusTraversal(false)
@@ -65,7 +64,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		grow()
 		onTouchDown { Gdx.input.setOnscreenKeyboardVisible(false) }
 	}
-	private val chatHistoryScrollPane = scene2d.scrollPane(SCROLL_PANE_STYLE, game.skin) {
+	private val chatHistoryScrollPane = scene2d.scrollPane(SCROLL_PANE_STYLE) {
 		actor = chatHistory
 		isVisible = false
 	}
@@ -173,9 +172,9 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	{
 		super.show()
 		
-		val cursorBorder: TextureRegion = game.skin["cursorborder"]
+		val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
 		val cursorBorderPixmap = cursorBorder.toPixmap()
-		val cursorBase: TextureRegion = game.skin["cursorbase"]
+		val cursorBase: TextureRegion = Scene2DSkin.defaultSkin["cursorbase"]
 		val cursorBasePixmap = cursorBase.toPixmap()
 		for (i in 0 until cursorBasePixmap.width)
 		{
@@ -340,7 +339,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	 */
 	private fun chat(message: String, color: Color? = null)
 	{
-		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE, game.skin) {
+		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE) {
 			wrap = true
 			if (color != null)
 				this.color = color.cpy()
@@ -359,7 +358,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 		
 		// Add to history
-		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE, game.skin) {
+		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE) {
 			wrap = true
 			if (color != null)
 				this.color = color.cpy()

@@ -21,6 +21,6 @@ inline fun <S> KWidget<S>.mbTextField(
 	accessibleInputDialog: AccessibleInputDialog? = null,
 	text: String = "",
 	style: String,
-	skin: Skin,
+	skin: Skin = Scene2DSkin.defaultSkin,
 	init: (@Scene2dDsl MBTextField).(S) -> Unit = {}
 ): MBTextField = actor(MBTextField(accessibleInputDialog, text, skin, style), init)

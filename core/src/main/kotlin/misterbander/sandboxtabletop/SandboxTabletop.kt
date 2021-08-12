@@ -15,6 +15,7 @@ import ktx.freetype.generateFont
 import ktx.log.info
 import ktx.preferences.get
 import ktx.preferences.set
+import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.GFramework
 import misterbander.gframework.scene2d.mbTextField
@@ -63,7 +64,7 @@ class SandboxTabletop : GFramework()
 	}
 	
 	// Skins
-	val skin by lazy {
+	private val skin by lazy {
 		skin {
 			addRegions(guiAtlas)
 			label(INFO_LABEL_STYLE) { font = jhengheiuiMini; fontColor = Color.WHITE }
@@ -152,13 +153,15 @@ class SandboxTabletop : GFramework()
 	
 	override fun create()
 	{
-		KtxAsync.initiate()
 		Gdx.app.logLevel = Application.LOG_DEBUG
+		Log.set(Log.LEVEL_DEBUG)
+		KtxAsync.initiate()
+		
 		assetManager.load("textures/logo.png", Texture::class.java)
 		assetManager.load("sounds/click.wav", Sound::class.java)
 		assetManager.finishLoading()
+		Scene2DSkin.defaultSkin = skin
 		
-		Log.set(Log.LEVEL_DEBUG)
 		info("SandboxTabletop | INFO") { "Finished loading assets!" }
 		
 		// Load settings

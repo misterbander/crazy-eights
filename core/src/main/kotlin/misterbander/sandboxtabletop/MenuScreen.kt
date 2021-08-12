@@ -135,6 +135,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			is RoomState ->
 			{
 				val roomScreen = game.getScreen<RoomScreen>()
+				roomScreen.state = `object`
 				Network.client!!.removeListener(this)
 				Network.client!!.addListener(roomScreen)
 				transition.start(targetScreen = roomScreen)

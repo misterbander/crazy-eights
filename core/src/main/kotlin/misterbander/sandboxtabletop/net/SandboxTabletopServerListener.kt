@@ -3,23 +3,24 @@ package misterbander.sandboxtabletop.net
 import com.badlogic.gdx.utils.IntSet
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
-import ktx.collections.gdxSetOf
+import com.esotericsoftware.kryonet.Server
 import ktx.collections.minusAssign
 import ktx.collections.plusAssign
 import ktx.log.info
 import misterbander.sandboxtabletop.VERSION_STRING
+import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.RoomState
-import java.util.UUID
+import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 
-class SandboxTabletopServerListener : Listener
+class SandboxTabletopServerListener(private val server: Server) : Listener
 {
 	/** Contains ids of connections that have successfully performed a handshake. */
 	private val handshookConnections = IntSet()
 	
-	private val users = gdxSetOf(User(UUID.randomUUID(), "bob")) //GdxSet<User>()
+	private val state = RoomState()
 	
 	override fun connected(connection: Connection)
 	{
@@ -30,12 +31,11 @@ class SandboxTabletopServerListener : Listener
 	{
 		handshookConnections.remove(connection.id)
 		if (connection.arbitraryData is User)
-			users -= connection.arbitraryData as User
+			state.users -= connection.arbitraryData as User
 	}
 	
 	override fun received(connection: Connection, `object`: Any)
 	{
-		val server = Network.server ?: return
 		if (connection.id !in handshookConnections) // Connections must perform handshake before packets are processed
 		{
 			if (`object` is Handshake)
@@ -51,7 +51,7 @@ class SandboxTabletopServerListener : Listener
 					return
 				}
 				val username = `object`.data[0]
-				if (users.any { it.username == username }) // Check username collision
+				if (state.users.any { it.username == username }) // Check username collision
 				{
 					connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))
 					return
@@ -67,12 +67,17 @@ class SandboxTabletopServerListener : Listener
 			return
 		}
 		
-		if (`object` is User) // A new user tries to join
+		when (`object`)
 		{
-			connection.arbitraryData = `object`
-			users += `object`
-			connection.sendTCP(RoomState(users))
-			info("Server | INFO") { "${`object`.username} (UUID: ${`object`.uuid}) joined the game" }
+			is User -> // A new user tries to join
+			{
+				connection.arbitraryData = `object`
+				state.users += `object`
+				connection.sendTCP(state)
+				server.sendToAllTCP(UserJoinEvent(`object`))
+				info("Server | INFO") { "${`object`.username} (UUID: ${`object`.uuid}) joined the game" }
+			}
+			is Chat -> server.sendToAllTCP(`object`)
 		}
 	}
 }

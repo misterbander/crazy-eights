@@ -3,6 +3,10 @@ package misterbander.sandboxtabletop.net
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.Server
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import ktx.async.KtxAsync
+import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.GdxSet
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
@@ -34,6 +38,10 @@ object Network
 			}
 		}
 	
+	private val asyncContext = newSingleThreadAsyncContext("Network-AsyncExecutor-Thread")
+	var stopJob: Deferred<Unit>? = null
+		private set
+	
 	private fun Kryo.registerClasses()
 	{
 		register(Array<String>::class.java)
@@ -45,11 +53,15 @@ object Network
 		register(RoomState::class.java)
 	}
 	
+	@Suppress("BlockingMethodInNonBlockingContext")
 	fun stop()
 	{
-		server?.apply { close(); dispose() }
-		server = null
-		client?.apply { close(); dispose() }
-		client = null
+		stopJob = KtxAsync.async(asyncContext) {
+			server?.apply { stop(); dispose() }
+			client?.apply { stop(); dispose() }
+			server = null
+			client = null
+			stopJob = null
+		}
 	}
 }

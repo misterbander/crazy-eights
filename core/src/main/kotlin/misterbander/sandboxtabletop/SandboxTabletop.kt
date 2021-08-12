@@ -11,7 +11,6 @@ import com.esotericsoftware.minlog.Log
 import ktx.assets.getValue
 import ktx.assets.load
 import ktx.async.KtxAsync
-import ktx.async.newSingleThreadAsyncContext
 import ktx.freetype.generateFont
 import ktx.log.info
 import ktx.preferences.get
@@ -150,8 +149,6 @@ class SandboxTabletop : GFramework()
 	
 	lateinit var user: User
 	val userColor = Color(0F, 0F, 0F, 1F)
-	
-	val asyncContext = newSingleThreadAsyncContext()
 	
 	override fun create()
 	{

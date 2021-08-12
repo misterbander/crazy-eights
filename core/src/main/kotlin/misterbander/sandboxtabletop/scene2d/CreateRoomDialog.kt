@@ -18,6 +18,7 @@ import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import java.net.BindException
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 {
 	init
@@ -42,8 +43,8 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 						try
 						{
 							info("Network | INFO") { "Starting server on port $port..." }
-							@Suppress("BlockingMethodInNonBlockingContext")
-							withContext(game.asyncContext) {
+							Network.stopJob?.await()
+							withContext(screen.asyncContext) {
 								Network.server = Server().apply { start(); bind(port) }
 								Network.client = Client().apply {
 									addListener(screen)
@@ -59,7 +60,7 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 						{
 							screen.infoDialog.hide()
 							if (e is BindException)
-								screen.messageDialog.show("Error", "Port address $port is already in use", "OK", this@CreateRoomDialog::show)
+								screen.messageDialog.show("Error", "Port address $port is already in use.", "OK", this@CreateRoomDialog::show)
 							else
 								screen.messageDialog.show("Error", e.toString(), "OK", this@CreateRoomDialog::show)
 						}

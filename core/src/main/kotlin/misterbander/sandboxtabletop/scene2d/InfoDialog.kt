@@ -1,13 +1,13 @@
 package misterbander.sandboxtabletop.scene2d
 
-import com.badlogic.gdx.scenes.scene2d.ui.Label
+import ktx.scene2d.*
 import misterbander.gframework.util.wrap
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.SandboxTabletopScreen
 
 class InfoDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(screen, "")
 {
-	private val messageLabel = Label("", game.skin, INFO_LABEL_STYLE)
+	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE)
 	
 	init
 	{

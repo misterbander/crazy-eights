@@ -37,11 +37,11 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private val mainTable: Table by lazy {
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
-			textButton("Play", TEXT_BUTTON_STYLE, game.skin) {
+			textButton("Play", TEXT_BUTTON_STYLE) {
 				onChange { click.play(); showTable(playTable) }
 			}
 			row()
-			textButton("Quit", TEXT_BUTTON_STYLE, game.skin) {
+			textButton("Quit", TEXT_BUTTON_STYLE) {
 				onChange { click.play(); Gdx.app.exit() }
 			}
 		}
@@ -49,15 +49,15 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private val playTable: Table by lazy {
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
-			textButton("Create Room", TEXT_BUTTON_STYLE, game.skin) {
+			textButton("Create Room", TEXT_BUTTON_STYLE) {
 				onChange { click.play(); createRoomDialog.show() }
 			}
 			row()
-			textButton("Join Room", TEXT_BUTTON_STYLE, game.skin) {
+			textButton("Join Room", TEXT_BUTTON_STYLE) {
 				onChange { click.play(); joinRoomDialog.show() }
 			}
 			row()
-			textButton("Cancel", TEXT_BUTTON_STYLE, game.skin) {
+			textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { click.play(); showTable(mainTable) }
 			}
 		}

@@ -11,13 +11,13 @@ import misterbander.sandboxtabletop.MenuScreen
 abstract class RoomDialog(screen: MenuScreen, title: String) : SandboxTabletopDialog(screen, title)
 {
 	val usernameTextField by lazy {
-		scene2d.mbTextField(this, "", FORM_TEXT_FIELD_STYLE, game.skin) { maxLength = 20 }
+		scene2d.mbTextField(this, "", FORM_TEXT_FIELD_STYLE) { maxLength = 20 }
 	}
-	val colorButton = scene2d.imageButton(COLOR_BUTTON_STYLE, game.skin) {
+	val colorButton = scene2d.imageButton(COLOR_BUTTON_STYLE) {
 		onChange { screen.click.play(); colorPickerDialog.show() }
 	}
 	val portTextField by lazy {
-		scene2d.mbTextField(this, "", FORM_TEXT_FIELD_STYLE, game.skin) {
+		scene2d.mbTextField(this, "", FORM_TEXT_FIELD_STYLE) {
 			textFieldFilter = MBTextField.MBTextFieldFilter.DigitsOnlyFilter()
 		}
 	}

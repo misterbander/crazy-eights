@@ -1,8 +1,7 @@
 package misterbander.sandboxtabletop.scene2d
 
-import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import ktx.actors.onChange
+import ktx.scene2d.*
 import misterbander.gframework.util.wrap
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.SandboxTabletopScreen
@@ -10,8 +9,8 @@ import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 
 class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(screen, "")
 {
-	private val messageLabel = Label("", game.skin, INFO_LABEL_STYLE)
-	private val textButton: TextButton = TextButton("", game.skin, TEXT_BUTTON_STYLE).apply {
+	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE)
+	private val textButton = scene2d.textButton("", TEXT_BUTTON_STYLE) {
 		labelCell.prefWidth(192F)
 		onChange {
 			screen.click.play()

@@ -1,6 +1,5 @@
 package misterbander.sandboxtabletop.scene2d
 
-import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.Server
 import kotlinx.coroutines.launch
@@ -25,15 +24,15 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 	{
 		contentTable.apply {
 			defaults().left().space(16F)
-			add(Label("Username:", game.skin, INFO_LABEL_STYLE))
+			add(scene2d.label("Username:", INFO_LABEL_STYLE))
 			add(usernameTextField).prefWidth(288F)
 			add(colorButton)
 			row()
-			add(Label("Server Port:", game.skin, INFO_LABEL_STYLE))
+			add(scene2d.label("Server Port:", INFO_LABEL_STYLE))
 			add(portTextField).prefWidth(288F)
 		}
 		buttonTable.apply {
-			add(scene2d.textButton("Create", TEXT_BUTTON_STYLE, game.skin) {
+			add(scene2d.textButton("Create", TEXT_BUTTON_STYLE) {
 				onChange {
 					screen.click.play()
 					hide()
@@ -67,7 +66,7 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 					}
 				}
 			}).prefWidth(224F)
-			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE, game.skin) {
+			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { screen.click.play(); hide() }
 			})
 		}

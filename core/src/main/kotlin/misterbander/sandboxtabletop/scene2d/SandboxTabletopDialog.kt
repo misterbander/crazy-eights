@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Align
 import ktx.actors.alpha
 import ktx.actors.centerPosition
 import ktx.actors.onChange
+import ktx.scene2d.*
 import misterbander.gframework.scene2d.AccessibleInputDialog
 import misterbander.sandboxtabletop.ANIMATION_DURATION
 import misterbander.sandboxtabletop.CLOSE_BUTTON_STYLE
@@ -20,10 +21,10 @@ import misterbander.sandboxtabletop.WINDOW_STYLE
 abstract class SandboxTabletopDialog(
 	protected val screen: SandboxTabletopScreen,
 	title: String,
-) : AccessibleInputDialog(title, screen.game.skin, WINDOW_STYLE)
+) : AccessibleInputDialog(title, Scene2DSkin.defaultSkin, WINDOW_STYLE)
 {
 	protected val game: SandboxTabletop = screen.game
-	val closeButton: Button = Button(game.skin, CLOSE_BUTTON_STYLE).apply {
+	val closeButton: Button = scene2d.button(CLOSE_BUTTON_STYLE) {
 		onChange { screen.click.play(); hide() }
 	}
 	private val scaleFactor = 0.95F

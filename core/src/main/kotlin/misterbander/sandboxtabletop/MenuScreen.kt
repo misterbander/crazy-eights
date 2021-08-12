@@ -13,12 +13,14 @@ import ktx.actors.alpha
 import ktx.actors.onChange
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
+import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.scene2d.CreateRoomDialog
 import misterbander.sandboxtabletop.scene2d.InfoDialog
@@ -28,10 +30,9 @@ import misterbander.sandboxtabletop.scene2d.MessageDialog
 class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
 	private val createRoomDialog = CreateRoomDialog(this)
-	val joinRoomDialog = JoinRoomDialog(this)
+	private val joinRoomDialog = JoinRoomDialog(this)
 	val messageDialog = MessageDialog(this)
 	val infoDialog = InfoDialog(this)
-//	val connectingDialog = MessageDialog(this, "")
 	
 	private val mainTable: Table by lazy {
 		scene2d.table {
@@ -62,6 +63,8 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 	}
 	private var activeTable: Table
+	
+	val asyncContext = newSingleThreadAsyncContext("MenuScreen-AsyncExecutor-Thread")
 	
 	init
 	{
@@ -115,17 +118,27 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	override fun received(connection: Connection, `object`: Any)
 	{
 		infoDialog.hide()
-		if (`object` is Handshake) // Handshake is successful
+		when (`object`)
 		{
-			info("Client | INFO") { "Handshake successful. Joining as ${game.user.username} (UUID: ${game.user.uuid})..." }
-			connection.sendTCP(game.user)
-		}
-		else if (`object` is RoomState)
-		{
-			val roomScreen = game.getScreen<RoomScreen>()
-			Network.client!!.removeListener(this)
-			Network.client!!.addListener(roomScreen)
-			transition.start(targetScreen = roomScreen)
+			is Handshake -> // Handshake is successful
+			{
+				info("Client | INFO") { "Handshake successful. Joining as ${game.user.username} (UUID: ${game.user.uuid})..." }
+				connection.sendTCP(game.user)
+			}
+			is HandshakeReject ->
+			{
+				info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
+				Network.stop()
+				infoDialog.hide()
+				messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
+			}
+			is RoomState ->
+			{
+				val roomScreen = game.getScreen<RoomScreen>()
+				Network.client!!.removeListener(this)
+				Network.client!!.addListener(roomScreen)
+				transition.start(targetScreen = roomScreen)
+			}
 		}
 	}
 }

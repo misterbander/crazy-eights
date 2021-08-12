@@ -17,19 +17,27 @@ import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
+import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.collections.plusAssign
 import ktx.graphics.use
+import ktx.log.info
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.mbTextField
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
+import misterbander.sandboxtabletop.model.Chat
+import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.net.Network
+import misterbander.sandboxtabletop.net.packets.RoomState
+import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import kotlin.math.min
 
 class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
@@ -42,8 +50,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		onKey { character ->
 			if ((character == '\r' || character == '\n') && text.isNotEmpty())
 			{
-				addChatMessage(this@mbTextField.text)
-//				client.send(Chat(user, "<" + user.username.toString() + "> " + chatTextField.getText(), false))
+				Network.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text", false))
 				text = ""
 				uiStage.keyboardFocus = null
 			}
@@ -68,8 +75,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		Gdx.files.internal("shaders/vignette.fsh").readString()
 	)
 	
-//	private val otherUsers: ObjectMap<UUID, User> = ObjectMap<UUID, User>()
-//
+	var state: RoomState = RoomState()
+	
 //	@Null
 //	private var myCursor: Cursor? = null
 //	private val cursorPosition: CursorPosition
@@ -190,6 +197,24 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		return min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
 	}
 	
+	override fun received(connection: Connection, `object`: Any)
+	{
+		when (`object`)
+		{
+			is UserJoinEvent ->
+			{
+				chat("${`object`.user.username} joined the game", Color.YELLOW)
+				if (`object`.user != game.user && `object`.user !in state.users)
+					addUser(`object`.user)
+			}
+			is Chat ->
+			{
+				chat(`object`.message, if (`object`.isSystemMessage) Color.YELLOW else null)
+				info("Client | CHAT") { `object`.message }
+			}
+		}
+	}
+	
 //	fun connectionClosed(connection: Connection?, e: Exception)
 //	{
 //		val menuScreen = MenuScreen(game)
@@ -210,29 +235,21 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //		}
 //	fun objectReceived(connection: Connection?, `object`: Serializable)
 //	{
-//		if (`object` is Chat)
-//		{
-//			val chat: Chat = `object` as Chat
-//			Gdx.app.log("SandboxTabletopClient | CHAT", chat.message)
-//			addChatMessage(chat.message, if (chat.isSystemMessage) Color.YELLOW else null)
-//		} else if (`object` is UserList)
+//		if (`object` is UserList)
 //		{
 //			val users: Array<User> = (`object` as UserList).users
 //			for (user in users)
 //			{
 //				if (!user.equals(this.user)) addUser(user)
 //			}
-//		} else if (`object` is UserEvent.UserJoinEvent)
-//		{
-//			val event: UserEvent.UserJoinEvent = `object` as UserEvent.UserJoinEvent
-//			addChatMessage(event.user.username.toString() + " joined the game", Color.YELLOW)
-//			if (!event.user.equals(user) && !otherUsers.containsKey(event.user.uuid)) addUser(event.user)
-//		} else if (`object` is UserEvent.UserLeaveEvent)
+//		}
+//		else if (`object` is UserEvent.UserLeaveEvent)
 //		{
 //			val event: UserEvent.UserLeaveEvent = `object` as UserEvent.UserLeaveEvent
 //			addChatMessage(event.user.username.toString() + " left the game", Color.YELLOW)
 //			removeUser(event.user)
-//		} else if (`object` is ServerObjectList)
+//		}
+//		else if (`object` is ServerObjectList)
 //		{
 //			val objectList: Array<ServerObject> = (`object` as ServerObjectList).objects
 //			for (i in objectList.indices)
@@ -264,12 +281,14 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //			}
 //			println("Arranging cards")
 //			hand.arrangeCards(false)
-//		} else if (`object` is CursorPosition)
+//		}
+//		else if (`object` is CursorPosition)
 //		{
 //			val cursorPosition: CursorPosition = `object` as CursorPosition
 //			val user: User? = otherUsers.get<UUID>(cursorPosition.userUuid)
 //			if (user != null) user.cursor.setTargetPosition(cursorPosition.getX() - 3, cursorPosition.getY() - 32)
-//		} else if (`object` is LockEvent)
+//		}
+//		else if (`object` is LockEvent)
 //		{
 //			val event: LockEvent = `object` as LockEvent
 //			val actor: Actor = uuidActorMap.get<UUID>(event.lockedUuid)
@@ -279,7 +298,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //				card.setZIndex(uuidActorMap.size)
 //				card.lockHolder = event.lockHolder
 //			}
-//		} else if (`object` is OwnerEvent)
+//		}
+//		else if (`object` is OwnerEvent)
 //		{
 //			val event: OwnerEvent = `object` as OwnerEvent
 //			val actor: Actor = uuidActorMap.get<UUID>(event.ownedUuid)
@@ -289,7 +309,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //				card.owner = event.owner
 //				card.setVisible(card.owner == null || card.owner.equals(user))
 //			}
-//		} else if (`object` is ServerObjectPosition)
+//		}
+//		else if (`object` is ServerObjectPosition)
 //		{
 //			val serverObjectPosition: ServerObjectPosition = `object` as ServerObjectPosition
 //			val actor: Actor = uuidActorMap.get<UUID>(serverObjectPosition.uuid)
@@ -298,7 +319,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //				val card: Card = actor as Card
 //				if (card.owner == null) card.setTargetPosition(serverObjectPosition.x, serverObjectPosition.y)
 //			}
-//		} else if (`object` is FlipCardEvent)
+//		}
+//		else if (`object` is FlipCardEvent)
 //		{
 //			val flipCardEvent: FlipCardEvent = `object` as FlipCardEvent
 //			val actor: Actor = uuidActorMap.get<UUID>(flipCardEvent.uuid)
@@ -316,7 +338,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	 * @param message the message
 	 * @param color   color of the chat message
 	 */
-	private fun addChatMessage(message: String, color: Color? = null)
+	private fun chat(message: String, color: Color? = null)
 	{
 		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE, game.skin) {
 			wrap = true
@@ -348,15 +370,14 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		chatHistoryScrollPane.scrollPercentY = 100F
 	}
 	
-//	private fun addUser(user: User)
-//	{
-//		otherUsers.put(user.uuid, user)
+	private fun addUser(user: User)
+	{
+		state.users += user
 //		val cursor = Cursor(user, game.skin, false)
 //		user.cursor = cursor
 //		stage.addActor(cursor)
-//		Gdx.app.log("RoomScreen | INFO", "Added " + user.username)
-//	}
-//
+	}
+	
 //	private fun removeUser(user: User)
 //	{
 //		val removedUser: User = otherUsers.remove(user.uuid)!!
@@ -406,5 +427,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	{
 		super.dispose()
 		shader.dispose()
+		chatHistory.clearChildren()
+		Network.stop()
 	}
 }

@@ -8,10 +8,13 @@ import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.GdxSet
+import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.RoomState
+import misterbander.sandboxtabletop.net.packets.UserJoinEvent
+import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import org.objenesis.instantiator.ObjectInstantiator
 import java.util.UUID
 
@@ -24,7 +27,7 @@ object Network
 				throw IllegalStateException("Overwriting nonnull server field")
 			field = value?.apply {
 				kryo.registerClasses()
-				addListener(SandboxTabletopServerListener())
+				addListener(SandboxTabletopServerListener(value))
 			}
 		}
 	var client: Client? = null
@@ -51,6 +54,9 @@ object Network
 		register(User::class.java)
 		register(GdxSet::class.java, ObjectSetSerializer<GdxSet<Any>>())
 		register(RoomState::class.java)
+		register(UserJoinEvent::class.java)
+		register(UserLeaveEvent::class.java)
+		register(Chat::class.java)
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")

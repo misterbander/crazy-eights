@@ -59,6 +59,58 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen, ContactListener
 		world?.setContactListener(this)
 	}
 	
+	override fun render(delta: Float)
+	{
+		clearScreen()
+		renderStage(camera, stage, delta)
+		renderStage(uiCamera, uiStage, delta)
+		updateWorld()
+	}
+	
+	/**
+	 * Clears the screen and paints it black. Gets called every frame.
+	 *
+	 * You can override this to change the background color.
+	 */
+	open fun clearScreen()
+	{
+		Gdx.gl.glClearColor(0F, 0F, 0F, 1F)
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+	}
+	
+	protected fun renderStage(camera: Camera, stage: Stage, delta: Float)
+	{
+		camera.update()
+		game.batch.projectionMatrix = camera.combined
+		game.shapeRenderer.projectionMatrix = camera.combined
+		game.shapeDrawer.update()
+		stage.act(delta)
+		stage.draw()
+	}
+	
+	protected fun updateWorld()
+	{
+		scheduledAddingGObjects.forEach { spawnGObject(it) }
+		scheduledAddingGObjects.clear()
+		
+		world?.step(1/60F, 6, 4)
+		
+		scheduledRemovalGObjects.forEach { it.remove() }
+		scheduledRemovalGObjects.clear()
+	}
+	
+	override fun resize(width: Int, height: Int)
+	{
+		if (viewport is ExtendViewport)
+		{
+			val extendViewport = viewport as ExtendViewport
+			camera.position.set(extendViewport.minWorldWidth/2, extendViewport.minWorldHeight /2, 0F)
+		}
+		viewport.update(width, height, false)
+		uiViewport.update(width, height, true)
+		Gdx.graphics.requestRendering()
+	}
+	
 	/**
 	 * Spawns the GObject into the world and adds it to the stage. Calls `GObject::onSpawn()`.
 	 */
@@ -92,58 +144,6 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen, ContactListener
 	override fun preSolve(contact: Contact, oldManifold: Manifold) = Unit
 	
 	override fun postSolve(contact: Contact, impulse: ContactImpulse) = Unit
-	
-	override fun resize(width: Int, height: Int)
-	{
-		if (viewport is ExtendViewport)
-		{
-			val extendViewport = viewport as ExtendViewport
-			camera.position.set(extendViewport.minWorldWidth/2, extendViewport.minWorldHeight /2, 0F)
-		}
-		viewport.update(width, height, false)
-		uiViewport.update(width, height, true)
-		Gdx.graphics.requestRendering()
-	}
-	
-	override fun render(delta: Float)
-	{
-		clearScreen()
-		renderStage(camera, stage, delta)
-		renderStage(uiCamera, uiStage, delta)
-		updateWorld()
-	}
-	
-	protected fun renderStage(camera: Camera, stage: Stage, delta: Float)
-	{
-		camera.update()
-		game.batch.projectionMatrix = camera.combined
-		game.shapeRenderer.projectionMatrix = camera.combined
-		game.shapeDrawer.update()
-		stage.act(delta)
-		stage.draw()
-	}
-	
-	protected fun updateWorld()
-	{
-		scheduledAddingGObjects.forEach { spawnGObject(it) }
-		scheduledAddingGObjects.clear()
-		
-		world?.step(1/60F, 6, 4)
-		
-		scheduledRemovalGObjects.forEach { it.remove() }
-		scheduledRemovalGObjects.clear()
-	}
-	
-	/**
-	 * Clears the screen and paints it black. Gets called every frame.
-	 *
-	 * You can override this to change the background color.
-	 */
-	open fun clearScreen()
-	{
-		Gdx.gl.glClearColor(0F, 0F, 0F, 1F)
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
-	}
 	
 	override fun dispose() = stage.dispose()
 }

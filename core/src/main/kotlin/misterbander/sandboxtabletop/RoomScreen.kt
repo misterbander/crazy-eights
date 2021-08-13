@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Cursor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -18,11 +19,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
+import ktx.actors.onChange
 import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.collections.minusAssign
 import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.log.info
@@ -37,11 +40,17 @@ import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
+import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
+import misterbander.sandboxtabletop.scene2d.GameMenuDialog
 import kotlin.math.min
 
 class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
-	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE)
+	private val gameMenuDialog = GameMenuDialog(this)
+	
+	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
+		onChange { click.play(); gameMenuDialog.show() }
+	}
 	private val chatTextField = scene2d.mbTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
 		messageText = if (Gdx.app.type == Application.ApplicationType.Android) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
@@ -72,8 +81,12 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private val shader = ShaderProgram(
 		Gdx.files.internal("shaders/passthrough.vsh").readString(),
 		Gdx.files.internal("shaders/vignette.fsh").readString()
-	)
+	).apply {
+		if (!isCompiled)
+			ktx.log.error("RoomScreen | ERROR") { log }
+	}
 	
+	var selfDisconnect = false
 	var state: RoomState = RoomState()
 	
 //	@Null
@@ -92,7 +105,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	init
 	{
 //		cursorPosition = CursorPosition(user.uuid, 640, 360)
-//		val gameMenuWindow = GameMenuWindow(this)
 		
 		uiStage += object : Actor()
 		{
@@ -123,8 +135,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				}.inCell.left()
 			}.cell(pad = 16F, expandX = true, fillX = true, maxHeight = 312F)
 		}
-
-//		menuButton.addListener(ChangeListener(gameMenuWindow::show))
+		
 		uiStage.scrollFocus = chatHistoryScrollPane
 		
 		uiStage.addListener(object : InputListener()
@@ -150,8 +161,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //			myCursor = Cursor(user, game.skin, true)
 //			stage.addActor(myCursor)
 //		} TODO add cursor
-		if (!shader.isCompiled)
-			ktx.log.error("RoomScreen | ERROR") { shader.log }
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -196,6 +205,15 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		return min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
 	}
 	
+	override fun disconnected(connection: Connection)
+	{
+		val menuScreen = game.getScreen<MenuScreen>()
+		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
+		if (!selfDisconnect)
+			menuScreen.messageDialog.show("Disconnected", "Server closed.", "OK")
+		transition.start(targetScreen = menuScreen)
+	}
+	
 	override fun received(connection: Connection, `object`: Any)
 	{
 		when (`object`)
@@ -206,6 +224,11 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				if (`object`.user != game.user && `object`.user !in state.users)
 					addUser(`object`.user)
 			}
+			is UserLeaveEvent ->
+			{
+				chat("${`object`.user.username} left the game", Color.YELLOW)
+				removeUser(`object`.user)
+			}
 			is Chat ->
 			{
 				chat(`object`.message, if (`object`.isSystemMessage) Color.YELLOW else null)
@@ -214,24 +237,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 	}
 	
-//	fun connectionClosed(connection: Connection?, e: Exception)
-//	{
-//		val menuScreen = MenuScreen(game)
-//		game.setScreen(menuScreen)
-//		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
-//		if (!client.isDisconnectIntentional())
-//		{
-//			val errorMessage = e.toString() + if (e.cause != null) """
-//
-// 	${e.cause}
-// 	""".trimIndent() else ""
-//			menuScreen.connectingDialog.show(
-//				"Disconnected",
-//				if ("Connection reset" == e.message) "Server closed." else errorMessage,
-//				"OK",
-//				null
-//			)
-//		}
 //	fun objectReceived(connection: Connection?, `object`: Serializable)
 //	{
 //		if (`object` is UserList)
@@ -377,12 +382,13 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //		stage.addActor(cursor)
 	}
 	
-//	private fun removeUser(user: User)
-//	{
+	private fun removeUser(user: User)
+	{
+		state.users -= user
 //		val removedUser: User = otherUsers.remove(user.uuid)!!
 //		removedUser.cursor.remove()
 //		Gdx.app.log("RoomScreen | INFO", "Removed " + user.username)
-//	}
+	}
 	
 	
 	override fun render(delta: Float)
@@ -422,11 +428,17 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 	}
 	
+	override fun hide()
+	{
+		chatPopup.clearChildren()
+		chatHistory.clearChildren()
+		selfDisconnect = false
+		Network.stop()
+	}
+	
 	override fun dispose()
 	{
 		super.dispose()
 		shader.dispose()
-		chatHistory.clearChildren()
-		Network.stop()
 	}
 }

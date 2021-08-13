@@ -117,7 +117,6 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	override fun received(connection: Connection, `object`: Any)
 	{
-		infoDialog.hide()
 		when (`object`)
 		{
 			is Handshake -> // Handshake is successful
@@ -136,6 +135,8 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			{
 				val roomScreen = game.getScreen<RoomScreen>()
 				roomScreen.state = `object`
+				messageDialog.actionlessHide()
+				infoDialog.hide()
 				Network.client!!.removeListener(this)
 				Network.client!!.addListener(roomScreen)
 				transition.start(targetScreen = roomScreen)

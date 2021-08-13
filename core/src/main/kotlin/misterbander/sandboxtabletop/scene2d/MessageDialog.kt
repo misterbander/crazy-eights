@@ -27,7 +27,7 @@ class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(scree
 		buttonTable.add(textButton)
 	}
 	
-	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)?) =
+	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)? = null) =
 		show(title, message, buttonText, hideAction, hideAction)
 	
 	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)?, buttonAction: (() -> Unit)?)
@@ -44,5 +44,10 @@ class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(scree
 	{
 		super.hide()
 		hideAction?.invoke()
+	}
+	
+	fun actionlessHide()
+	{
+		super.hide()
 	}
 }

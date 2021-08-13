@@ -14,6 +14,7 @@ import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
+import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
 class SandboxTabletopServerListener(private val server: Server) : Listener
 {
@@ -31,7 +32,12 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 	{
 		handshookConnections.remove(connection.id)
 		if (connection.arbitraryData is User)
-			state.users -= connection.arbitraryData as User
+		{
+			val user = connection.arbitraryData as User
+			state.users -= user
+			server.sendToAllTCP(UserLeaveEvent(user))
+			info("Server | INFO") { "${user.username} (UUID: ${user.uuid}) left the game" }
+		}
 	}
 	
 	override fun received(connection: Connection, `object`: Any)

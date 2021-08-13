@@ -23,28 +23,3 @@ fun angle(x1: Int, y1: Int, x2: Int, y2: Int): Float = angle(x1.toFloat(), y1.to
  * anti-clockwise. Angles are between 0 and 360.
  */
 fun angle(x1: Float, y1: Float, x2: Float, y2: Float): Float = tempVec.set(x2 - x1, y2 - y1).angleDeg()
-
-/**
- * Treats a range as a cycle and "wraps" an int within the cycle.
- */
-infix fun Int.cycle(range: IntRange): Int
-{
-	var i = this
-	val size = range.last - range.first + 1
-	while (i > range.last)
-		i -= size
-	while (i < range.first)
-		i += size
-	return i
-}
-
-infix fun Float.cycle(range: ClosedFloatingPointRange<Float>): Float
-{
-	var f = this
-	val size = range.endInclusive - range.start
-	while (f > range.endInclusive)
-		f -= size
-	while (f < range.start)
-		f += size
-	return f
-}

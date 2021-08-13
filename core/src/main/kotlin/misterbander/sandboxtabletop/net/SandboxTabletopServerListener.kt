@@ -36,7 +36,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 			val user = connection.arbitraryData as User
 			state.users -= user
 			server.sendToAllTCP(UserLeaveEvent(user))
-			info("Server | INFO") { "${user.username} (UUID: ${user.uuid}) left the game" }
+			info("Server | INFO") { "${user.username} left the game" }
 		}
 	}
 	
@@ -65,7 +65,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 				
 				// Handshake is successful
 				handshookConnections.add(connection.id)
-				connection.sendTCP(Handshake(VERSION_STRING))
+				connection.sendTCP(Handshake())
 				info("Server | INFO") { "Successful handshake from $connection" }
 			}
 			else
@@ -81,7 +81,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 				state.users += `object`
 				connection.sendTCP(state)
 				server.sendToAllTCP(UserJoinEvent(`object`))
-				info("Server | INFO") { "${`object`.username} (UUID: ${`object`.uuid}) joined the game" }
+				info("Server | INFO") { "${`object`.username} joined the game" }
 			}
 			is Chat -> server.sendToAllTCP(`object`)
 		}

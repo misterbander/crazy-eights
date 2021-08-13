@@ -1,10 +1,9 @@
 package misterbander.sandboxtabletop.net.packets
 
-data class Handshake(val versionString: String, val data: Array<String>? = null)
+import misterbander.sandboxtabletop.VERSION_STRING
+
+data class Handshake(val versionString: String = VERSION_STRING, val data: Array<String>? = null)
 {
-	@Suppress("UNUSED")
-	private constructor() : this("")
-	
 	override fun equals(other: Any?): Boolean
 	{
 		if (this === other)

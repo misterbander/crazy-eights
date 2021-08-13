@@ -15,7 +15,6 @@ import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.MenuScreen
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
-import misterbander.sandboxtabletop.VERSION_STRING
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import kotlin.coroutines.cancellation.CancellationException
@@ -67,7 +66,7 @@ class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
 							}
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
-							Network.client!!.sendTCP(Handshake(VERSION_STRING, arrayOf(game.user.username)))
+							Network.client!!.sendTCP(Handshake(data = arrayOf(game.user.username)))
 						}
 						catch (e: Exception)
 						{

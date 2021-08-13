@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
-import com.esotericsoftware.minlog.Log
 import ktx.assets.getValue
 import ktx.assets.load
 import ktx.async.KtxAsync
@@ -154,7 +153,7 @@ class SandboxTabletop : GFramework()
 	override fun create()
 	{
 		Gdx.app.logLevel = Application.LOG_DEBUG
-		Log.set(Log.LEVEL_DEBUG)
+//		Log.set(Log.LEVEL_DEBUG)
 		KtxAsync.initiate()
 		
 		assetManager.load("textures/logo.png", Texture::class.java)

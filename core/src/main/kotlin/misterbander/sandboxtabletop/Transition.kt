@@ -19,9 +19,9 @@ class Transition(private val screen: SandboxTabletopScreen)
 	{
 		screen.stage.addCaptureListener(screen.ignoreTouchDown)
 		screen.uiStage.addCaptureListener(screen.ignoreTouchDown)
+		time = if (isRunning && this.isTransitioningIn != isTransitioningIn) duration - time else 0F
 		isRunning = true
 		this.isTransitioningIn = isTransitioningIn
-		time = 0F
 		this.targetScreen = targetScreen
 	}
 	

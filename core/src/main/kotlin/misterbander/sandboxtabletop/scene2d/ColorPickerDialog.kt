@@ -25,7 +25,7 @@ class ColorPickerDialog(screen: MenuScreen, parent: RoomDialog) : SandboxTableto
 				onChange {
 					screen.click.play()
 					hide()
-					game.userColor.fromHsv(hueSlider.value, 0.8F, 0.8F)
+					game.user.color.fromHsv(hueSlider.value, 0.8F, 0.8F)
 					parent.colorButton.image.color.fromHsv(hueSlider.value, 0.8F, 0.8F)
 				}
 			}).prefWidth(224F)
@@ -38,6 +38,6 @@ class ColorPickerDialog(screen: MenuScreen, parent: RoomDialog) : SandboxTableto
 	override fun show()
 	{
 		super.show()
-		hueSlider.value = game.userColor.toHsv(FloatArray(3))[0]
+		hueSlider.value = game.user.color.toHsv(FloatArray(3))[0]
 	}
 }

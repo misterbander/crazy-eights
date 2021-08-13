@@ -28,7 +28,7 @@ abstract class RoomDialog(screen: MenuScreen, title: String) : SandboxTabletopDi
 	{
 		super.show()
 		usernameTextField.text = game.user.username
-		colorButton.image.color.fromHsv(game.userColor.toHsv(FloatArray(3))[0], 0.8F, 0.8F)
+		colorButton.image.color.fromHsv(game.user.color.toHsv(FloatArray(3))[0], 0.8F, 0.8F)
 	}
 	
 	override fun hide()

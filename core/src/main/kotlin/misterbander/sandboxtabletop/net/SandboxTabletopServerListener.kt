@@ -9,6 +9,7 @@ import ktx.collections.plusAssign
 import ktx.log.info
 import misterbander.sandboxtabletop.VERSION_STRING
 import misterbander.sandboxtabletop.model.Chat
+import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
@@ -84,6 +85,11 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 				info("Server | INFO") { "${`object`.username} joined the game" }
 			}
 			is Chat -> server.sendToAllTCP(`object`)
+			is CursorPosition ->
+			{
+				server.sendToAllTCP(`object`)
+				cursorPositionPool.free(`object`)
+			}
 		}
 	}
 }

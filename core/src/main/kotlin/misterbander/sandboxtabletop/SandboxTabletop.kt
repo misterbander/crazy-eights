@@ -74,6 +74,8 @@ class SandboxTabletop : GFramework()
 				background.bottomHeight = 4F
 			}
 			label(PLAYER_NAMETAG_LABEL_STYLE) {
+				font = jhengheiuiTiny
+				fontColor = Color.WHITE
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 2F
 				background.leftWidth = 12F
@@ -147,7 +149,6 @@ class SandboxTabletop : GFramework()
 	}
 	
 	lateinit var user: User
-	val userColor = Color(0F, 0F, 0F, 1F)
 	
 	override fun create()
 	{
@@ -169,9 +170,9 @@ class SandboxTabletop : GFramework()
 		
 		user = User(username)
 		if (userColorStr != null)
-			Color.valueOf(userColorStr, userColor)
+			Color.valueOf(userColorStr, user.color)
 		else
-			userColor.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
+			user.color.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
 		savePreferences()
 		
 		addScreen(MenuScreen(this))
@@ -183,7 +184,7 @@ class SandboxTabletop : GFramework()
 	{
 		val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
 		preferences["username"] = user.username
-		preferences["color"] = userColor.toString()
+		preferences["color"] = user.color.toString()
 		preferences.flush()
 	}
 }

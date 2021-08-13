@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Cursor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
@@ -17,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import ktx.actors.onChange
@@ -25,10 +27,13 @@ import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.async.interval
 import ktx.collections.minusAssign
 import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.log.info
+import ktx.math.component1
+import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.mbTextField
@@ -36,16 +41,20 @@ import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
 import misterbander.sandboxtabletop.model.Chat
-import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.Network
+import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.GameMenuDialog
+import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
+import misterbander.sandboxtabletop.scene2d.Tabletop
 import kotlin.math.min
 
 class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
+	// UI
 	private val gameMenuDialog = GameMenuDialog(this)
 	
 	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
@@ -85,27 +94,24 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		if (!isCompiled)
 			ktx.log.error("RoomScreen | ERROR") { log }
 	}
-	
 	var selfDisconnect = false
-	var state: RoomState = RoomState()
 	
-//	@Null
-//	private var myCursor: Cursor? = null
-//	private val cursorPosition: CursorPosition
-//
+	// Room and client states
+	private val tabletop = Tabletop()
+	var state: RoomState = RoomState()
+	private val cursorPosition = CursorPosition()
+	private var updateCursorTask: Timer.Task? = null
+	
 //	@Null
 //	var latestServerObjectPosition: ServerObjectPosition? = null
 //	val uuidActorMap: ObjectMap<UUID, Actor> = ObjectMap<UUID, Actor>()
 //	val hand: Hand = Hand(this)
 //	private val handRegion: TextureRegion = game.skin.getRegion("hand")
 	
-	private var tick = 0F
-	private val tickTime = 1/40F
+	private val tps = 1/40F
 	
 	init
 	{
-//		cursorPosition = CursorPosition(user.uuid, 640, 360)
-		
 		uiStage += object : Actor()
 		{
 			init
@@ -135,9 +141,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				}.inCell.left()
 			}.cell(pad = 16F, expandX = true, fillX = true, maxHeight = 312F)
 		}
-		
 		uiStage.scrollFocus = chatHistoryScrollPane
-		
 		uiStage.addListener(object : InputListener()
 		{
 			override fun keyDown(event: InputEvent, keycode: Int): Boolean
@@ -154,13 +158,9 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				return false
 			}
 		})
-
+		stage += tabletop.cursors
+		
 //		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
-//		if (Gdx.app.getType() != Application.ApplicationType.Desktop)
-//		{
-//			myCursor = Cursor(user, game.skin, true)
-//			stage.addActor(myCursor)
-//		} TODO add cursor
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -180,24 +180,91 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	override fun show()
 	{
 		super.show()
+		val user = game.user
 		
-		val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
-		val cursorBorderPixmap = cursorBorder.toPixmap()
-		val cursorBase: TextureRegion = Scene2DSkin.defaultSkin["cursorbase"]
-		val cursorBasePixmap = cursorBase.toPixmap()
-		for (i in 0 until cursorBasePixmap.width)
+		// Set up cursors
+		if (Gdx.app.type == Application.ApplicationType.Desktop)
 		{
-			for (j in 0 until cursorBasePixmap.height)
+			val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
+			val cursorBorderPixmap = cursorBorder.toPixmap()
+			val cursorBase: TextureRegion = Scene2DSkin.defaultSkin["cursorbase"]
+			val cursorBasePixmap = cursorBase.toPixmap()
+			for (i in 0 until cursorBasePixmap.width)
 			{
-				val color = Color(cursorBasePixmap.getPixel(i, j))
-				cursorBasePixmap.setColor(color.mul(game.userColor))
-				cursorBasePixmap.drawPixel(i, j)
+				for (j in 0 until cursorBasePixmap.height)
+				{
+					val color = Color(cursorBasePixmap.getPixel(i, j))
+					cursorBasePixmap.setColor(color.mul(user.color))
+					cursorBasePixmap.drawPixel(i, j)
+				}
+			}
+			cursorBorderPixmap.drawPixmap(cursorBasePixmap, 0, 0)
+			Gdx.graphics.setCursor(Gdx.graphics.newCursor(cursorBorderPixmap, 3, 0))
+			cursorBorderPixmap.dispose()
+			cursorBasePixmap.dispose()
+		}
+		state.users.forEach { // Add cursor for other users
+			if (it != user)
+				tabletop.addCursor(it.username, SandboxTabletopCursor(it))
+		}
+		if (Gdx.app.type != Application.ApplicationType.Desktop) // Add own cursor only if not on desktop
+		{
+			tabletop.myCursor = SandboxTabletopCursor(user)
+			tabletop.addCursor(user.username, tabletop.myCursor!!)
+		}
+		cursorPosition.username = user.username
+		updateCursorTask = interval(tps, tps) {
+			val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
+			if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
+			{
+				cursorPosition.x = inputX
+				cursorPosition.y = inputY
+				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
+				Network.client?.sendTCP(cursorPosition)
+//				if (latestServerObjectPosition != null)
+//				{
+//					client.send(latestServerObjectPosition)
+//					latestServerObjectPosition = null
+//				}
 			}
 		}
-		cursorBorderPixmap.drawPixmap(cursorBasePixmap, 0, 0)
-		Gdx.graphics.setCursor(Gdx.graphics.newCursor(cursorBorderPixmap, 3, 0))
-		cursorBorderPixmap.dispose()
-		cursorBasePixmap.dispose()
+	}
+	
+	/**
+	 * Appends a chat message to the chat history, and adds a chat label that disappears after 5 seconds.
+	 * @param message the message
+	 * @param color   color of the chat message
+	 */
+	private fun chat(message: String, color: Color? = null)
+	{
+		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE) {
+			wrap = true
+			if (color != null)
+				this.color = color.cpy()
+		}
+		chatPopup += scene2d.container(chatLabel) {
+			width(chatLabel.style.font.chatTextWidth(message))
+			val alphaAction = AlphaAction().apply { alpha = 0F; duration = 1F }
+			val removeActorAction = RemoveActorAction().apply { target = this@container } // Action to remove label after fade out
+			this += DelayAction(10F) then alphaAction then removeActorAction
+		}
+		
+		if (chatPopup.children.size == 7) // Maximum 6 children
+		{
+			val firstChatPopup: Actor = chatPopup.removeActorAt(0, false)
+			firstChatPopup.clear()
+		}
+		
+		// Add to history
+		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE) {
+			wrap = true
+			if (color != null)
+				this.color = color.cpy()
+		}
+		chatHistory.pad(4F, 16F, 4F, 16F).space(8F)
+		chatHistory += chatHistoryLabel
+		chatHistoryScrollPane.layout()
+		chatHistoryScrollPane.scrollPercentY = 100F
 	}
 	
 	private fun BitmapFont.chatTextWidth(message: String): Float
@@ -208,7 +275,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	override fun disconnected(connection: Connection)
 	{
 		val menuScreen = game.getScreen<MenuScreen>()
-		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 		if (!selfDisconnect)
 			menuScreen.messageDialog.show("Disconnected", "Server closed.", "OK")
 		transition.start(targetScreen = menuScreen)
@@ -220,40 +286,38 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		{
 			is UserJoinEvent ->
 			{
-				chat("${`object`.user.username} joined the game", Color.YELLOW)
-				if (`object`.user != game.user && `object`.user !in state.users)
-					addUser(`object`.user)
+				val user = `object`.user
+				if (user != game.user)
+				{
+					state.users += user
+					tabletop.addCursor(user.username, SandboxTabletopCursor(user))
+				}
+				chat("${user.username} joined the game", Color.YELLOW)
 			}
 			is UserLeaveEvent ->
 			{
-				chat("${`object`.user.username} left the game", Color.YELLOW)
-				removeUser(`object`.user)
+				val user = `object`.user
+				state.users -= user
+				tabletop.removeCursor(user.username)
+				chat("${user.username} left the game", Color.YELLOW)
 			}
 			is Chat ->
 			{
 				chat(`object`.message, if (`object`.isSystemMessage) Color.YELLOW else null)
 				info("Client | CHAT") { `object`.message }
 			}
+			is CursorPosition ->
+			{
+				val cursor: SandboxTabletopCursor? = tabletop.userCursorMap[`object`.username]
+				cursor?.setTargetPosition(`object`.x, `object`.y)
+				cursorPositionPool.free(`object`)
+			}
 		}
 	}
 	
 //	fun objectReceived(connection: Connection?, `object`: Serializable)
 //	{
-//		if (`object` is UserList)
-//		{
-//			val users: Array<User> = (`object` as UserList).users
-//			for (user in users)
-//			{
-//				if (!user.equals(this.user)) addUser(user)
-//			}
-//		}
-//		else if (`object` is UserEvent.UserLeaveEvent)
-//		{
-//			val event: UserEvent.UserLeaveEvent = `object` as UserEvent.UserLeaveEvent
-//			addChatMessage(event.user.username.toString() + " left the game", Color.YELLOW)
-//			removeUser(event.user)
-//		}
-//		else if (`object` is ServerObjectList)
+//		if (`object` is ServerObjectList)
 //		{
 //			val objectList: Array<ServerObject> = (`object` as ServerObjectList).objects
 //			for (i in objectList.indices)
@@ -285,12 +349,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //			}
 //			println("Arranging cards")
 //			hand.arrangeCards(false)
-//		}
-//		else if (`object` is CursorPosition)
-//		{
-//			val cursorPosition: CursorPosition = `object` as CursorPosition
-//			val user: User? = otherUsers.get<UUID>(cursorPosition.userUuid)
-//			if (user != null) user.cursor.setTargetPosition(cursorPosition.getX() - 3, cursorPosition.getY() - 32)
 //		}
 //		else if (`object` is LockEvent)
 //		{
@@ -337,60 +395,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //		}
 //	}
 	
-	/**
-	 * Appends a chat message to the chat history, and adds a chat label that disappears after 5 seconds.
-	 * @param message the message
-	 * @param color   color of the chat message
-	 */
-	private fun chat(message: String, color: Color? = null)
-	{
-		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE) {
-			wrap = true
-			if (color != null)
-				this.color = color.cpy()
-		}
-		chatPopup += scene2d.container(chatLabel) {
-			width(chatLabel.style.font.chatTextWidth(message))
-			val alphaAction = AlphaAction().apply { alpha = 0F; duration = 1F }
-			val removeActorAction = RemoveActorAction().apply { target = this@container } // Action to remove label after fade out
-			this += DelayAction(10F) then alphaAction then removeActorAction
-		}
-		
-		if (chatPopup.children.size == 7) // Maximum 6 children
-		{
-			val firstChatPopup: Actor = chatPopup.removeActorAt(0, false)
-			firstChatPopup.clear()
-		}
-		
-		// Add to history
-		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE) {
-			wrap = true
-			if (color != null)
-				this.color = color.cpy()
-		}
-		chatHistory.pad(4F, 16F, 4F, 16F).space(8F)
-		chatHistory += chatHistoryLabel
-		chatHistoryScrollPane.layout()
-		chatHistoryScrollPane.scrollPercentY = 100F
-	}
-	
-	private fun addUser(user: User)
-	{
-		state.users += user
-//		val cursor = Cursor(user, game.skin, false)
-//		user.cursor = cursor
-//		stage.addActor(cursor)
-	}
-	
-	private fun removeUser(user: User)
-	{
-		state.users -= user
-//		val removedUser: User = otherUsers.remove(user.uuid)!!
-//		removedUser.cursor.remove()
-//		Gdx.app.log("RoomScreen | INFO", "Removed " + user.username)
-	}
-	
-	
 	override fun render(delta: Float)
 	{
 		transitionCamera.update()
@@ -408,24 +412,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		renderStage(uiCamera, uiStage, delta)
 		updateWorld()
 		transition.render()
-		
-		tick += delta
-		if (tick > tickTime)
-		{
-			tick = 0F
-			tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
-			stage.screenToStageCoordinates(tempVec)
-//			if (cursorPosition.set(tempVec.x, tempVec.y))
-//			{
-//				client.send(cursorPosition)
-//				if (myCursor != null) myCursor.setTargetPosition(cursorPosition.getX() - 3, cursorPosition.getY() - 32)
-//				if (latestServerObjectPosition != null)
-//				{
-//					client.send(latestServerObjectPosition)
-//					latestServerObjectPosition = null
-//				}
-//			}
-		}
 	}
 	
 	override fun hide()
@@ -433,6 +419,10 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		chatPopup.clearChildren()
 		chatHistory.clearChildren()
 		selfDisconnect = false
+		tabletop.reset()
+		updateCursorTask?.cancel()
+		updateCursorTask = null
+		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 		Network.stop()
 	}
 	

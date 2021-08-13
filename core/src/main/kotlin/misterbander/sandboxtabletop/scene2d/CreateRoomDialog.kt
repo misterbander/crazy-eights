@@ -12,7 +12,6 @@ import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.MenuScreen
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
-import misterbander.sandboxtabletop.VERSION_STRING
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import java.net.BindException
@@ -53,7 +52,7 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 							}
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
-							Network.client!!.sendTCP(Handshake(VERSION_STRING, arrayOf(game.user.username)))
+							Network.client!!.sendTCP(Handshake(data = arrayOf(game.user.username)))
 						}
 						catch (e: Exception)
 						{

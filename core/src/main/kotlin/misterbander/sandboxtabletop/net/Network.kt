@@ -15,8 +15,6 @@ import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
-import org.objenesis.instantiator.ObjectInstantiator
-import java.util.UUID
 
 object Network
 {
@@ -50,7 +48,6 @@ object Network
 		register(Array<String>::class.java)
 		register(Handshake::class.java)
 		register(HandshakeReject::class.java)
-		register(UUID::class.java).instantiator = ObjectInstantiator { UUID(0, 0) }
 		register(User::class.java)
 		register(GdxSet::class.java, ObjectSetSerializer<GdxSet<Any>>())
 		register(RoomState::class.java)

@@ -121,7 +121,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		{
 			is Handshake -> // Handshake is successful
 			{
-				info("Client | INFO") { "Handshake successful. Joining as ${game.user.username} (UUID: ${game.user.uuid})..." }
+				info("Client | INFO") { "Handshake successful. Joining as ${game.user.username}..." }
 				connection.sendTCP(game.user)
 			}
 			is HandshakeReject ->

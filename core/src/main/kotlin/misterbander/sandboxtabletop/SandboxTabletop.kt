@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.math.MathUtils
 import ktx.assets.getValue
 import ktx.assets.load
 import ktx.async.KtxAsync
@@ -19,8 +20,6 @@ import ktx.style.*
 import misterbander.gframework.GFramework
 import misterbander.gframework.scene2d.mbTextField
 import misterbander.sandboxtabletop.model.User
-import java.util.UUID
-import kotlin.random.Random
 
 /**
  * [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.
@@ -165,19 +164,14 @@ class SandboxTabletop : GFramework()
 		
 		// Load settings
 		val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
-		val uuidStr: String? = preferences["uuid"]
-		val uuid = if (uuidStr != null) UUID.fromString(uuidStr) else UUID.randomUUID()
 		val username: String = preferences["username", ""]
 		val userColorStr: String? = preferences["color"]
 		
-		user = User(uuid, username)
+		user = User(username)
 		if (userColorStr != null)
 			Color.valueOf(userColorStr, userColor)
 		else
-		{
-			val random = Random(uuid.hashCode().toLong())
-			userColor.fromHsv(random.nextFloat()*360, 0.8F, 0.8F)
-		}
+			userColor.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
 		savePreferences()
 		
 		addScreen(MenuScreen(this))
@@ -188,7 +182,6 @@ class SandboxTabletop : GFramework()
 	fun savePreferences()
 	{
 		val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
-		preferences["uuid"] = user.uuid.toString()
 		preferences["username"] = user.username
 		preferences["color"] = userColor.toString()
 		preferences.flush()

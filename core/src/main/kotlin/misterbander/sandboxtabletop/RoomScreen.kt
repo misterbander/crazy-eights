@@ -191,11 +191,11 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 		state.users.forEach { // Add cursor for other users
 			if (it != user)
-				tabletop.addCursor(it.username, SandboxTabletopCursor(it))
+				tabletop.addCursor(it.username, SandboxTabletopCursor(this, it))
 		}
 		if (Gdx.app.type != Application.ApplicationType.Desktop) // Add own cursor only if not on desktop
 		{
-			tabletop.myCursor = SandboxTabletopCursor(user)
+			tabletop.myCursor = SandboxTabletopCursor(this, user)
 			tabletop.addCursor(user.username, tabletop.myCursor!!)
 		}
 		cursorPosition.username = user.username
@@ -310,7 +310,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				if (user != game.user)
 				{
 					state.users += user
-					tabletop.addCursor(user.username, SandboxTabletopCursor(user))
+					tabletop.addCursor(user.username, SandboxTabletopCursor(this, user))
 				}
 				chat("${user.username} joined the game", Color.YELLOW)
 			}

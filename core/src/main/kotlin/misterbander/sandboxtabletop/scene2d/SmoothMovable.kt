@@ -1,33 +1,50 @@
 package misterbander.sandboxtabletop.scene2d
 
 import com.badlogic.gdx.scenes.scene2d.Group
-import ktx.math.vec2
-import kotlin.math.abs
+import misterbander.gframework.util.SmoothAngleInterpolator
+import misterbander.gframework.util.SmoothInterpolator
 
-open class SmoothMovable : Group()
+open class SmoothMovable(x: Float = 0F, y: Float = 0F, rotation: Float = 0F) : Group()
 {
-	var targetX = 0F
-	var targetY = 0F
-	var targetRotation = 0F
-	var smoothingFactor = 2.5F
-	
-	private val rotationVec = vec2(x = 1F)
-	private val targetRotationVec = vec2(x = 1F)
+	var xInterpolator = object : SmoothInterpolator(x)
+	{
+		override var value: Float
+			get() = this@SmoothMovable.x
+			set(value)
+			{
+				this@SmoothMovable.x = value
+			}
+	}
+	var yInterpolator = object : SmoothInterpolator(y)
+	{
+		override var value: Float
+			get() = this@SmoothMovable.y
+			set(value)
+			{
+				this@SmoothMovable.y = value
+			}
+	}
+	var rotationInterpolator = object : SmoothAngleInterpolator(rotation)
+	{
+		override var value: Float
+			get() = this@SmoothMovable.rotation
+			set(value)
+			{
+				this@SmoothMovable.rotation = value
+			}
+	}
 	
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		setPosition(x + (targetX - x)/smoothingFactor*delta*60, y + (targetY - y)/smoothingFactor*delta*60)
-		
-		rotationVec.setAngleDeg(rotation)
-		targetRotationVec.setAngleDeg(targetRotation)
-		val rotationDelta = rotationVec.angleDeg(targetRotationVec)
-		rotation = if (abs(targetRotation - rotation) > 1) rotation + rotationDelta/smoothingFactor*delta*60 else targetRotation
+		xInterpolator.lerp(delta)
+		yInterpolator.lerp(delta)
+		rotationInterpolator.lerp(delta)
 	}
 	
 	open fun setTargetPosition(x: Float, y: Float)
 	{
-		targetX = x
-		targetY = y
+		xInterpolator.target = x
+		yInterpolator.target = y
 	}
 }

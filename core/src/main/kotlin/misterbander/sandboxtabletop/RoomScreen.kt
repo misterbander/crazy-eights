@@ -163,20 +163,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
 	}
 	
-	@Suppress("UNCHECKED_CAST")
-	override fun resize(width: Int, height: Int)
-	{
-		super.resize(width, height)
-		chatPopup.children.forEach {
-			val chatLabelContainer = it as Container<Label>
-			val label = chatLabelContainer.actor!!
-			chatLabelContainer.width(label.style.font.chatTextWidth(label.text.toString()))
-			chatLabelContainer.invalidateHierarchy()
-		}
-		shader.bind()
-		shader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
-	}
-	
 	override fun show()
 	{
 		super.show()
@@ -228,6 +214,40 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //				}
 			}
 		}
+	}
+	
+	override fun render(delta: Float)
+	{
+		transitionCamera.update()
+		transition.update(delta)
+		clearScreen()
+		game.batch.use {
+			it.shader = shader
+			game.shapeDrawer.setColor(BACKGROUND_COLOR)
+			game.shapeDrawer.filledRectangle(0F, 0F, viewport.worldWidth, viewport.worldHeight)
+			it.shader = null
+			it.color = Color.WHITE
+//			it.draw(handRegion, 0F, 0F, viewport.worldWidth, 96F) TODO hand region
+		}
+		renderStage(camera, stage, delta)
+		renderStage(uiCamera, uiStage, delta)
+		updateWorld()
+		transition.render()
+	}
+	
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun resize(width: Int, height: Int)
+	{
+		super.resize(width, height)
+		chatPopup.children.forEach {
+			val chatLabelContainer = it as Container<Label>
+			val label = chatLabelContainer.actor!!
+			chatLabelContainer.width(label.style.font.chatTextWidth(label.text.toString()))
+			chatLabelContainer.invalidateHierarchy()
+		}
+		shader.bind()
+		shader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
 	}
 	
 	/**
@@ -394,25 +414,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //			}
 //		}
 //	}
-	
-	override fun render(delta: Float)
-	{
-		transitionCamera.update()
-		transition.update(delta)
-		clearScreen()
-		game.batch.use {
-			it.shader = shader
-			game.shapeDrawer.setColor(BACKGROUND_COLOR)
-			game.shapeDrawer.filledRectangle(0F, 0F, viewport.worldWidth, viewport.worldHeight)
-			it.shader = null
-			it.color = Color.WHITE
-//			it.draw(handRegion, 0F, 0F, viewport.worldWidth, 96F) TODO hand region
-		}
-		renderStage(camera, stage, delta)
-		renderStage(uiCamera, uiStage, delta)
-		updateWorld()
-		transition.render()
-	}
 	
 	override fun hide()
 	{

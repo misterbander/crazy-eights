@@ -18,10 +18,10 @@ import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*
+import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
-import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.scene2d.dialogs.CreateRoomDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.InfoDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.JoinRoomDialog
@@ -131,10 +131,10 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				infoDialog.hide()
 				messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 			}
-			is RoomState ->
+			is TabletopState ->
 			{
 				val roomScreen = game.getScreen<RoomScreen>()
-				roomScreen.state = `object`
+				roomScreen.tabletop.setState(`object`)
 				messageDialog.actionlessHide()
 				infoDialog.hide()
 				Network.client!!.removeListener(this)

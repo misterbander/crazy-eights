@@ -28,8 +28,6 @@ import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.interval
-import ktx.collections.minusAssign
-import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.log.info
 import ktx.math.component1
@@ -44,7 +42,6 @@ import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.cursorPositionPool
-import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
@@ -96,9 +93,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	}
 	var selfDisconnect = false
 	
-	// Room and client states
-	private val tabletop = Tabletop()
-	var state: RoomState = RoomState()
+	// Tabletop states
+	val tabletop = Tabletop(this)
 	private val cursorPosition = CursorPosition()
 	private var updateCursorTask: Timer.Task? = null
 	
@@ -166,9 +162,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	override fun show()
 	{
 		super.show()
-		val user = game.user
 		
-		// Set up cursors
 		if (Gdx.app.type == Application.ApplicationType.Desktop)
 		{
 			val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
@@ -180,7 +174,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				for (j in 0 until cursorBasePixmap.height)
 				{
 					val color = Color(cursorBasePixmap.getPixel(i, j))
-					cursorBasePixmap.setColor(color.mul(user.color))
+					cursorBasePixmap.setColor(color.mul(game.user.color))
 					cursorBasePixmap.drawPixel(i, j)
 				}
 			}
@@ -189,16 +183,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			cursorBorderPixmap.dispose()
 			cursorBasePixmap.dispose()
 		}
-		state.users.forEach { // Add cursor for other users
-			if (it != user)
-				tabletop.addCursor(it.username, SandboxTabletopCursor(this, it))
-		}
-		if (Gdx.app.type != Application.ApplicationType.Desktop) // Add own cursor only if not on desktop
-		{
-			tabletop.myCursor = SandboxTabletopCursor(this, user)
-			tabletop.addCursor(user.username, tabletop.myCursor!!)
-		}
-		cursorPosition.username = user.username
+		
+		cursorPosition.username = game.user.username
 		updateCursorTask = interval(tps, tps) {
 			val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
 			if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
@@ -308,17 +294,13 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			{
 				val user = `object`.user
 				if (user != game.user)
-				{
-					state.users += user
-					tabletop.addCursor(user.username, SandboxTabletopCursor(this, user))
-				}
+					tabletop += user
 				chat("${user.username} joined the game", Color.YELLOW)
 			}
 			is UserLeaveEvent ->
 			{
 				val user = `object`.user
-				state.users -= user
-				tabletop.removeCursor(user.username)
+				tabletop -= user
 				chat("${user.username} left the game", Color.YELLOW)
 			}
 			is Chat ->

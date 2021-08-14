@@ -10,10 +10,10 @@ import ktx.log.info
 import misterbander.sandboxtabletop.VERSION_STRING
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
+import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
-import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
@@ -22,7 +22,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 	/** Contains ids of connections that have successfully performed a handshake. */
 	private val handshookConnections = IntSet()
 	
-	private val state = RoomState()
+	private val state = TabletopState()
 	
 	override fun connected(connection: Connection)
 	{

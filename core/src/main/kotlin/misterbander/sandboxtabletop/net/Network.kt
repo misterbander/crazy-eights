@@ -12,10 +12,10 @@ import ktx.collections.GdxSet
 import ktx.scene2d.*
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
+import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
-import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
@@ -54,7 +54,7 @@ object Network
 		register(HandshakeReject::class.java)
 		register(User::class.java)
 		register(Color::class.java)
-		register(RoomState::class.java)
+		register(TabletopState::class.java)
 		register(UserJoinEvent::class.java)
 		register(UserLeaveEvent::class.java)
 		register(Chat::class.java)

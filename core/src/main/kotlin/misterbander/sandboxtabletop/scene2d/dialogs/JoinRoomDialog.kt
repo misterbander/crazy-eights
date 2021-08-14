@@ -1,24 +1,30 @@
-package misterbander.sandboxtabletop.scene2d
+package misterbander.sandboxtabletop.scene2d.dialogs
 
 import com.esotericsoftware.kryonet.Client
-import com.esotericsoftware.kryonet.Server
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ktx.actors.isShown
 import ktx.actors.onChange
 import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
 import misterbander.gframework.scene2d.UnfocusListener
+import misterbander.gframework.scene2d.mbTextField
+import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.MenuScreen
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
-import java.net.BindException
+import kotlin.coroutines.cancellation.CancellationException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
+class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
 {
+	private val ipTextField = scene2d.mbTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
+	private var joinServerJob: Job? = null
+	
 	init
 	{
 		contentTable.apply {
@@ -27,27 +33,35 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 			add(usernameTextField).prefWidth(288F)
 			add(colorButton)
 			row()
+			add(scene2d.label("Server IP Address:", INFO_LABEL_STYLE))
+			add(ipTextField).prefWidth(288F)
+			row()
 			add(scene2d.label("Server Port:", INFO_LABEL_STYLE))
 			add(portTextField).prefWidth(288F)
 		}
 		buttonTable.apply {
-			add(scene2d.textButton("Create", TEXT_BUTTON_STYLE) {
+			add(scene2d.textButton("Join", TEXT_BUTTON_STYLE) {
 				onChange {
 					screen.click.play()
 					hide()
-					screen.infoDialog.show("Create Room", "Creating room...")
-					KtxAsync.launch {
+					screen.messageDialog.show("Join Room", "Joining room...", "Cancel") {
+						joinServerJob?.cancel()
+						joinServerJob = null
+						Network.stop()
+						show()
+					}
+					joinServerJob = KtxAsync.launch {
+						val ip = ipTextField.text
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
-							info("Network | INFO") { "Starting server on port $port..." }
 							Network.stopJob?.await()
+							Network.client = Client()
 							withContext(screen.asyncContext) {
-								Network.server = Server().apply { start(); bind(port) }
-								Network.client = Client().apply {
+								Network.client!!.apply {
 									addListener(screen)
 									start()
-									connect("localhost", port)
+									connect(ip, port)
 								}
 							}
 							// Perform handshake by doing checking version and username availability
@@ -56,11 +70,10 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 						}
 						catch (e: Exception)
 						{
+							Network.stop()
 							screen.infoDialog.hide()
-							if (e is BindException)
-								screen.messageDialog.show("Error", "Port address $port is already in use.", "OK", this@CreateRoomDialog::show)
-							else
-								screen.messageDialog.show("Error", e.toString(), "OK", this@CreateRoomDialog::show)
+							if (e !is CancellationException && !isShown())
+								screen.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
 						}
 					}
 				}

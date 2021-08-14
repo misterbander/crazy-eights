@@ -47,9 +47,9 @@ import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.packets.RoomState
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
-import misterbander.sandboxtabletop.scene2d.GameMenuDialog
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
 import misterbander.sandboxtabletop.scene2d.Tabletop
+import misterbander.sandboxtabletop.scene2d.dialogs.GameMenuDialog
 import kotlin.math.min
 
 class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener

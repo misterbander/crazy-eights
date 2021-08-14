@@ -290,21 +290,18 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	{
 		when (`object`)
 		{
-			is UserJoinEvent ->
-			{
+			is UserJoinEvent -> Gdx.app.postRunnable {
 				val user = `object`.user
 				if (user != game.user)
 					tabletop += user
 				chat("${user.username} joined the game", Color.YELLOW)
 			}
-			is UserLeaveEvent ->
-			{
+			is UserLeaveEvent -> Gdx.app.postRunnable {
 				val user = `object`.user
 				tabletop -= user
 				chat("${user.username} left the game", Color.YELLOW)
 			}
-			is Chat ->
-			{
+			is Chat -> Gdx.app.postRunnable {
 				chat(`object`.message, if (`object`.isSystemMessage) Color.YELLOW else null)
 				info("Client | CHAT") { `object`.message }
 			}

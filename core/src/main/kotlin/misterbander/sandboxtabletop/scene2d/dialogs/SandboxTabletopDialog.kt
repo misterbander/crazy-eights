@@ -1,4 +1,4 @@
-package misterbander.sandboxtabletop.scene2d
+package misterbander.sandboxtabletop.scene2d.dialogs
 
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.actions.Actions

@@ -22,10 +22,10 @@ import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.RoomState
-import misterbander.sandboxtabletop.scene2d.CreateRoomDialog
-import misterbander.sandboxtabletop.scene2d.InfoDialog
-import misterbander.sandboxtabletop.scene2d.JoinRoomDialog
-import misterbander.sandboxtabletop.scene2d.MessageDialog
+import misterbander.sandboxtabletop.scene2d.dialogs.CreateRoomDialog
+import misterbander.sandboxtabletop.scene2d.dialogs.InfoDialog
+import misterbander.sandboxtabletop.scene2d.dialogs.JoinRoomDialog
+import misterbander.sandboxtabletop.scene2d.dialogs.MessageDialog
 
 class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {

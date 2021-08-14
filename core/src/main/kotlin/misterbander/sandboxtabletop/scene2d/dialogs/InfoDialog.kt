@@ -1,4 +1,4 @@
-package misterbander.sandboxtabletop.scene2d
+package misterbander.sandboxtabletop.scene2d.dialogs
 
 import ktx.scene2d.*
 import misterbander.gframework.util.wrap

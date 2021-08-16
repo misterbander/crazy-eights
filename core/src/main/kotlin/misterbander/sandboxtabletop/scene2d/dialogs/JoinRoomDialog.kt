@@ -10,7 +10,7 @@ import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
 import misterbander.gframework.scene2d.UnfocusListener
-import misterbander.gframework.scene2d.mbTextField
+import misterbander.gframework.scene2d.gTextField
 import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
 import misterbander.sandboxtabletop.MenuScreen
@@ -22,7 +22,7 @@ import kotlin.coroutines.cancellation.CancellationException
 @Suppress("BlockingMethodInNonBlockingContext")
 class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
 {
-	private val ipTextField = scene2d.mbTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
+	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
 	private var joinServerJob: Job? = null
 	
 	init

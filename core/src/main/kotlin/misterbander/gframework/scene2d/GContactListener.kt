@@ -9,13 +9,13 @@ import com.badlogic.gdx.physics.box2d.Fixture
 interface GContactListener
 {
 	/**
-	 * Called when this GObject begins contact with another fixture.
+	 * Called when this [GObject] begins contact with another fixture.
 	 * @param otherFixture the other fixture in contact
 	 */
 	fun beginContact(otherFixture: Fixture) = Unit
 	
 	/**
-	 * Called when this GObject stops contact with another fixture.
+	 * Called when this [GObject] stops contact with another fixture.
 	 * @param otherFixture the other fixture in contact
 	 */
 	fun endContact(otherFixture: Fixture) = Unit

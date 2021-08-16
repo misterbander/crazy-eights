@@ -39,7 +39,7 @@ import com.badlogic.gdx.utils.Timer.Task;
  * @author Mister_Bander
  */
 @SuppressWarnings("unused")
-public class MBTextField extends Widget implements Disableable
+public class GTextField extends Widget implements Disableable
 {
 	protected static final char BACKSPACE = 8;
 	protected static final char CARRIAGE_RETURN = '\r';
@@ -62,7 +62,7 @@ public class MBTextField extends Widget implements Disableable
 	protected final GlyphLayout layout = new GlyphLayout();
 	protected final FloatArray glyphPositions = new FloatArray();
 	
-	MBTextFieldStyle style;
+	GTextFieldStyle style;
 	private String messageText;
 	protected CharSequence displayText;
 	// ================ MODIFICATION START ================
@@ -70,8 +70,8 @@ public class MBTextField extends Widget implements Disableable
 	// ================  MODIFICATION END  ================
 	Clipboard clipboard;
 	InputListener inputListener;
-	@Null MBTextFieldListener listener;
-	@Null MBTextFieldFilter filter;
+	@Null GTextFieldListener listener;
+	@Null GTextFieldFilter filter;
 	TextField.OnscreenKeyboard keyboard = new TextField.DefaultOnscreenKeyboard();
 	boolean focusTraversal = true, onlyFontChars = true, disabled;
 	private int textHAlign = Align.left;
@@ -94,7 +94,7 @@ public class MBTextField extends Widget implements Disableable
 	
 	boolean focused;
 	boolean cursorOn;
-	float blinkTime = 0.32f;
+	float blinkTime = 0.32F;
 	final Task blinkTask = new Task()
 	{
 		public void run()
@@ -113,32 +113,32 @@ public class MBTextField extends Widget implements Disableable
 	boolean programmaticChangeEvents;
 	
 	// ================ MODIFICATION START ================
-	public MBTextField(@Null String text, Skin skin)
+	public GTextField(@Null String text, Skin skin)
 	{
-		this(null, text, skin.get(MBTextFieldStyle.class));
+		this(null, text, skin.get(GTextFieldStyle.class));
 	}
 	
-	public MBTextField(@Null String text, Skin skin, String styleName)
+	public GTextField(@Null String text, Skin skin, String styleName)
 	{
-		this(null, text, skin.get(styleName, MBTextFieldStyle.class));
+		this(null, text, skin.get(styleName, GTextFieldStyle.class));
 	}
 	
-	public MBTextField(@Null String text, MBTextFieldStyle style)
+	public GTextField(@Null String text, GTextFieldStyle style)
 	{
 		this(null, text, style);
 	}
 	
-	public MBTextField(@Null AccessibleInputDialog accessibleInputDialog, @Null String text, Skin skin)
+	public GTextField(@Null AccessibleInputDialog accessibleInputDialog, @Null String text, Skin skin)
 	{
-		this(accessibleInputDialog, text, skin.get(MBTextFieldStyle.class));
+		this(accessibleInputDialog, text, skin.get(GTextFieldStyle.class));
 	}
 	
-	public MBTextField(@Null AccessibleInputDialog accessibleInputDialog, @Null String text, Skin skin, String styleName)
+	public GTextField(@Null AccessibleInputDialog accessibleInputDialog, @Null String text, Skin skin, String styleName)
 	{
-		this(accessibleInputDialog, text, skin.get(styleName, MBTextFieldStyle.class));
+		this(accessibleInputDialog, text, skin.get(styleName, GTextFieldStyle.class));
 	}
 	
-	public MBTextField(@Null AccessibleInputDialog accessibleInputDialog, @Null String text, MBTextFieldStyle style)
+	public GTextField(@Null AccessibleInputDialog accessibleInputDialog, @Null String text, GTextFieldStyle style)
 	{
 		setStyle(style);
 		clipboard = Gdx.app.getClipboard();
@@ -157,7 +157,7 @@ public class MBTextField extends Widget implements Disableable
 	
 	protected InputListener createInputListener()
 	{
-		return new MBTextFieldClickListener();
+		return new GTextFieldClickListener();
 	}
 	
 	protected int letterUnderCursor(float x)
@@ -246,7 +246,7 @@ public class MBTextField extends Widget implements Disableable
 		this.onlyFontChars = onlyFontChars;
 	}
 	
-	public void setStyle(MBTextFieldStyle style)
+	public void setStyle(GTextFieldStyle style)
 	{
 		if (style == null)
 			throw new IllegalArgumentException("style cannot be null.");
@@ -256,10 +256,10 @@ public class MBTextField extends Widget implements Disableable
 	}
 	
 	/**
-	 * Returns the text field's style. Modifying the returned style may not have an effect until {@link #setStyle(MBTextFieldStyle)}
+	 * Returns the text field's style. Modifying the returned style may not have an effect until {@link #setStyle(GTextFieldStyle)}
 	 * is called.
 	 */
-	public MBTextFieldStyle getStyle()
+	public GTextFieldStyle getStyle()
 	{
 		return style;
 	}
@@ -326,7 +326,7 @@ public class MBTextField extends Widget implements Disableable
 		{
 			textOffset = visibleWidth - glyphPositions[visibleTextEnd] - fontOffset + startX;
 			if ((textHAlign & Align.center) != 0)
-				textOffset = Math.round(textOffset*0.5f);
+				textOffset = Math.round(textOffset*0.5F);
 		}
 		else
 			textOffset = startX + renderOffset;
@@ -343,8 +343,7 @@ public class MBTextField extends Widget implements Disableable
 		}
 	}
 	
-	private @Null
-	Drawable getBackgroundDrawable()
+	private @Null Drawable getBackgroundDrawable()
 	{
 		boolean focused = hasKeyboardFocus();
 		return (disabled && style.disabledBackground != null) ? style.disabledBackground
@@ -409,7 +408,7 @@ public class MBTextField extends Widget implements Disableable
 							style.messageFontColor.a*color.a*parentAlpha);
 				}
 				else
-					messageFont.setColor(0.7f, 0.7f, 0.7f, color.a*parentAlpha);
+					messageFont.setColor(0.7F, 0.7F, 0.7F, color.a*parentAlpha);
 				drawMessageText(batch, messageFont, x + bgLeftWidth, y + textY + yOffset, width - bgLeftWidth - bgRightWidth);
 			}
 		}
@@ -571,7 +570,7 @@ public class MBTextField extends Widget implements Disableable
 	}
 	
 	/**
-	 * Copies the contents of this MBTextField to the {@link Clipboard} implementation set on this MBTextField.
+	 * Copies the contents of this GTextField to the {@link Clipboard} implementation set on this GTextField.
 	 */
 	public void copy()
 	{
@@ -580,7 +579,7 @@ public class MBTextField extends Widget implements Disableable
 	}
 	
 	/**
-	 * Copies the selected contents of this MBTextField to the {@link Clipboard} implementation set on this MBTextField, then removes
+	 * Copies the selected contents of this GTextField to the {@link Clipboard} implementation set on this GTextField, then removes
 	 * it.
 	 */
 	public void cut()
@@ -658,7 +657,7 @@ public class MBTextField extends Widget implements Disableable
 	}
 	
 	/**
-	 * Sets the {@link Stage#setKeyboardFocus(Actor) keyboard focus} to the next MBTextField. If no next text field is found, the
+	 * Sets the {@link Stage#setKeyboardFocus(Actor) keyboard focus} to the next GTextField. If no next text field is found, the
 	 * onscreen keyboard is hidden. Does nothing if the text field is not in a stage.
 	 * @param up If true, the text field with the same or next smallest y coordinate is found, else the next highest.
 	 */
@@ -667,12 +666,12 @@ public class MBTextField extends Widget implements Disableable
 		Stage stage = getStage();
 		if (stage == null)
 			return;
-		MBTextField current = this;
+		GTextField current = this;
 		Vector2 currentCoords = current.getParent().localToStageCoordinates(tmp2.set(current.getX(), current.getY()));
 		Vector2 bestCoords = tmp1;
 		while (true)
 		{
-			MBTextField textField = current.findNextTextField(stage.getActors(), null, bestCoords, currentCoords, up);
+			GTextField textField = current.findNextTextField(stage.getActors(), null, bestCoords, currentCoords, up);
 			if (textField == null)
 			{
 				// Try to wrap around.
@@ -700,18 +699,17 @@ public class MBTextField extends Widget implements Disableable
 	/**
 	 * @return May be null.
 	 */
-	private @Null
-	MBTextField findNextTextField(Array<Actor> actors, @Null MBTextField best, Vector2 bestCoords,
-								Vector2 currentCoords, boolean up)
+	private @Null GTextField findNextTextField(Array<Actor> actors, @Null GTextField best, Vector2 bestCoords,
+											   Vector2 currentCoords, boolean up)
 	{
 		for (int i = 0, n = actors.size; i < n; i++)
 		{
 			Actor actor = actors.get(i);
-			if (actor instanceof MBTextField)
+			if (actor instanceof GTextField)
 			{
 				if (actor == this)
 					continue;
-				MBTextField textField = (MBTextField)actor;
+				GTextField textField = (GTextField)actor;
 				if (textField.isDisabled() || !textField.focusTraversal || !textField.ascendantsVisible())
 					continue;
 				Vector2 actorCoords = actor.getParent().localToStageCoordinates(tmp3.set(actor.getX(), actor.getY()));
@@ -724,7 +722,7 @@ public class MBTextField extends Widget implements Disableable
 					better = actorCoords.y == bestCoords.y && (actorCoords.x < bestCoords.x ^ up);
 				if (better)
 				{
-					best = (MBTextField)actor;
+					best = (GTextField)actor;
 					bestCoords.set(actorCoords);
 				}
 			}
@@ -742,7 +740,7 @@ public class MBTextField extends Widget implements Disableable
 	/**
 	 * @param listener May be null.
 	 */
-	public void setTextFieldListener(@Null MBTextFieldListener listener)
+	public void setTextFieldListener(@Null GTextFieldListener listener)
 	{
 		this.listener = listener;
 	}
@@ -750,13 +748,12 @@ public class MBTextField extends Widget implements Disableable
 	/**
 	 * @param filter May be null.
 	 */
-	public void setTextFieldFilter(@Null MBTextFieldFilter filter)
+	public void setTextFieldFilter(@Null GTextFieldFilter filter)
 	{
 		this.filter = filter;
 	}
 	
-	public @Null
-	MBTextFieldFilter getTextFieldFilter()
+	public @Null GTextFieldFilter getTextFieldFilter()
 	{
 		return filter;
 	}
@@ -1057,22 +1054,22 @@ public class MBTextField extends Widget implements Disableable
 	 * Interface for listening to typed characters.
 	 * @author mzechner
 	 */
-	public interface MBTextFieldListener
+	public interface GTextFieldListener
 	{
-		void keyTyped(MBTextField textField, char c);
+		void keyTyped(GTextField textField, char c);
 	}
 	
 	/**
 	 * Interface for filtering characters entered into the text field.
 	 * @author mzechner
 	 */
-	public interface MBTextFieldFilter
+	public interface GTextFieldFilter
 	{
-		boolean acceptChar(MBTextField textField, char c);
+		boolean acceptChar(GTextField textField, char c);
 		
-		class DigitsOnlyFilter implements MBTextFieldFilter
+		class DigitsOnlyFilter implements GTextFieldFilter
 		{
-			public boolean acceptChar(MBTextField textField, char c)
+			public boolean acceptChar(GTextField textField, char c)
 			{
 				return Character.isDigit(c);
 			}
@@ -1082,7 +1079,7 @@ public class MBTextField extends Widget implements Disableable
 	/**
 	 * Basic input listener for the text field
 	 */
-	public class MBTextFieldClickListener extends ClickListener
+	public class GTextFieldClickListener extends ClickListener
 	{
 		public void clicked(InputEvent event, float x, float y)
 		{
@@ -1110,7 +1107,7 @@ public class MBTextField extends Widget implements Disableable
 			selectionStart = cursor;
 			Stage stage = getStage();
 			if (stage != null)
-				stage.setKeyboardFocus(MBTextField.this);
+				stage.setKeyboardFocus(GTextField.this);
 			keyboard.show(true);
 			hasSelection = true;
 			return true;
@@ -1299,10 +1296,10 @@ public class MBTextField extends Widget implements Disableable
 		}
 		
 		/**
-		 * Checks if focus traversal should be triggered. The default implementation uses {@link MBTextField#focusTraversal} and the
+		 * Checks if focus traversal should be triggered. The default implementation uses {@link GTextField#focusTraversal} and the
 		 * typed character, depending on the OS.
 		 * @param character The character that triggered a possible focus traversal.
-		 * @return true if the focus should change to the {@link MBTextField#next(boolean) next} input field.
+		 * @return true if the focus should change to the {@link GTextField#next(boolean) next} input field.
 		 */
 		protected boolean checkFocusTraversal(char character)
 		{
@@ -1365,7 +1362,7 @@ public class MBTextField extends Widget implements Disableable
 					if (add && !remove)
 					{
 						// Character may be added to the text.
-						if (!enter && filter != null && !filter.acceptChar(MBTextField.this, character))
+						if (!enter && filter != null && !filter.acceptChar(GTextField.this, character))
 							return true;
 						if (!withinMaxLength(text.length() - (hasSelection ? Math.abs(cursor - selectionStart) : 0)))
 							return true;
@@ -1387,17 +1384,17 @@ public class MBTextField extends Widget implements Disableable
 				}
 			}
 			if (listener != null)
-				listener.keyTyped(MBTextField.this, character);
+				listener.keyTyped(GTextField.this, character);
 			return true;
 		}
 	}
 	
 	/**
-	 * The style for a text field, see {@link MBTextField}.
+	 * The style for a text field, see {@link GTextField}.
 	 * @author mzechner
 	 * @author Nathan Sweet
 	 */
-	public static class MBTextFieldStyle
+	public static class GTextFieldStyle
 	{
 		public BitmapFont font;
 		public Color fontColor;
@@ -1418,10 +1415,10 @@ public class MBTextField extends Widget implements Disableable
 		 */
 		public @Null Color messageFontColor;
 		
-		public MBTextFieldStyle() {}
+		public GTextFieldStyle() {}
 		
-		public MBTextFieldStyle(BitmapFont font, Color fontColor, @Null Drawable cursor, @Null Drawable selection,
-								@Null Drawable background)
+		public GTextFieldStyle(BitmapFont font, Color fontColor, @Null Drawable cursor, @Null Drawable selection,
+							   @Null Drawable background)
 		{
 			this.background = background;
 			this.cursor = cursor;
@@ -1430,7 +1427,7 @@ public class MBTextField extends Widget implements Disableable
 			this.selection = selection;
 		}
 		
-		public MBTextFieldStyle(MBTextFieldStyle style)
+		public GTextFieldStyle(GTextFieldStyle style)
 		{
 			this.messageFont = style.messageFont;
 			if (style.messageFontColor != null)

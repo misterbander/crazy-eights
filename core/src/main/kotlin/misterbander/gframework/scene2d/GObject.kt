@@ -9,8 +9,12 @@ import misterbander.gframework.GScreen
 import misterbander.gframework.scene2d.module.GModule
 
 /**
- * `GObject`s are special `Scene2D` groups that can hold child actors and can contain modules that add
- * custom behavior.
+ * `GObject`s are special `Scene2D` groups that can hold child actors and can contain modules that add custom behavior.
+ *
+ * `GObject` defines [onSpawn], which gets called whenever the [GObject] is added to the world.
+ *
+ * `GObject` also defines [destroy], which can be used to safely remove [GObject]s with `Box2D` bodies during collision
+ * callbacks.
  * @property screen the parent GScreen
  */
 abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
@@ -19,8 +23,7 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	var body: Body? = null
 	
 	/**
-	 * Called when this `GObject` is spawned to the world and added to the stage. You can set up your
-	 * `Box2D` bodies and fixtures here.
+	 * Called when this `GObject` is spawned in the world. You can set up your `Box2D` bodies and fixtures here.
 	 */
 	open fun onSpawn() = Unit
 	
@@ -34,7 +37,9 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	}
 	
 	/**
-	 * Marks this `GObject` to be destroyed. It will be removed at the end of world time step.
+	 * Marks this `GObject` for removal. This does not immediately remove the `GObject` from the world, it will be
+	 * removed at the end of the next world time step. Useful during collision callbacks where creation and removal of
+	 * objects are prohibited.
 	 */
 	fun destroy()
 	{

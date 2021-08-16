@@ -8,7 +8,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer
 import kotlin.math.min
 
 /**
- * Creates a new `Pixmap` from a `TextureRegion`.
+ * Creates a new [Pixmap] from a [TextureRegion].
  */
 fun TextureRegion.toPixmap(): Pixmap
 {

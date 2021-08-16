@@ -12,16 +12,16 @@ import kotlin.math.sqrt
 /**
  * Module that simplifies `Box2D` movement to intuitive mathematical properties like direction and speed.
  *
- * The `Box2D` of the [GObject] must not be null.
- * @param parent the parent `GObject` this module is attached to
+ * The `Box2D` body of the [GObject] must not be null.
+ * @param parent the parent [GObject] this module is attached to
  */
 open class SimpleMovement2D<T : GFramework>(parent: GObject<T>) : GModule<T>(parent)
 {
 	private val body by lazy { parent.body!! }
 	
 	private var isGoingBackwards = false
-	var prevX: Float = 0F
-	var prevY: Float = 0F
+	var prevX = 0F
+	var prevY = 0F
 	
 	override fun update(delta: Float)
 	{
@@ -42,14 +42,14 @@ open class SimpleMovement2D<T : GFramework>(parent: GObject<T>) : GModule<T>(par
 	var direction: Float = 0F
 		get()
 		{
-			if (speed2 > 0F)
-				field = body.linearVelocity.angle(Vector2.X)
+			if (speed2 > 0)
+				field = body.linearVelocity.angleDeg(Vector2.X)
 			if (isGoingBackwards)
 			{
-				if (field > 0F)
-					field -= 180F
+				if (field > 0)
+					field -= 180
 				else
-					field += 180F
+					field += 180
 			}
 			return field
 		}
@@ -60,12 +60,12 @@ open class SimpleMovement2D<T : GFramework>(parent: GObject<T>) : GModule<T>(par
 		}
 	
 	/**
-	 * The speed this body is travelling, in pixels per second. Negative means backwards.
+	 * The speed the body is travelling, in pixels per second. Negative means backwards.
 	 */
 	var speed: Float
 		get()
 		{
-			val speed = sqrt(hspeed*hspeed + vspeed*vspeed)
+			val speed = sqrt(speed2)
 			return if (isGoingBackwards) -speed else speed
 		}
 		set(value)
@@ -76,18 +76,21 @@ open class SimpleMovement2D<T : GFramework>(parent: GObject<T>) : GModule<T>(par
 			setVelocity(vx, vy)
 		}
 	
+	/**
+	 * Squared speed of the body.
+	 */
 	val speed2: Float
 		get() = hspeed*hspeed + vspeed*vspeed
 	
 	/**
-	 * The horizontal speed of this body in pixels per second. Positive means to the right.
+	 * The horizontal speed of the body, in pixels per second. Positive means to the right.
 	 */
 	var hspeed: Float
 		get() = body.linearVelocity.x/parent.screen.mpp
 		set(value) = setVelocity(value, vspeed)
 	
 	/**
-	 * The vertical speed of this body in pixels per second. Positive means upwards.
+	 * The vertical speed of the body, in pixels per second. Positive means upwards.
 	 */
 	var vspeed: Float
 		get() = body.linearVelocity.y/parent.screen.mpp
@@ -105,8 +108,8 @@ open class SimpleMovement2D<T : GFramework>(parent: GObject<T>) : GModule<T>(par
 			// Change velocity by applying impulse
 			val (ux, uy) = body.linearVelocity // Initial velocity
 			// Calculate change in momentum, or impulse
-			val dMomentumX: Float = body.mass*(vx*parent.screen.mpp - ux)
-			val dMomentumY: Float = body.mass*(vy*parent.screen.mpp - uy)
+			val dMomentumX = body.mass*(vx*parent.screen.mpp - ux)
+			val dMomentumY = body.mass*(vy*parent.screen.mpp - uy)
 			body.applyLinearImpulse(dMomentumX, dMomentumY, body.worldCenter.x, body.worldCenter.y, true)
 		}
 		else

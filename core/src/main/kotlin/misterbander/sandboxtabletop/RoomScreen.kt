@@ -34,7 +34,7 @@ import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
-import misterbander.gframework.scene2d.mbTextField
+import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
@@ -57,7 +57,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
 		onChange { click.play(); gameMenuDialog.show() }
 	}
-	private val chatTextField = scene2d.mbTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
+	private val chatTextField = scene2d.gTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
 		messageText = if (Gdx.app.type == Application.ApplicationType.Android) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
 		setFocusTraversal(false)

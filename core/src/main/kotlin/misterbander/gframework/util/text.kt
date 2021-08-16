@@ -10,9 +10,9 @@ import com.badlogic.gdx.utils.StringBuilder as GdxStringBuilder
 private val glyph = GlyphLayout()
 
 /**
- * Returns the dimensions of a text in pixels based on the BitmapFont.
+ * Returns the dimensions of a text in pixels based on the [BitmapFont].
  * @param text the text
- * @return A [Vector2] containing the dimensions of the text, in pixels. The returned `Vector2` is not safe for reuse.
+ * @return A [Vector2] containing the dimensions of the text, in pixels. The returned [Vector2] is not safe for reuse.
  */
 fun BitmapFont.textSize(text: String): Vector2
 {
@@ -22,8 +22,8 @@ fun BitmapFont.textSize(text: String): Vector2
 }
 
 /**
- * Wraps a string to fit within a specified width, adding line feeds between words where necessary.
- * @param text        the text
+ * Wraps a string to fit within a specified width in pixels, adding line feeds between words where necessary.
+ * @param text the text
  * @param targetWidth the width of the wrapped text
  * @return A string wrapped within the specified width.
  */
@@ -48,6 +48,13 @@ fun BitmapFont.wrap(text: String, targetWidth: Int): String
 	return builder.toString()
 }
 
+/**
+ * Draws a text using a [BitmapFont] centered at a specified position.
+ * @param batch the [Batch] to draw with
+ * @param str the text to draw
+ * @param x the center x position
+ * @param y the center y position
+ */
 fun BitmapFont.drawCenter(batch: Batch, str: CharSequence, x: Float, y: Float)
 {
 	val textSize = textSize(str.toString())

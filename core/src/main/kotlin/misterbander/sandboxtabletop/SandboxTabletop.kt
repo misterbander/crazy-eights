@@ -18,7 +18,7 @@ import ktx.preferences.set
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.GFramework
-import misterbander.gframework.scene2d.mbTextField
+import misterbander.gframework.scene2d.gTextField
 import misterbander.sandboxtabletop.model.User
 
 /**
@@ -118,8 +118,8 @@ class SandboxTabletop : GFramework()
 				imageUp = this@skin["menuicon"]
 				imageDown = this@skin["menuicondown"]
 			}
-			val mbTextFieldStyleBase = "mbtextfieldstylebase"
-			mbTextField(mbTextFieldStyleBase) {
+			val gTextFieldStyleBase = "mbtextfieldstylebase"
+			gTextField(gTextFieldStyleBase) {
 				font = jhengheiuiMini
 				fontColor = Color.WHITE
 				messageFontColor = Color.GRAY
@@ -128,14 +128,14 @@ class SandboxTabletop : GFramework()
 				selection = this@skin["textselection"]
 				disabledFontColor = Color(0xAAAAAAFF.toInt())
 			}
-			mbTextField(CHAT_TEXT_FIELD_STYLE, mbTextFieldStyleBase) {
+			gTextField(CHAT_TEXT_FIELD_STYLE, gTextFieldStyleBase) {
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 16F
 				background.leftWidth = 16F
 				background.rightWidth = 16F
 				background.bottomHeight = 16F
 			}
-			mbTextField(FORM_TEXT_FIELD_STYLE, mbTextFieldStyleBase) {
+			gTextField(FORM_TEXT_FIELD_STYLE, gTextFieldStyleBase) {
 				background = this@skin["textfield"]
 				focusedBackground = this@skin["textfieldfocused"]
 			}

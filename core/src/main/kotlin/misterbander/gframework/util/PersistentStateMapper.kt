@@ -33,6 +33,7 @@ class PersistentStateMapper
 	
 	/**
 	 * Reads state from file storage.
+	 * @param filePath local path to the state file
 	 * @return True if state is successfully read, false if file does not exist.
 	 */
 	@Suppress("UNCHECKED_CAST")
@@ -51,7 +52,8 @@ class PersistentStateMapper
 	}
 	
 	/**
-	 * Reads state from stream.
+	 * Reads state from a stream.
+	 * @param inputStream the stream to read state from
 	 */
 	@Suppress("UNCHECKED_CAST")
 	fun read(inputStream: ObjectInputStream)
@@ -62,6 +64,7 @@ class PersistentStateMapper
 	
 	/**
 	 * Writes state to file storage.
+	 * @param filePath local path to save
 	 */
 	fun write(filePath: String)
 	{

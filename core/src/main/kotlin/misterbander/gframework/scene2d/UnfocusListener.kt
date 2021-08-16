@@ -13,7 +13,7 @@ class UnfocusListener(private val actor: Actor) : KtxInputListener()
 {
 	override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
 	{
-		if (event.target !is MBTextField)
+		if (event.target !is GTextField)
 		{
 			actor.stage?.keyboardFocus = null
 			Gdx.input.setOnscreenKeyboardVisible(false)

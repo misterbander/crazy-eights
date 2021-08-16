@@ -9,10 +9,11 @@ import misterbander.gframework.GScreen
 
 /**
  * Makes [Dialog]s that contain text fields accessible on mobile such that while editing them, the window gets shifted
- * upwards, so it doesn't get covered by the on-screen keyboard
+ * upwards, so it doesn't get covered by the on-screen keyboard.
  *
- * For this to work, a layout size listener should be attached in Android that calls `GFramework::notifySizeChange()`,
- * and the window must be added to the [GScreen]'s accessible window list.
+ * For this to work, a keyboard height listener should be attached in the mobile platform that calls [onKeyboardHeightChanged].
+ * [GScreen] has a convenient set to store [KeyboardHeightObserver]s so that they can be easily accessed from the mobile
+ * platform.
  */
 abstract class AccessibleInputDialog(
 	title: String,
@@ -26,9 +27,9 @@ abstract class AccessibleInputDialog(
 	private var keyboardHeight = 0
 	private var shouldShift = false
 	
-	fun addFocusListener(mbTextField: MBTextField)
+	fun addFocusListener(gTextField: GTextField)
 	{
-		mbTextField.onKeyboardFocus { focused -> if (focused) adjustPosition(keyboardHeight) }
+		gTextField.onKeyboardFocus { focused -> if (focused) adjustPosition(keyboardHeight) }
 	}
 	
 	override fun onKeyboardHeightChanged(height: Int, orientation: Int)
@@ -51,7 +52,8 @@ abstract class AccessibleInputDialog(
 	
 	private fun adjustPosition(height: Int): Boolean
 	{
-		val focusedTextField: MBTextField = stage?.keyboardFocus as? MBTextField ?: return false
+		val focusedTextField = stage?.keyboardFocus as? GTextField
+			?: return false
 		stage.stageToScreenCoordinates(windowScreenPos.set(x, y))
 		focusedTextField.localToScreenCoordinates(textFieldScreenPos.set(0F, 0F))
 		

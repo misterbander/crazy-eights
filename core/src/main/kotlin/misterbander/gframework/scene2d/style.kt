@@ -8,12 +8,12 @@ import ktx.style.*
  * @param extend optional name of an _existing_ style of the same type. Its values will be copied and used as base for
  * this style.
  * @param init will be applied to the style instance. Inlined.
- * @return A new instance of [MBTextField.MBTextFieldStyle] added to the [Skin] with the selected name.
+ * @return A new instance of [GTextField.GTextFieldStyle] added to the [Skin] with the selected name.
  */
 @SkinDsl
-inline fun Skin.mbTextField(
-	name: String = defaultStyle,
+inline fun Skin.gTextField(
+	name: String,
 	extend: String? = null,
-	init: (@SkinDsl MBTextField.MBTextFieldStyle).() -> Unit = {}
-): MBTextField.MBTextFieldStyle =
-	addStyle(name, if (extend == null) MBTextField.MBTextFieldStyle() else MBTextField.MBTextFieldStyle(get(extend)), init)
+	init: (@SkinDsl GTextField.GTextFieldStyle).() -> Unit = {}
+): GTextField.GTextFieldStyle =
+	addStyle(name, if (extend == null) GTextField.GTextFieldStyle() else GTextField.GTextFieldStyle(get(extend)), init)

@@ -6,9 +6,14 @@ import misterbander.gframework.util.SmoothAngleInterpolator
 import misterbander.gframework.util.SmoothInterpolator
 import misterbander.sandboxtabletop.SandboxTabletop
 
-class SmoothMovable(parent: GObject<SandboxTabletop>) : GModule<SandboxTabletop>(parent)
+class SmoothMovable(
+	parent: GObject<SandboxTabletop>,
+	x: Float = parent.x,
+	y: Float = parent.y,
+	rotation: Float = parent.rotation
+) : GModule<SandboxTabletop>(parent)
 {
-	var xInterpolator = object : SmoothInterpolator(parent.x)
+	var xInterpolator = object : SmoothInterpolator(x)
 	{
 		override var value: Float
 			get() = parent.x
@@ -17,7 +22,7 @@ class SmoothMovable(parent: GObject<SandboxTabletop>) : GModule<SandboxTabletop>
 				parent.x = value
 			}
 	}
-	var yInterpolator = object : SmoothInterpolator(parent.y)
+	var yInterpolator = object : SmoothInterpolator(y)
 	{
 		override var value: Float
 			get() = parent.y
@@ -26,7 +31,13 @@ class SmoothMovable(parent: GObject<SandboxTabletop>) : GModule<SandboxTabletop>
 				parent.y = value
 			}
 	}
-	var rotationInterpolator = object : SmoothAngleInterpolator(parent.rotation)
+	var scaleInterpolator = object : SmoothInterpolator(parent.scaleX, 5F)
+	{
+		override var value: Float
+			get() = parent.scaleX
+			set(value) = parent.setScale(value)
+	}
+	var rotationInterpolator = object : SmoothAngleInterpolator(rotation)
 	{
 		override var value: Float
 			get() = parent.rotation
@@ -40,6 +51,7 @@ class SmoothMovable(parent: GObject<SandboxTabletop>) : GModule<SandboxTabletop>
 	{
 		xInterpolator.lerp(delta)
 		yInterpolator.lerp(delta)
+		scaleInterpolator.lerp(delta)
 		rotationInterpolator.lerp(delta)
 	}
 	
@@ -47,5 +59,11 @@ class SmoothMovable(parent: GObject<SandboxTabletop>) : GModule<SandboxTabletop>
 	{
 		xInterpolator.target = x
 		yInterpolator.target = y
+	}
+	
+	fun setPositionAndTargetPosition(x: Float, y: Float)
+	{
+		xInterpolator.set(x)
+		yInterpolator.set(y)
 	}
 }

@@ -10,6 +10,8 @@ import ktx.collections.plusAssign
 import ktx.collections.set
 import misterbander.gframework.scene2d.plusAssign
 import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.model.ServerCard.Rank
+import misterbander.sandboxtabletop.model.ServerCard.Suit
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 
@@ -21,10 +23,15 @@ class Tabletop(private val screen: RoomScreen)
 	val cursors = Group()
 	var myCursor: SandboxTabletopCursor? = null
 	
+	val cards = Group()
+	
 	fun setState(state: TabletopState)
 	{
 		state.users.forEach { this += it }
 		myCursor?.toFront()
+		
+		cards += Card(screen, 0, 30F, 40F, 0F, Rank.FIVE, Suit.HEARTS, true)
+		cards += Card(screen, 1, 30F, 40F, 30F, Rank.TWO, Suit.SPADES, true)
 	}
 	
 	operator fun plusAssign(user: User)
@@ -54,5 +61,7 @@ class Tabletop(private val screen: RoomScreen)
 		userCursorMap.clear()
 		cursors.clearChildren()
 		myCursor = null
+		
+		cards.clearChildren()
 	}
 }

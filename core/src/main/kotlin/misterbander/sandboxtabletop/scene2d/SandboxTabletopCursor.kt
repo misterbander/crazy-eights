@@ -23,6 +23,7 @@ class SandboxTabletopCursor(
 	private val base: TextureRegion
 	private val border: TextureRegion
 	
+	// Modules
 	private val smoothMovable = SmoothMovable(this)
 	
 	init
@@ -31,9 +32,7 @@ class SandboxTabletopCursor(
 		base = Scene2DSkin.defaultSkin["cursorbase"]
 		border = Scene2DSkin.defaultSkin["cursorborder"]
 		setSize(base.regionWidth.toFloat(), base.regionHeight.toFloat())
-		smoothMovable.xInterpolator.set(screen.uiViewport.minWorldWidth/2 - 3)
-		smoothMovable.yInterpolator.set(screen.uiViewport.minWorldHeight/2 - height)
-		modules += smoothMovable
+		setPositionAndTargetPosition(screen.uiViewport.minWorldWidth/2, screen.uiViewport.minWorldHeight/2)
 		if (!noLabel)
 		{
 			this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE).apply {
@@ -41,9 +40,15 @@ class SandboxTabletopCursor(
 				setPosition(this@SandboxTabletopCursor.width/2 - 3F, 0F, Align.topLeft)
 			}
 		}
+		
+		// Add modules
+		modules += smoothMovable
 	}
 	
 	fun setTargetPosition(x: Float, y: Float) = smoothMovable.setTargetPosition(x - 3, y - height)
+	
+	fun setPositionAndTargetPosition(x: Float, y: Float) =
+		smoothMovable.setPositionAndTargetPosition(x - 3, y - height)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

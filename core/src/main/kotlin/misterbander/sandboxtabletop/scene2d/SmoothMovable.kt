@@ -1,48 +1,49 @@
 package misterbander.sandboxtabletop.scene2d
 
-import com.badlogic.gdx.scenes.scene2d.Group
+import misterbander.gframework.scene2d.GObject
+import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.SmoothAngleInterpolator
 import misterbander.gframework.util.SmoothInterpolator
+import misterbander.sandboxtabletop.SandboxTabletop
 
-open class SmoothMovable(x: Float = 0F, y: Float = 0F, rotation: Float = 0F) : Group()
+class SmoothMovable(parent: GObject<SandboxTabletop>) : GModule<SandboxTabletop>(parent)
 {
-	var xInterpolator = object : SmoothInterpolator(x)
+	var xInterpolator = object : SmoothInterpolator(parent.x)
 	{
 		override var value: Float
-			get() = this@SmoothMovable.x
+			get() = parent.x
 			set(value)
 			{
-				this@SmoothMovable.x = value
+				parent.x = value
 			}
 	}
-	var yInterpolator = object : SmoothInterpolator(y)
+	var yInterpolator = object : SmoothInterpolator(parent.y)
 	{
 		override var value: Float
-			get() = this@SmoothMovable.y
+			get() = parent.y
 			set(value)
 			{
-				this@SmoothMovable.y = value
+				parent.y = value
 			}
 	}
-	var rotationInterpolator = object : SmoothAngleInterpolator(rotation)
+	var rotationInterpolator = object : SmoothAngleInterpolator(parent.rotation)
 	{
 		override var value: Float
-			get() = this@SmoothMovable.rotation
+			get() = parent.rotation
 			set(value)
 			{
-				this@SmoothMovable.rotation = value
+				parent.rotation = value
 			}
 	}
 	
-	override fun act(delta: Float)
+	override fun update(delta: Float)
 	{
-		super.act(delta)
 		xInterpolator.lerp(delta)
 		yInterpolator.lerp(delta)
 		rotationInterpolator.lerp(delta)
 	}
 	
-	open fun setTargetPosition(x: Float, y: Float)
+	fun setTargetPosition(x: Float, y: Float)
 	{
 		xInterpolator.target = x
 		yInterpolator.target = y

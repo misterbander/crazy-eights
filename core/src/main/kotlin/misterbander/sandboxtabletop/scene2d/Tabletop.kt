@@ -3,12 +3,12 @@ package misterbander.sandboxtabletop.scene2d
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Group
-import ktx.actors.plusAssign
 import ktx.collections.GdxMap
 import ktx.collections.GdxSet
 import ktx.collections.minusAssign
 import ktx.collections.plusAssign
 import ktx.collections.set
+import misterbander.gframework.scene2d.plusAssign
 import misterbander.sandboxtabletop.RoomScreen
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User

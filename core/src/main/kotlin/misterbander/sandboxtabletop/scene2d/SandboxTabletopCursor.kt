@@ -5,16 +5,25 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
+import ktx.collections.plusAssign
 import ktx.scene2d.*
 import ktx.style.*
+import misterbander.gframework.scene2d.GObject
 import misterbander.sandboxtabletop.PLAYER_NAMETAG_LABEL_STYLE
 import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.User
 
-class SandboxTabletopCursor(roomScreen: RoomScreen, user: User, noLabel: Boolean = false) : SmoothMovable()
+class SandboxTabletopCursor(
+	screen: RoomScreen,
+	user: User,
+	noLabel: Boolean = false
+) : GObject<SandboxTabletop>(screen)
 {
 	private val base: TextureRegion
 	private val border: TextureRegion
+	
+	private val smoothMovable = SmoothMovable(this)
 	
 	init
 	{
@@ -22,8 +31,9 @@ class SandboxTabletopCursor(roomScreen: RoomScreen, user: User, noLabel: Boolean
 		base = Scene2DSkin.defaultSkin["cursorbase"]
 		border = Scene2DSkin.defaultSkin["cursorborder"]
 		setSize(base.regionWidth.toFloat(), base.regionHeight.toFloat())
-		xInterpolator.set(roomScreen.uiViewport.minWorldWidth/2 - 3)
-		yInterpolator.set(roomScreen.uiViewport.minWorldHeight/2 - height)
+		smoothMovable.xInterpolator.set(screen.uiViewport.minWorldWidth/2 - 3)
+		smoothMovable.yInterpolator.set(screen.uiViewport.minWorldHeight/2 - height)
+		modules += smoothMovable
 		if (!noLabel)
 		{
 			this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE).apply {
@@ -33,7 +43,7 @@ class SandboxTabletopCursor(roomScreen: RoomScreen, user: User, noLabel: Boolean
 		}
 	}
 	
-	override fun setTargetPosition(x: Float, y: Float) = super.setTargetPosition(x - 3, y - height)
+	fun setTargetPosition(x: Float, y: Float) = smoothMovable.setTargetPosition(x - 3, y - height)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

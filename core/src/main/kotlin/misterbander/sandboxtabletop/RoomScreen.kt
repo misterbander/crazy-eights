@@ -21,12 +21,14 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
+import ktx.actors.KtxInputListener
 import ktx.actors.onChange
 import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.assets.file
 import ktx.async.interval
 import ktx.graphics.use
 import ktx.log.info
@@ -84,14 +86,17 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		isVisible = false
 	}
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
-	private val shader = ShaderProgram(
-		Gdx.files.internal("shaders/passthrough.vsh").readString(),
-		Gdx.files.internal("shaders/vignette.fsh").readString()
-	).apply {
-		if (!isCompiled)
-			ktx.log.error("RoomScreen | ERROR") { log }
-	}
 	var selfDisconnect = false
+	
+	// Shaders
+	private val vignetteShader = ShaderProgram(
+		file("shaders/passthrough.vsh").readString(),
+		file("shaders/vignette.fsh").readString(),
+	).checkError()
+	val brightenShader = ShaderProgram(
+		file("shaders/passthrough.vsh").readString(),
+		file("shaders/brighten.fsh").readString(),
+	).checkError()
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
@@ -112,10 +117,15 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		{
 			init
 			{
-				onTouchDown {
-					uiStage.keyboardFocus = null
-					Gdx.input.setOnscreenKeyboardVisible(false)
-				}
+				addListener(object : KtxInputListener()
+				{
+					override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
+					{
+						uiStage.keyboardFocus = null
+						Gdx.input.setOnscreenKeyboardVisible(false)
+						return false
+					}
+				})
 			}
 			
 			override fun hit(x: Float, y: Float, touchable: Boolean): Actor
@@ -154,9 +164,17 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				return false
 			}
 		})
+		stage += tabletop.cards
 		stage += tabletop.cursors
 		
 //		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
+	}
+	
+	private fun ShaderProgram.checkError(): ShaderProgram
+	{
+		if (!isCompiled)
+			ktx.log.error("RoomScreen | ERROR") { log }
+		return this
 	}
 	
 	override fun show()
@@ -208,7 +226,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		transition.update(delta)
 		clearScreen()
 		game.batch.use {
-			it.shader = shader
+			it.shader = vignetteShader
 			game.shapeDrawer.setColor(BACKGROUND_COLOR)
 			game.shapeDrawer.filledRectangle(0F, 0F, viewport.worldWidth, viewport.worldHeight)
 			it.shader = null
@@ -232,8 +250,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			chatLabelContainer.width(label.style.font.chatTextWidth(label.text.toString()))
 			chatLabelContainer.invalidateHierarchy()
 		}
-		shader.bind()
-		shader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
+		vignetteShader.bind()
+		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
 	}
 	
 	/**
@@ -409,6 +427,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	override fun dispose()
 	{
 		super.dispose()
-		shader.dispose()
+		vignetteShader.dispose()
+		brightenShader.dispose()
 	}
 }

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package misterbander.sandboxtabletop.net;
+package misterbander.sandboxtabletop.net
 
-import com.badlogic.gdx.utils.OrderedMap;
+import com.badlogic.gdx.utils.OrderedMap
 
-public class OrderedMapSerializer extends GdxMapSerializer<OrderedMap<Object, Object>>
+class OrderedMapSerializer : GdxMapSerializer()
 {
-	public OrderedMap<Object, Object> create(int length)
+	override fun create(length: Int): OrderedMap<Any, Any>
 	{
-		return new OrderedMap<>(length);
+		return OrderedMap(length)
 	}
 }

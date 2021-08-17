@@ -54,7 +54,7 @@ object Network
 	{
 		register(Any::class.java)
 		register(Array<String>::class.java)
-		register(GdxArray::class.java, GdxArraySerializer<GdxArray<Any>>())
+		register(GdxArray::class.java, GdxArraySerializer())
 		register(OrderedMap::class.java, OrderedMapSerializer())
 		register(Handshake::class.java)
 		register(HandshakeReject::class.java)

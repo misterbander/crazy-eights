@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
-import ktx.collections.plusAssign
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.GObject
@@ -42,7 +41,7 @@ class SandboxTabletopCursor(
 		}
 		
 		// Add modules
-		modules += smoothMovable
+		this += smoothMovable
 	}
 	
 	fun setTargetPosition(x: Float, y: Float) = smoothMovable.setTargetPosition(x - 3, y - height)

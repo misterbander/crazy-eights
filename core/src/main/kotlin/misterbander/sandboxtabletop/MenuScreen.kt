@@ -138,7 +138,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				messageDialog.actionlessHide()
 				infoDialog.hide()
 				Network.client!!.removeListener(this)
-				Network.client!!.addListener(roomScreen)
+				Network.client!!.addListener(roomScreen.clientListener)
 				transition.start(targetScreen = roomScreen)
 			}
 		}

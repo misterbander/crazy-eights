@@ -44,9 +44,14 @@ import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.cursorPositionPool
+import misterbander.sandboxtabletop.net.packets.LockEvent
+import misterbander.sandboxtabletop.net.packets.ServerObjectMovedEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
+import misterbander.sandboxtabletop.net.serverObjectMovedEventPool
+import misterbander.sandboxtabletop.scene2d.Draggable
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
+import misterbander.sandboxtabletop.scene2d.SmoothMovable
 import misterbander.sandboxtabletop.scene2d.Tabletop
 import misterbander.sandboxtabletop.scene2d.dialogs.GameMenuDialog
 import kotlin.math.min
@@ -101,15 +106,19 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private val cursorPosition = CursorPosition()
-	private var updateCursorTask: Timer.Task? = null
+	var serverObjectMovedEvent: ServerObjectMovedEvent? = null
+		set(value)
+		{
+			if (field != null)
+				serverObjectMovedEventPool.free(field)
+			field = value
+		}
+	private var syncServerTask: Timer.Task? = null
 	
-//	@Null
-//	var latestServerObjectPosition: ServerObjectPosition? = null
-//	val uuidActorMap: ObjectMap<UUID, Actor> = ObjectMap<UUID, Actor>()
 //	val hand: Hand = Hand(this)
 //	private val handRegion: TextureRegion = game.skin.getRegion("hand")
 	
-	private val tps = 1/40F
+	private val tickDelay = 1/40F
 	
 	init
 	{
@@ -156,7 +165,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				{
 					Gdx.app.postRunnable { uiStage.keyboardFocus = chatTextField }
 					return true
-				} else if (event.keyCode == Input.Keys.ESCAPE)
+				}
+				else if (event.keyCode == Input.Keys.ESCAPE)
 				{
 					uiStage.keyboardFocus = null
 					return true
@@ -203,7 +213,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 		
 		cursorPosition.username = game.user.username
-		updateCursorTask = interval(tps, tps) {
+		syncServerTask = interval(tickDelay, tickDelay) {
 			val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
 			if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
 			{
@@ -211,11 +221,11 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				cursorPosition.y = inputY
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
 				Network.client?.sendTCP(cursorPosition)
-//				if (latestServerObjectPosition != null)
-//				{
-//					client.send(latestServerObjectPosition)
-//					latestServerObjectPosition = null
-//				}
+			}
+			if (serverObjectMovedEvent != null)
+			{
+				Network.client?.sendTCP(serverObjectMovedEvent)
+				serverObjectMovedEvent = null
 			}
 		}
 	}
@@ -238,7 +248,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		updateWorld()
 		transition.render()
 	}
-	
 	
 	@Suppress("UNCHECKED_CAST")
 	override fun resize(width: Int, height: Int)
@@ -329,56 +338,27 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				cursor?.setTargetPosition(`object`.x, `object`.y)
 				cursorPositionPool.free(`object`)
 			}
+			is LockEvent -> Gdx.app.postRunnable {
+				val gObject = tabletop.idGObjectMap[`object`.serverObjectId]!!
+				val draggable = gObject.getModule<Draggable>()
+				if (draggable != null)
+				{
+					gObject.toFront()
+					draggable.lockHolder = if (`object`.lockerUsername != null) tabletop.users[`object`.lockerUsername] else null
+				}
+			}
+			is ServerObjectMovedEvent ->
+			{
+				val gObject = tabletop.idGObjectMap[`object`.id]!!
+				gObject.getModule<SmoothMovable>()?.setTargetPosition(`object`.x, `object`.y)
+				serverObjectMovedEventPool.free(`object`)
+			}
 		}
 	}
 	
 //	fun objectReceived(connection: Connection?, `object`: Serializable)
 //	{
-//		if (`object` is ServerObjectList)
-//		{
-//			val objectList: Array<ServerObject> = (`object` as ServerObjectList).objects
-//			for (i in objectList.indices)
-//			{
-//				val serverObject: ServerObject = objectList[i]
-//				if (serverObject is ServerCard)
-//				{
-//					val serverCard: ServerCard = serverObject as ServerCard
-//					val card = Card(
-//						this,
-//						serverCard.getUUID(),
-//						serverCard.rank,
-//						serverCard.suit,
-//						serverCard.lockHolder,
-//						serverCard.owner,
-//						serverCard.getX(),
-//						serverCard.getY(),
-//						serverCard.getRotation(),
-//						serverCard.isFaceUp
-//					)
-//					uuidActorMap.put(serverCard.getUUID(), card)
-//					stage.addActor(card)
-//					card.setZIndex(i)
-//					if (card.owner != null)
-//					{
-//						if (user.equals(card.owner)) hand.addCard(card) else card.setVisible(false)
-//					}
-//				}
-//			}
-//			println("Arranging cards")
-//			hand.arrangeCards(false)
-//		}
-//		else if (`object` is LockEvent)
-//		{
-//			val event: LockEvent = `object` as LockEvent
-//			val actor: Actor = uuidActorMap.get<UUID>(event.lockedUuid)
-//			if (actor is Card)
-//			{
-//				val card: Card = actor as Card
-//				card.setZIndex(uuidActorMap.size)
-//				card.lockHolder = event.lockHolder
-//			}
-//		}
-//		else if (`object` is OwnerEvent)
+//		if (`object` is OwnerEvent)
 //		{
 //			val event: OwnerEvent = `object` as OwnerEvent
 //			val actor: Actor = uuidActorMap.get<UUID>(event.ownedUuid)
@@ -387,16 +367,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //				val card: Card = actor as Card
 //				card.owner = event.owner
 //				card.setVisible(card.owner == null || card.owner.equals(user))
-//			}
-//		}
-//		else if (`object` is ServerObjectPosition)
-//		{
-//			val serverObjectPosition: ServerObjectPosition = `object` as ServerObjectPosition
-//			val actor: Actor = uuidActorMap.get<UUID>(serverObjectPosition.uuid)
-//			if (actor is Card)
-//			{
-//				val card: Card = actor as Card
-//				if (card.owner == null) card.setTargetPosition(serverObjectPosition.x, serverObjectPosition.y)
 //			}
 //		}
 //		else if (`object` is FlipCardEvent)
@@ -418,8 +388,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		chatHistory.clearChildren()
 		selfDisconnect = false
 		tabletop.reset()
-		updateCursorTask?.cancel()
-		updateCursorTask = null
+		syncServerTask?.cancel()
+		syncServerTask = null
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 		Network.stop()
 	}

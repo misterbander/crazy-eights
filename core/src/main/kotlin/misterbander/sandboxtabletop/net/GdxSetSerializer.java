@@ -21,42 +21,16 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-public class ObjectSetSerializer<T extends ObjectSet<Object>> extends Serializer<T>
+public class GdxSetSerializer<T extends ObjectSet<Object>> extends Serializer<T>
 {
-	private Class<?> genericType;
-	
-	public void setGenerics(Kryo kryo, Class<?>[] generics)
-	{
-		genericType = null;
-		if (generics != null && generics.length > 0)
-		{
-			if (kryo.isFinal(generics[0]))
-				genericType = generics[0];
-		}
-	}
-	
 	@Override
 	public void write(Kryo kryo, Output output, T objectSet)
 	{
 		int length = objectSet.size;
 		output.writeVarInt(length, true);
 		output.writeBoolean(false); // whether type is written (in case future version of ObjectSet supports type awareness)
-		Serializer<?> serializer = null;
-		if (genericType != null)
-		{
-			serializer = kryo.getSerializer(genericType);
-			genericType = null;
-		}
-		if (serializer != null)
-		{
-			for (Object element : objectSet)
-				kryo.writeObject(output, element, serializer);
-		}
-		else
-		{
-			for (Object element : objectSet)
-				kryo.writeClassAndObject(output, element);
-		}
+		for (Object element : objectSet)
+			kryo.writeClassAndObject(output, element);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -74,24 +48,8 @@ public class ObjectSetSerializer<T extends ObjectSet<Object>> extends Serializer
 		
 		kryo.reference(objectSet);
 		
-		Class<?> elementClass = null;
-		Serializer<?> serializer = null;
-		if (genericType != null)
-		{
-			elementClass = genericType;
-			serializer = kryo.getSerializer(genericType);
-			genericType = null;
-		}
-		if (serializer != null)
-		{
-			for (int i = 0; i < length; i++)
-				objectSet.add(kryo.readObject(input, elementClass, serializer));
-		}
-		else
-		{
-			for (int i = 0; i < length; i++)
-				objectSet.add(kryo.readClassAndObject(input));
-		}
+		for (int i = 0; i < length; i++)
+			objectSet.add(kryo.readClassAndObject(input));
 		return objectSet;
 	}
 	

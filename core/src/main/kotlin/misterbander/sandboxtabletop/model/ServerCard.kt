@@ -8,7 +8,8 @@ data class ServerCard(
 	val rank: Rank = Rank.NO_RANK,
 	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
-) : ServerObject
+	override var lockHolder: User? = null
+) : ServerObject, ServerDraggable
 {
 	override fun setPosition(x: Float, y: Float)
 	{

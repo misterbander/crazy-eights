@@ -3,21 +3,43 @@ package misterbander.sandboxtabletop.scene2d
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import ktx.math.component1
 import ktx.math.component2
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
+import misterbander.sandboxtabletop.RoomScreen
 import misterbander.sandboxtabletop.SandboxTabletop
+import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.net.Network
+import misterbander.sandboxtabletop.net.packets.LockEvent
+import misterbander.sandboxtabletop.net.serverObjectMovedEventPool
 
 class Draggable(
-	private val smoothMovable: SmoothMovable,
-	private val clickListener: ClickListener
+	private val id: Int,
+	var lockHolder: User? = null,
+	private val clickListener: ClickListener,
+	private val smoothMovable: SmoothMovable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
 	init
 	{
+		parent.addListener(object : ActorGestureListener()
+		{
+			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
+			{
+				if (!isLocked)
+					Network.client?.sendTCP(LockEvent(id, parent.screen.game.user.username))
+			}
+			
+			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
+			{
+				if (isLockHolder)
+					Network.client?.sendTCP(LockEvent(id, null))
+			}
+		})
 		parent.addListener(object : DragListener()
 		{
 			var offsetX = 0F
@@ -32,31 +54,32 @@ class Draggable(
 			{
 				offsetX = event.stageX - parent.x
 				offsetY = event.stageY - parent.y
-				parent.toFront()
-//				if (!isLocked && !isLockHolder && (owner == null || owner == screen.game.user))
-//				{
-//					println("locking $rank $suit")
-//					screen.client.send(LockEvent(screen.user, uuid))
-//				}
 			}
 			
 			override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)
 			{
+				if (!isLockHolder)
+					return
 				val (dragStartX, dragStartY) = parent.stageToLocalCoordinates(tempVec.set(parent.x + offsetX, parent.y + offsetY))
 				val (newStageX, newStageY) = parent.localToStageCoordinates(tempVec.set(x - dragStartX, y - dragStartY))
 				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
-			}
-			
-			override fun dragStop(event: InputEvent, x: Float, y: Float, pointer: Int)
-			{
-//				if (isLockHolder) screen.client.send(LockEvent(null, uuid))
-//				screen.hand.arrangeCards(true)
+				(parent.screen as RoomScreen).serverObjectMovedEvent = serverObjectMovedEventPool.obtain().apply {
+					id = this@Draggable.id
+					this.x = newStageX
+					this.y = newStageY
+				}
 			}
 		})
 	}
 	
+	val isLocked: Boolean
+		get() = lockHolder != null
+	
+	val isLockHolder: Boolean
+		get() = lockHolder == parent.screen.game.user
+	
 	override fun update(delta: Float)
 	{
-		smoothMovable.scaleInterpolator.target = if (clickListener.isPressed) 1.05F else 1F
+		smoothMovable.scaleInterpolator.target = if (!isLocked && clickListener.isPressed || isLocked) 1.05F else 1F
 	}
 }

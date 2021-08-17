@@ -3,40 +3,50 @@ package misterbander.sandboxtabletop.scene2d
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Group
+import com.badlogic.gdx.utils.IntMap
+import com.badlogic.gdx.utils.OrderedMap
 import ktx.collections.GdxMap
-import ktx.collections.GdxSet
-import ktx.collections.minusAssign
-import ktx.collections.plusAssign
 import ktx.collections.set
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.plusAssign
 import misterbander.sandboxtabletop.RoomScreen
-import misterbander.sandboxtabletop.model.ServerCard.Rank
-import misterbander.sandboxtabletop.model.ServerCard.Suit
+import misterbander.sandboxtabletop.SandboxTabletop
+import misterbander.sandboxtabletop.model.ServerCard
+import misterbander.sandboxtabletop.model.ServerObject
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 
 class Tabletop(private val screen: RoomScreen)
 {
-	private val users = GdxSet<User>()
+	val idGObjectMap = IntMap<GObject<SandboxTabletop>>()
 	
+	val users = OrderedMap<String, User>()
 	val userCursorMap = GdxMap<String, SandboxTabletopCursor>()
 	val cursors = Group()
 	var myCursor: SandboxTabletopCursor? = null
-	
 	val cards = Group()
 	
 	fun setState(state: TabletopState)
 	{
-		state.users.forEach { this += it }
+		// Add users and cursors
+		state.users.forEach { this += it.value }
 		myCursor?.toFront()
 		
-		cards += Card(screen, 0, 30F, 40F, 0F, Rank.FIVE, Suit.HEARTS, true)
-		cards += Card(screen, 1, 30F, 40F, 30F, Rank.TWO, Suit.SPADES, true)
+		// Add server objects
+		state.serverObjects.forEach { serverObject: ServerObject ->
+			if (serverObject is ServerCard)
+			{
+				val (id, x, y, rotation, rank, suit, isFaceUp, lockHolder) = serverObject
+				val card = Card(screen, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
+				idGObjectMap[id] = card
+				cards += card
+			}
+		}
 	}
 	
 	operator fun plusAssign(user: User)
 	{
-		users += user
+		users[user.username] = user
 		val cursor = SandboxTabletopCursor(screen, user, user == screen.game.user)
 		userCursorMap[user.username] = cursor
 		if (user != screen.game.user)
@@ -50,18 +60,18 @@ class Tabletop(private val screen: RoomScreen)
 	
 	operator fun minusAssign(user: User)
 	{
-		users -= user
+		users.remove(user.username)
 		userCursorMap.remove(user.username)?.remove()
 	}
 	
 	fun reset()
 	{
-		users.clear()
+		idGObjectMap.clear()
 		
+		users.clear()
 		userCursorMap.clear()
 		cursors.clearChildren()
 		myCursor = null
-		
 		cards.clearChildren()
 	}
 }

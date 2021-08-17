@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Align
 import ktx.actors.onClick
 import ktx.actors.plusAssign
-import ktx.collections.plusAssign
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.GObject
@@ -42,8 +41,8 @@ class Card(
 		this += cardImage
 		
 		// Add modules
-		modules += smoothMovable
-		modules += Draggable(smoothMovable, clickListener)
+		this += smoothMovable
+		this += Draggable(smoothMovable, clickListener)
 	}
 	
 	var isFaceUp: Boolean = isFaceUp

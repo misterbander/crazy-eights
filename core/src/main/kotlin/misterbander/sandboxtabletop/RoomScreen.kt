@@ -19,8 +19,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
-import com.esotericsoftware.kryonet.Connection
-import com.esotericsoftware.kryonet.Listener
 import ktx.actors.KtxInputListener
 import ktx.actors.onChange
 import ktx.actors.onKey
@@ -31,7 +29,6 @@ import ktx.actors.then
 import ktx.assets.file
 import ktx.async.interval
 import ktx.graphics.use
-import ktx.log.info
 import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
@@ -43,20 +40,14 @@ import misterbander.gframework.util.toPixmap
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.Network
-import misterbander.sandboxtabletop.net.cursorPositionPool
-import misterbander.sandboxtabletop.net.packets.LockEvent
+import misterbander.sandboxtabletop.net.SandboxTabletopClientListener
 import misterbander.sandboxtabletop.net.packets.ServerObjectMovedEvent
-import misterbander.sandboxtabletop.net.packets.UserJoinEvent
-import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.net.serverObjectMovedEventPool
-import misterbander.sandboxtabletop.scene2d.Draggable
-import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
-import misterbander.sandboxtabletop.scene2d.SmoothMovable
 import misterbander.sandboxtabletop.scene2d.Tabletop
 import misterbander.sandboxtabletop.scene2d.dialogs.GameMenuDialog
 import kotlin.math.min
 
-class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
+class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 {
 	// UI
 	private val gameMenuDialog = GameMenuDialog(this)
@@ -91,6 +82,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		isVisible = false
 	}
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
+	
+	val clientListener by lazy { SandboxTabletopClientListener(this) }
 	var selfDisconnect = false
 	
 	// Shaders
@@ -268,7 +261,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	 * @param message the message
 	 * @param color   color of the chat message
 	 */
-	private fun chat(message: String, color: Color? = null)
+	fun chat(message: String, color: Color? = null)
 	{
 		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE) {
 			wrap = true
@@ -304,83 +297,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	{
 		return min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
 	}
-	
-	override fun disconnected(connection: Connection)
-	{
-		val menuScreen = game.getScreen<MenuScreen>()
-		if (!selfDisconnect)
-			menuScreen.messageDialog.show("Disconnected", "Server closed.", "OK")
-		transition.start(targetScreen = menuScreen)
-	}
-	
-	override fun received(connection: Connection, `object`: Any)
-	{
-		when (`object`)
-		{
-			is UserJoinEvent -> Gdx.app.postRunnable {
-				val user = `object`.user
-				if (user != game.user)
-					tabletop += user
-				chat("${user.username} joined the game", Color.YELLOW)
-			}
-			is UserLeaveEvent -> Gdx.app.postRunnable {
-				val user = `object`.user
-				tabletop -= user
-				chat("${user.username} left the game", Color.YELLOW)
-			}
-			is Chat -> Gdx.app.postRunnable {
-				chat(`object`.message, if (`object`.isSystemMessage) Color.YELLOW else null)
-				info("Client | CHAT") { `object`.message }
-			}
-			is CursorPosition ->
-			{
-				val cursor: SandboxTabletopCursor? = tabletop.userCursorMap[`object`.username]
-				cursor?.setTargetPosition(`object`.x, `object`.y)
-				cursorPositionPool.free(`object`)
-			}
-			is LockEvent -> Gdx.app.postRunnable {
-				val gObject = tabletop.idGObjectMap[`object`.serverObjectId]!!
-				val draggable = gObject.getModule<Draggable>()
-				if (draggable != null)
-				{
-					gObject.toFront()
-					draggable.lockHolder = if (`object`.lockerUsername != null) tabletop.users[`object`.lockerUsername] else null
-				}
-			}
-			is ServerObjectMovedEvent ->
-			{
-				val gObject = tabletop.idGObjectMap[`object`.id]!!
-				gObject.getModule<SmoothMovable>()?.setTargetPosition(`object`.x, `object`.y)
-				serverObjectMovedEventPool.free(`object`)
-			}
-		}
-	}
-	
-//	fun objectReceived(connection: Connection?, `object`: Serializable)
-//	{
-//		if (`object` is OwnerEvent)
-//		{
-//			val event: OwnerEvent = `object` as OwnerEvent
-//			val actor: Actor = uuidActorMap.get<UUID>(event.ownedUuid)
-//			if (actor is Card)
-//			{
-//				val card: Card = actor as Card
-//				card.owner = event.owner
-//				card.setVisible(card.owner == null || card.owner.equals(user))
-//			}
-//		}
-//		else if (`object` is FlipCardEvent)
-//		{
-//			val flipCardEvent: FlipCardEvent = `object` as FlipCardEvent
-//			val actor: Actor = uuidActorMap.get<UUID>(flipCardEvent.uuid)
-//			if (actor is Card)
-//			{
-//				val card: Card = actor as Card
-//				card.setFaceUp(flipCardEvent.isFaceUp)
-//				if (card.owner == null) card.setZIndex(uuidActorMap.size)
-//			}
-//		}
-//	}
 	
 	override fun hide()
 	{

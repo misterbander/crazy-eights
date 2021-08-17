@@ -13,6 +13,7 @@ import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.ServerCard
 import misterbander.sandboxtabletop.model.ServerCard.Rank
 import misterbander.sandboxtabletop.model.ServerCard.Suit
+import misterbander.sandboxtabletop.model.User
 
 class Card(
 	screen: RoomScreen,
@@ -22,7 +23,8 @@ class Card(
 	rotation: Float,
 	val rank: Rank = Rank.NO_RANK,
 	val suit: Suit = Suit.NO_SUIT,
-	isFaceUp: Boolean = false
+	isFaceUp: Boolean = false,
+	lockHolder: User? = null
 ) : GObject<SandboxTabletop>(screen)
 {
 	private val faceUpDrawable: Drawable = Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "cardjoker" else "card${suit}${rank}"]
@@ -35,6 +37,7 @@ class Card(
 	
 	// Modules
 	val smoothMovable = SmoothMovable(this, x, y, rotation)
+	val draggable = Draggable(id, lockHolder, clickListener, smoothMovable)
 	
 	init
 	{
@@ -42,7 +45,7 @@ class Card(
 		
 		// Add modules
 		this += smoothMovable
-		this += Draggable(smoothMovable, clickListener)
+		this += draggable
 	}
 	
 	var isFaceUp: Boolean = isFaceUp
@@ -53,7 +56,7 @@ class Card(
 		}
 	
 	val serverCard: ServerCard
-		get() = ServerCard(id, x, y, rotation, rank, suit, isFaceUp)
+		get() = ServerCard(id, x, y, rotation, rank, suit, isFaceUp, draggable.lockHolder)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

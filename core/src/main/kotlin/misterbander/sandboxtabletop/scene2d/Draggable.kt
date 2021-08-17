@@ -1,7 +1,5 @@
 package misterbander.sandboxtabletop.scene2d
 
-import com.badlogic.gdx.Application
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
@@ -19,6 +17,8 @@ class Draggable(
 	private val smoothMovable: SmoothMovable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
+	var justDragged = false
+	
 	init
 	{
 		parent.addListener(object : DragListener()
@@ -28,13 +28,14 @@ class Draggable(
 			
 			init
 			{
-				tapSquareSize = if (Gdx.app.type == Application.ApplicationType.Desktop) 1F else 5F
+				tapSquareSize = 8F
 			}
 			
 			override fun dragStart(event: InputEvent, x: Float, y: Float, pointer: Int)
 			{
 				offsetX = event.stageX - parent.x
 				offsetY = event.stageY - parent.y
+				justDragged = true
 			}
 			
 			override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)

@@ -18,6 +18,7 @@ import misterbander.sandboxtabletop.model.ServerLockable
 import misterbander.sandboxtabletop.model.ServerObject
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
@@ -143,6 +144,12 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 				idObjectMap[id].apply { this.x = x; this.y = y }
 				server.sendToAllTCP(`object`)
 				objectMovedEventPool.free(`object`)
+			}
+			is FlipCardEvent ->
+			{
+				val card = idObjectMap[`object`.id] as ServerCard
+				card.isFaceUp = !card.isFaceUp
+				server.sendToAllTCP(`object`)
 			}
 		}
 	}

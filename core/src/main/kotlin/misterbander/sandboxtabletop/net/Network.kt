@@ -16,6 +16,7 @@ import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.model.ServerCard
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
@@ -72,6 +73,7 @@ object Network
 		register(ObjectLockEvent::class.java)
 		register(ObjectUnlockEvent::class.java)
 		register(ObjectMovedEvent::class.java).setInstantiator { objectMovedEventPool.obtain() }
+		register(FlipCardEvent::class.java)
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")

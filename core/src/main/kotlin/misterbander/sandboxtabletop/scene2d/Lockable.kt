@@ -12,7 +12,8 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 class Lockable(
 	val id: Int,
 	var lockHolder: User? = null,
-	smoothMovable: SmoothMovable
+	smoothMovable: SmoothMovable,
+	onUnlock: (() -> Unit)? = null
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
 	init
@@ -28,7 +29,10 @@ class Lockable(
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				if (isLockHolder)
+				{
 					Network.client?.sendTCP(ObjectUnlockEvent(id))
+					onUnlock?.invoke()
+				}
 			}
 		})
 	}

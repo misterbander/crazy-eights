@@ -9,11 +9,13 @@ import misterbander.sandboxtabletop.MenuScreen
 import misterbander.sandboxtabletop.RoomScreen
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
+import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
+import misterbander.sandboxtabletop.scene2d.Card
 import misterbander.sandboxtabletop.scene2d.Lockable
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
 import misterbander.sandboxtabletop.scene2d.SmoothMovable
@@ -77,6 +79,10 @@ class SandboxTabletopClientListener(private val screen: RoomScreen): Listener
 				gObject.getModule<SmoothMovable>()?.setTargetPosition(`object`.x, `object`.y)
 				objectMovedEventPool.free(`object`)
 			}
+			is FlipCardEvent -> Gdx.app.postRunnable {
+				val card = tabletop.idGObjectMap[`object`.id] as Card
+				card.isFaceUp = !card.isFaceUp
+			}
 		}
 	}
 
@@ -91,17 +97,6 @@ class SandboxTabletopClientListener(private val screen: RoomScreen): Listener
 //				val card: Card = actor as Card
 //				card.owner = event.owner
 //				card.setVisible(card.owner == null || card.owner.equals(user))
-//			}
-//		}
-//		else if (`object` is FlipCardEvent)
-//		{
-//			val flipCardEvent: FlipCardEvent = `object` as FlipCardEvent
-//			val actor: Actor = uuidActorMap.get<UUID>(flipCardEvent.uuid)
-//			if (actor is Card)
-//			{
-//				val card: Card = actor as Card
-//				card.setFaceUp(flipCardEvent.isFaceUp)
-//				if (card.owner == null) card.setZIndex(uuidActorMap.size)
 //			}
 //		}
 //	}

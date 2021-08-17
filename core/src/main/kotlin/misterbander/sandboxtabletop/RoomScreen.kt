@@ -41,8 +41,8 @@ import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.SandboxTabletopClientListener
-import misterbander.sandboxtabletop.net.packets.ServerObjectMovedEvent
-import misterbander.sandboxtabletop.net.serverObjectMovedEventPool
+import misterbander.sandboxtabletop.net.objectMovedEventPool
+import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
 import misterbander.sandboxtabletop.scene2d.Tabletop
 import misterbander.sandboxtabletop.scene2d.dialogs.GameMenuDialog
 import kotlin.math.min
@@ -99,11 +99,11 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private val cursorPosition = CursorPosition()
-	var serverObjectMovedEvent: ServerObjectMovedEvent? = null
+	var objectMovedEvent: ObjectMovedEvent? = null
 		set(value)
 		{
 			if (field != null)
-				serverObjectMovedEventPool.free(field)
+				objectMovedEventPool.free(field)
 			field = value
 		}
 	private var syncServerTask: Timer.Task? = null
@@ -215,10 +215,10 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
 				Network.client?.sendTCP(cursorPosition)
 			}
-			if (serverObjectMovedEvent != null)
+			if (objectMovedEvent != null)
 			{
-				Network.client?.sendTCP(serverObjectMovedEvent)
-				serverObjectMovedEvent = null
+				Network.client?.sendTCP(objectMovedEvent)
+				objectMovedEvent = null
 			}
 		}
 	}

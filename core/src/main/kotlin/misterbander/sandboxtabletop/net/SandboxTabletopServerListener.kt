@@ -20,8 +20,9 @@ import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
-import misterbander.sandboxtabletop.net.packets.LockEvent
-import misterbander.sandboxtabletop.net.packets.ServerObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
+import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
@@ -113,33 +114,31 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 				server.sendToAllTCP(`object`)
 				cursorPositionPool.free(`object`)
 			}
-			is LockEvent ->
+			is ObjectLockEvent -> // User attempts to lock an object
 			{
-				val objectToLock = idObjectMap[`object`.serverObjectId]!!
-				if (`object`.lockerUsername == null) // User wants to unlock an object
+				val (id, lockerUsername) = `object`
+				val toLock = idObjectMap[id]!!
+				if (toLock is ServerDraggable && !toLock.isLocked) // Only unlocked draggables can be locked
 				{
-					if (objectToLock is ServerDraggable && objectToLock.lockHolder != null)
-					{
-						objectToLock.lockHolder = null
-						server.sendToAllTCP(`object`)
-					}
-				}
-				else
-				{
-					val locker = state.users[`object`.lockerUsername]
-					if (objectToLock is ServerDraggable && !objectToLock.isLocked) // Is the object lockable?
-					{
-						objectToLock.lockHolder = locker
-						server.sendToAllTCP(`object`)
-					}
+					toLock.lockHolder = state.users[lockerUsername]
+					server.sendToAllTCP(`object`)
 				}
 			}
-			is ServerObjectMovedEvent ->
+			is ObjectUnlockEvent -> // User unlocks an object
+			{
+				val toUnlock = idObjectMap[`object`.id]!!
+				if (toUnlock is ServerDraggable)
+				{
+					toUnlock.lockHolder = null
+					server.sendToAllTCP(`object`)
+				}
+			}
+			is ObjectMovedEvent ->
 			{
 				val (id, x, y) = `object`
 				idObjectMap[id].apply { this.x = x; this.y = y }
 				server.sendToAllTCP(`object`)
-				serverObjectMovedEventPool.free(`object`)
+				objectMovedEventPool.free(`object`)
 			}
 		}
 	}

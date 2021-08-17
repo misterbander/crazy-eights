@@ -9,8 +9,9 @@ import misterbander.sandboxtabletop.MenuScreen
 import misterbander.sandboxtabletop.RoomScreen
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
-import misterbander.sandboxtabletop.net.packets.LockEvent
-import misterbander.sandboxtabletop.net.packets.ServerObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
+import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.Draggable
@@ -56,20 +57,25 @@ class SandboxTabletopClientListener(private val screen: RoomScreen): Listener
 				cursor?.setTargetPosition(`object`.x, `object`.y)
 				cursorPositionPool.free(`object`)
 			}
-			is LockEvent -> Gdx.app.postRunnable {
-				val gObject = tabletop.idGObjectMap[`object`.serverObjectId]!!
-				val draggable = gObject.getModule<Draggable>()
-				if (draggable != null)
+			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
+				val (id, lockerUsername) = `object`
+				val toLock = tabletop.idGObjectMap[id]!!
+				val draggable = toLock.getModule<Draggable>()
+				if (draggable != null && !draggable.isLocked)
 				{
-					gObject.toFront()
-					draggable.lockHolder = if (`object`.lockerUsername != null) tabletop.users[`object`.lockerUsername] else null
+					toLock.toFront()
+					draggable.lockHolder = tabletop.users[lockerUsername]
 				}
 			}
-			is ServerObjectMovedEvent ->
+			is ObjectUnlockEvent -> Gdx.app.postRunnable {
+				val toUnlock = tabletop.idGObjectMap[`object`.id]
+				toUnlock.getModule<Draggable>()?.lockHolder = null
+			}
+			is ObjectMovedEvent ->
 			{
 				val gObject = tabletop.idGObjectMap[`object`.id]!!
 				gObject.getModule<SmoothMovable>()?.setTargetPosition(`object`.x, `object`.y)
-				serverObjectMovedEventPool.free(`object`)
+				objectMovedEventPool.free(`object`)
 			}
 		}
 	}

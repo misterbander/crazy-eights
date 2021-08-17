@@ -14,7 +14,7 @@ import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
-import misterbander.sandboxtabletop.scene2d.Draggable
+import misterbander.sandboxtabletop.scene2d.Lockable
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
 import misterbander.sandboxtabletop.scene2d.SmoothMovable
 
@@ -60,16 +60,16 @@ class SandboxTabletopClientListener(private val screen: RoomScreen): Listener
 			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
 				val (id, lockerUsername) = `object`
 				val toLock = tabletop.idGObjectMap[id]!!
-				val draggable = toLock.getModule<Draggable>()
-				if (draggable != null && !draggable.isLocked)
+				val lockable = toLock.getModule<Lockable>()
+				if (lockable != null && !lockable.isLocked)
 				{
 					toLock.toFront()
-					draggable.lockHolder = tabletop.users[lockerUsername]
+					lockable.lockHolder = tabletop.users[lockerUsername]
 				}
 			}
 			is ObjectUnlockEvent -> Gdx.app.postRunnable {
 				val toUnlock = tabletop.idGObjectMap[`object`.id]
-				toUnlock.getModule<Draggable>()?.lockHolder = null
+				toUnlock.getModule<Lockable>()?.lockHolder = null
 			}
 			is ObjectMovedEvent ->
 			{

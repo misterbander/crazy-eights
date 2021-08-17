@@ -9,7 +9,7 @@ data class ServerCard(
 	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
 	override var lockHolder: User? = null
-) : ServerObject, ServerDraggable
+) : ServerObject, ServerLockable
 {
 	override fun setPosition(x: Float, y: Float)
 	{

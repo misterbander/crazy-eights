@@ -1,6 +1,6 @@
 package misterbander.sandboxtabletop.model
 
-interface ServerDraggable
+interface ServerLockable
 {
 	var lockHolder: User?
 	

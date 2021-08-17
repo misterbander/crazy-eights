@@ -60,6 +60,10 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 		{
 			val user = connection.arbitraryData as User
 			state.users.remove(user.username)
+			state.serverObjects.forEach { serverObject: ServerObject ->
+				if (serverObject is ServerDraggable && serverObject.lockHolder == user)
+					serverObject.lockHolder = null
+			}
 			server.sendToAllTCP(UserLeaveEvent(user))
 			info("Server | INFO") { "${user.username} left the game" }
 		}

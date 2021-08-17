@@ -63,9 +63,9 @@ class Tabletop(private val screen: RoomScreen)
 		users.remove(user.username)
 		userCursorMap.remove(user.username)?.remove()
 		idGObjectMap.values().forEach { gObject: GObject<SandboxTabletop> ->
-			val draggable = gObject.getModule<Draggable>()
-			if (draggable != null && draggable.lockHolder == user)
-				draggable.lockHolder = null
+			val lockable = gObject.getModule<Lockable>()
+			if (lockable != null && lockable.lockHolder == user)
+				lockable.lockHolder = null
 		}
 	}
 	

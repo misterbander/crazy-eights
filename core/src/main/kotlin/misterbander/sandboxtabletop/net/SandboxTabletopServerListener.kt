@@ -14,7 +14,7 @@ import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.model.ServerCard
 import misterbander.sandboxtabletop.model.ServerCard.Rank
 import misterbander.sandboxtabletop.model.ServerCard.Suit
-import misterbander.sandboxtabletop.model.ServerDraggable
+import misterbander.sandboxtabletop.model.ServerLockable
 import misterbander.sandboxtabletop.model.ServerObject
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
@@ -61,7 +61,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 			val user = connection.arbitraryData as User
 			state.users.remove(user.username)
 			state.serverObjects.forEach { serverObject: ServerObject ->
-				if (serverObject is ServerDraggable && serverObject.lockHolder == user)
+				if (serverObject is ServerLockable && serverObject.lockHolder == user)
 					serverObject.lockHolder = null
 			}
 			server.sendToAllTCP(UserLeaveEvent(user))
@@ -122,7 +122,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 			{
 				val (id, lockerUsername) = `object`
 				val toLock = idObjectMap[id]!!
-				if (toLock is ServerDraggable && !toLock.isLocked) // Only unlocked draggables can be locked
+				if (toLock is ServerLockable && !toLock.isLocked) // Only unlocked draggables can be locked
 				{
 					toLock.lockHolder = state.users[lockerUsername]
 					server.sendToAllTCP(`object`)
@@ -131,7 +131,7 @@ class SandboxTabletopServerListener(private val server: Server) : Listener
 			is ObjectUnlockEvent -> // User unlocks an object
 			{
 				val toUnlock = idObjectMap[`object`.id]!!
-				if (toUnlock is ServerDraggable)
+				if (toUnlock is ServerLockable)
 				{
 					toUnlock.lockHolder = null
 					server.sendToAllTCP(`object`)

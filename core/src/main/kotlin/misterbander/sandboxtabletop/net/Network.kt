@@ -18,8 +18,9 @@ import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
-import misterbander.sandboxtabletop.net.packets.LockEvent
-import misterbander.sandboxtabletop.net.packets.ServerObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
+import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
@@ -68,8 +69,9 @@ object Network
 		register(ServerCard::class.java)
 		register(ServerCard.Rank::class.java)
 		register(ServerCard.Suit::class.java)
-		register(LockEvent::class.java)
-		register(ServerObjectMovedEvent::class.java).setInstantiator { serverObjectMovedEventPool.obtain() }
+		register(ObjectLockEvent::class.java)
+		register(ObjectUnlockEvent::class.java)
+		register(ObjectMovedEvent::class.java).setInstantiator { objectMovedEventPool.obtain() }
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")

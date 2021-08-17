@@ -14,8 +14,9 @@ import misterbander.sandboxtabletop.RoomScreen
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.Network
-import misterbander.sandboxtabletop.net.packets.LockEvent
-import misterbander.sandboxtabletop.net.serverObjectMovedEventPool
+import misterbander.sandboxtabletop.net.objectMovedEventPool
+import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
+import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 
 class Draggable(
 	private val id: Int,
@@ -31,13 +32,13 @@ class Draggable(
 			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				if (!isLocked)
-					Network.client?.sendTCP(LockEvent(id, parent.screen.game.user.username))
+					Network.client?.sendTCP(ObjectLockEvent(id, parent.screen.game.user.username))
 			}
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				if (isLockHolder)
-					Network.client?.sendTCP(LockEvent(id, null))
+					Network.client?.sendTCP(ObjectUnlockEvent(id))
 			}
 		})
 		parent.addListener(object : DragListener()
@@ -63,7 +64,7 @@ class Draggable(
 				val (dragStartX, dragStartY) = parent.stageToLocalCoordinates(tempVec.set(parent.x + offsetX, parent.y + offsetY))
 				val (newStageX, newStageY) = parent.localToStageCoordinates(tempVec.set(x - dragStartX, y - dragStartY))
 				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
-				(parent.screen as RoomScreen).serverObjectMovedEvent = serverObjectMovedEventPool.obtain().apply {
+				(parent.screen as RoomScreen).objectMovedEvent = objectMovedEventPool.obtain().apply {
 					id = this@Draggable.id
 					this.x = newStageX
 					this.y = newStageY

@@ -3,6 +3,7 @@ package misterbander.sandboxtabletop.scene2d
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
 import ktx.scene2d.*
@@ -27,6 +28,7 @@ class SandboxTabletopCursor(
 	
 	init
 	{
+		touchable = Touchable.disabled
 		color = user.color
 		base = Scene2DSkin.defaultSkin["cursorbase"]
 		border = Scene2DSkin.defaultSkin["cursorborder"]

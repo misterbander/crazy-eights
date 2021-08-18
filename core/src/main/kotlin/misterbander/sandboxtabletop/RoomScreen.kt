@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.actions.AlphaAction
 import com.badlogic.gdx.scenes.scene2d.actions.DelayAction
 import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction
@@ -150,7 +149,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 			}.cell(pad = 16F, expandX = true, fillX = true, maxHeight = 312F)
 		}
 		uiStage.scrollFocus = chatHistoryScrollPane
-		uiStage.addListener(object : InputListener()
+		uiStage.addListener(object : KtxInputListener()
 		{
 			override fun keyDown(event: InputEvent, keycode: Int): Boolean
 			{

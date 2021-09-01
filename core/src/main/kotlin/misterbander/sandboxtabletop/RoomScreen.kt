@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Cursor
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -25,7 +24,6 @@ import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
-import ktx.assets.file
 import ktx.async.interval
 import ktx.graphics.use
 import ktx.math.component1
@@ -33,6 +31,7 @@ import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.gTextField
+import misterbander.gframework.util.shader
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
@@ -86,14 +85,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 	var selfDisconnect = false
 	
 	// Shaders
-	private val vignetteShader = ShaderProgram(
-		file("shaders/passthrough.vsh").readString(),
-		file("shaders/vignette.fsh").readString(),
-	).checkError()
-	val brightenShader = ShaderProgram(
-		file("shaders/passthrough.vsh").readString(),
-		file("shaders/brighten.fsh").readString(),
-	).checkError()
+	private val vignetteShader = shader("shaders/passthrough.vsh", "shaders/vignette.fsh")
+	val brightenShader = shader("shaders/passthrough.vsh", "shaders/brighten.fsh")
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
@@ -170,13 +163,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		stage += tabletop.cursors
 		
 //		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
-	}
-	
-	private fun ShaderProgram.checkError(): ShaderProgram
-	{
-		if (!isCompiled)
-			ktx.log.error("RoomScreen | ERROR") { log }
-		return this
 	}
 	
 	override fun show()

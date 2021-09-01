@@ -3,7 +3,9 @@ package misterbander.gframework.util
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.MathUtils
+import ktx.assets.file
 import space.earlygrey.shapedrawer.ShapeDrawer
 import kotlin.math.min
 
@@ -102,4 +104,19 @@ fun Color.blend(src: Color, dest: Color = this): Color
 	b = src.b*src.a + dest.b*(1 - src.a)
 	a = src.a + dest.a*(1 - src.a)
 	return clamp()
+}
+
+/**
+ * Creates a [ShaderProgram] with a vertex and fragment shader read from files.
+ * @param vertexShaderPath local path to the file containing the vertex shader
+ * @param fragmentShaderPath local path to the file containing the fragment shader
+ * @return A [ShaderProgram] with the vertex shader and fragment shader supplied from specified files.
+ * @throws IllegalArgumentException if there are any compilation errors
+ */
+fun shader(vertexShaderPath: String, fragmentShaderPath: String): ShaderProgram
+{
+	val shader = ShaderProgram(file(vertexShaderPath).readString(), file(fragmentShaderPath).readString())
+	if (!shader.isCompiled)
+		throw IllegalArgumentException("Error compiling shader: ${shader.log}")
+	return shader
 }

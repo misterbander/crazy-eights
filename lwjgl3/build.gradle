@@ -16,7 +16,7 @@ dependencies {
 import org.gradle.internal.os.OperatingSystem
 
 run {
-	workingDir = rootProject.file('assets').path
+	workingDir = rootProject.projectDir
 	setIgnoreExitValue(true)
 	
 	if (OperatingSystem.current() == OperatingSystem.MAC_OS) {

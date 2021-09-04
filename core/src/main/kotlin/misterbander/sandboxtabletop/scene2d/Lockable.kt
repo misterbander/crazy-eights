@@ -20,15 +20,19 @@ class Lockable(
 	{
 		parent.addListener(object : ActorGestureListener()
 		{
+			private var pointers = 0
+			
 			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
+				pointers++
 				if (!isLocked)
 					Network.client?.sendTCP(ObjectLockEvent(id, parent.screen.game.user.username))
 			}
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
-				if (isLockHolder)
+				pointers--
+				if (pointers == 0 && isLockHolder)
 				{
 					Network.client?.sendTCP(ObjectUnlockEvent(id))
 					onUnlock?.invoke()

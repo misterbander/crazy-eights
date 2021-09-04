@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
@@ -25,6 +26,7 @@ import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
+import ktx.actors.setScrollFocus
 import ktx.actors.then
 import ktx.async.interval
 import ktx.graphics.use
@@ -42,7 +44,6 @@ import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.cursorPositionPool
-import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
@@ -50,7 +51,10 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.Card
+import misterbander.sandboxtabletop.scene2d.Draggable
+import misterbander.sandboxtabletop.scene2d.Gizmo
 import misterbander.sandboxtabletop.scene2d.Lockable
+import misterbander.sandboxtabletop.scene2d.Rotatable
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
 import misterbander.sandboxtabletop.scene2d.SmoothMovable
 import misterbander.sandboxtabletop.scene2d.Tabletop
@@ -92,7 +96,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		isVisible = false
 	}
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
-	var selfDisconnect = false
+	val gizmo1 = Gizmo(game.shapeDrawer, Color.GREEN) // TODO ###### remove debug
+	val gizmo2 = Gizmo(game.shapeDrawer, Color.CYAN)
 	
 	// Shaders
 	private val vignetteShader = shader("shaders/passthrough.vsh", "shaders/vignette.fsh")
@@ -100,20 +105,16 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
-	private val cursorPosition = CursorPosition()
-	var objectMovedEvent: ObjectMovedEvent? = null
-		set(value)
-		{
-			if (field != null)
-				objectMovedEventPool.free(field)
-			field = value
-		}
-	private var syncServerTask: Timer.Task? = null
 	
 //	val hand: Hand = Hand(this)
 //	private val handRegion: TextureRegion = game.skin.getRegion("hand")
 	
-	private val tickDelay = 1/40F
+	// Networking
+	private var cursorPosition = CursorPosition()
+	val objectMovedEvents = IntMap<ObjectMovedEvent>()
+	private var syncServerTask: Timer.Task? = null
+	private var tickDelay = 1/40F
+	var selfDisconnect = false
 	
 	init
 	{
@@ -171,6 +172,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		})
 		stage += tabletop.cards
 		stage += tabletop.cursors
+		stage += gizmo1
+		stage += gizmo2
 		
 //		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
 	}
@@ -210,11 +213,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
 				Network.client?.sendTCP(cursorPosition)
 			}
-			if (objectMovedEvent != null)
-			{
-				Network.client?.sendTCP(objectMovedEvent)
-				objectMovedEvent = null
-			}
+			objectMovedEvents.forEach { Network.client?.sendTCP(it.value) }
+			objectMovedEvents.clear()
 		}
 	}
 	
@@ -324,6 +324,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			{
 				val cursor: SandboxTabletopCursor? = tabletop.userCursorMap[`object`.username]
 				cursor?.setTargetPosition(`object`.x, `object`.y)
+//				println(`object`)
 				cursorPositionPool.free(`object`)
 			}
 			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
@@ -333,18 +334,24 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				if (lockable != null && !lockable.isLocked)
 				{
 					toLock.toFront()
+					toLock.setScrollFocus()
 					lockable.lockHolder = tabletop.users[lockerUsername]
 				}
 			}
 			is ObjectUnlockEvent -> Gdx.app.postRunnable {
 				val toUnlock = tabletop.idGObjectMap[`object`.id]
 				toUnlock.getModule<Lockable>()?.lockHolder = null
+				toUnlock.getModule<Draggable>()?.justDragged = false
+				toUnlock.getModule<Rotatable>()?.justRotated = false
 			}
 			is ObjectMovedEvent ->
 			{
-				val gObject = tabletop.idGObjectMap[`object`.id]!!
-				gObject.getModule<SmoothMovable>()?.setTargetPosition(`object`.x, `object`.y)
-				objectMovedEventPool.free(`object`)
+				val (id, x, y, rotation) = `object`
+				val smoothMovable = tabletop.idGObjectMap[id]!!.getModule<SmoothMovable>()
+				smoothMovable?.apply {
+					setTargetPosition(x, y)
+					rotationInterpolator.target = rotation
+				}
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {
 				val card = tabletop.idGObjectMap[`object`.id] as Card
@@ -357,10 +364,15 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	{
 		chatPopup.clearChildren()
 		chatHistory.clearChildren()
-		selfDisconnect = false
+		
 		tabletop.reset()
+		
+		cursorPosition.reset()
+		objectMovedEvents.clear()
 		syncServerTask?.cancel()
 		syncServerTask = null
+		selfDisconnect = false
+		
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 		Network.stop()
 	}

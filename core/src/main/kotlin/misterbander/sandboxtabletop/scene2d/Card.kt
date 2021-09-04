@@ -39,12 +39,11 @@ class Card(
 	// Modules
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
 	private val lockable: Lockable = Lockable(id, lockHolder, smoothMovable) {
-		if (draggable.justDragged)
-			draggable.justDragged = false
-		else
+		if (!draggable.justDragged && !rotatable.justRotated)
 			Network.client?.sendTCP(FlipCardEvent(id))
 	}
-	private val draggable = Draggable(lockable, clickListener, smoothMovable)
+	private val draggable = Draggable(clickListener, smoothMovable, lockable)
+	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	
 	init
 	{
@@ -54,6 +53,7 @@ class Card(
 		this += smoothMovable
 		this += lockable
 		this += draggable
+		this += rotatable
 	}
 	
 	var isFaceUp: Boolean = isFaceUp

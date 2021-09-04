@@ -140,8 +140,8 @@ class RoomServerListener(private val server: Server) : Listener
 			}
 			is ObjectMovedEvent ->
 			{
-				val (id, x, y) = `object`
-				idObjectMap[id].apply { this.x = x; this.y = y }
+				val (id, x, y, rotation) = `object`
+				idObjectMap[id].apply { this.x = x; this.y = y; this.rotation = rotation }
 				server.sendToAllTCP(`object`)
 				objectMovedEventPool.free(`object`)
 			}

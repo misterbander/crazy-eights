@@ -37,7 +37,7 @@ class SmoothMovable(
 			get() = parent.scaleX
 			set(value) = parent.setScale(value)
 	}
-	var rotationInterpolator = object : SmoothAngleInterpolator(rotation)
+	var rotationInterpolator = object : SmoothAngleInterpolator(rotation, 5F)
 	{
 		override var value: Float
 			get() = parent.rotation

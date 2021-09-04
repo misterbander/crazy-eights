@@ -3,6 +3,7 @@ package misterbander.sandboxtabletop.scene2d
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
+import ktx.collections.getOrPut
 import ktx.math.component1
 import ktx.math.component2
 import misterbander.gframework.scene2d.module.GModule
@@ -12,20 +13,19 @@ import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 
 class Draggable(
-	private val lockable: Lockable,
 	private val clickListener: ClickListener,
-	private val smoothMovable: SmoothMovable
+	private val smoothMovable: SmoothMovable,
+	private val lockable: Lockable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
+	var stageOffsetX = 0F
+	var stageOffsetY = 0F
 	var justDragged = false
 	
 	init
 	{
 		parent.addListener(object : DragListener()
 		{
-			var offsetX = 0F
-			var offsetY = 0F
-			
 			init
 			{
 				tapSquareSize = 8F
@@ -33,27 +33,29 @@ class Draggable(
 			
 			override fun dragStart(event: InputEvent, x: Float, y: Float, pointer: Int)
 			{
-				offsetX = event.stageX - parent.x
-				offsetY = event.stageY - parent.y
+				stageOffsetX = event.stageX - parent.x
+				stageOffsetY = event.stageY - parent.y
 				justDragged = true
 			}
 			
 			override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)
 			{
-				if (!lockable.isLockHolder)
+				if (!lockable.isLockHolder || parent.getModule<Rotatable>()?.isPinching == true)
 					return
+				// x, y, dragStartX and dragStartY are all positions in local coords
+				// To calculate drag delta we just need to calculate x - dragStartX, y - dragStartY
+				// and translate them back into stage coords
 				val (dragStartX, dragStartY) = parent.stageToLocalCoordinates(
-					tempVec.set(
-						parent.x + offsetX,
-						parent.y + offsetY
-					)
+					tempVec.set(parent.x + stageOffsetX, parent.y + stageOffsetY)
 				)
 				val (newStageX, newStageY) = parent.localToStageCoordinates(tempVec.set(x - dragStartX, y - dragStartY))
 				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
-				(parent.screen as RoomScreen).objectMovedEvent = objectMovedEventPool.obtain().apply {
+				val roomScreen = parent.screen as RoomScreen
+				roomScreen.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
 					id = lockable.id
 					this.x = newStageX
 					this.y = newStageY
+					rotation = smoothMovable.rotationInterpolator.target
 				}
 			}
 		})

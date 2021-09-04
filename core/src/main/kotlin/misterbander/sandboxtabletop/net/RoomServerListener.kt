@@ -27,7 +27,7 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
-class SandboxTabletopServerListener(private val server: Server) : Listener
+class RoomServerListener(private val server: Server) : Listener
 {
 	/** Contains ids of connections that have successfully performed a handshake. */
 	private val handshookConnections = IntSet()

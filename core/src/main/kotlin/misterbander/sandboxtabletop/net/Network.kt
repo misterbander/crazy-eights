@@ -34,7 +34,7 @@ object Network
 				throw IllegalStateException("Overwriting nonnull server field")
 			field = value?.apply {
 				kryo.registerClasses()
-				addListener(SandboxTabletopServerListener(value))
+				addListener(RoomServerListener(value))
 			}
 		}
 	var client: Client? = null

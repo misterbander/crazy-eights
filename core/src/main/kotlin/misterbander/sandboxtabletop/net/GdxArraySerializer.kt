@@ -31,10 +31,8 @@ class GdxArraySerializer : Serializer<GdxArray<*>>()
 		array.forEach { kryo.writeClassAndObject(output, it) }
 	}
 	
-	private fun create(ordered: Boolean, capacity: Int, type: Class<*>): GdxArray<Any>
-	{
-		return GdxArray(ordered, capacity, type)
-	}
+	private fun create(ordered: Boolean, capacity: Int, type: Class<*>): GdxArray<Any> =
+		GdxArray(ordered, capacity, type)
 	
 	override fun read(kryo: Kryo, input: Input, type: Class<out GdxArray<*>>): GdxArray<*>
 	{

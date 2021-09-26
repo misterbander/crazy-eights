@@ -46,8 +46,5 @@ class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(scree
 		hideAction?.invoke()
 	}
 	
-	fun actionlessHide()
-	{
-		super.hide()
-	}
+	fun actionlessHide() = super.hide()
 }

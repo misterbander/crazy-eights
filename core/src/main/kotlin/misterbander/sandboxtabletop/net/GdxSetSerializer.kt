@@ -31,10 +31,7 @@ class GdxSetSerializer : Serializer<GdxSet<*>>()
 		objectSet.forEach { kryo.writeClassAndObject(output, it) }
 	}
 	
-	private fun create(capacity: Int): GdxSet<Any>
-	{
-		return GdxSet(capacity)
-	}
+	private fun create(capacity: Int): GdxSet<Any> = GdxSet(capacity)
 	
 	override fun read(kryo: Kryo, input: Input, type: Class<out GdxSet<*>>): GdxSet<*>
 	{

@@ -2,14 +2,11 @@ package misterbander.sandboxtabletop
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.math.MathUtils
-import ktx.assets.getValue
-import ktx.assets.load
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
 import ktx.freetype.generateFont
 import ktx.log.info
@@ -26,12 +23,8 @@ import misterbander.sandboxtabletop.model.User
  */
 class SandboxTabletop : GFramework()
 {
-	// Assets
-	
-	private val guiAtlas by assetManager.load<TextureAtlas>("textures/gui.atlas")
-	
 	// Fonts
-	private val generator by assetManager.load<FreeTypeFontGenerator>("fonts/msjhl.ttc")
+	private val generator by lazy { assetStorage[Fonts.msjhl] }
 	val jhengheiui by lazy {
 		generator.generateFont {
 			size = 40
@@ -64,7 +57,7 @@ class SandboxTabletop : GFramework()
 	// Skins
 	private val skin by lazy {
 		skin {
-			addRegions(guiAtlas)
+			addRegions(assetStorage[TextureAtlases.gui])
 			label(INFO_LABEL_STYLE) { font = jhengheiuiMini; fontColor = Color.WHITE }
 			label(CHAT_LABEL_STYLE, INFO_LABEL_STYLE) {
 				background = this@skin.newDrawable("chatbackground")
@@ -156,28 +149,35 @@ class SandboxTabletop : GFramework()
 //		Log.set(Log.LEVEL_DEBUG)
 		KtxAsync.initiate()
 		
-		assetManager.load("textures/logo.png", Texture::class.java)
-		assetManager.load("sounds/click.wav", Sound::class.java)
-		assetManager.finishLoading()
-		Scene2DSkin.defaultSkin = skin
-		
-		info("SandboxTabletop | INFO") { "Finished loading assets!" }
-		
-		// Load settings
-		val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
-		val username: String = preferences["username", ""]
-		val userColorStr: String? = preferences["color"]
-		
-		user = User(username)
-		if (userColorStr != null)
-			Color.valueOf(userColorStr, user.color)
-		else
-			user.color.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
-		savePreferences()
-		
-		addScreen(MenuScreen(this))
-		addScreen(RoomScreen(this))
-		setScreen<MenuScreen>()
+		KtxAsync.launch {
+			val assets = listOf(
+				assetStorage.loadAsync(TextureAtlases.gui),
+				assetStorage.loadAsync(Textures.title),
+				assetStorage.loadAsync(Fonts.msjhl),
+				assetStorage.loadAsync(Sounds.click),
+				assetStorage.loadAsync(Shaders.brighten),
+				assetStorage.loadAsync(Shaders.vignette)
+			)
+			assets.joinAll()
+			Scene2DSkin.defaultSkin = skin
+			info("SandboxTabletop | INFO") { "Finished loading assets!" }
+			
+			// Load settings
+			val preferences = Gdx.app.getPreferences("misterbander.sandboxtabletop")
+			val username: String = preferences["username", ""]
+			val userColorStr: String? = preferences["color"]
+			
+			user = User(username)
+			if (userColorStr != null)
+				Color.valueOf(userColorStr, user.color)
+			else
+				user.color.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
+			savePreferences()
+			
+			addScreen(MenuScreen(this@SandboxTabletop))
+			addScreen(RoomScreen(this@SandboxTabletop))
+			setScreen<MenuScreen>()
+		}
 	}
 	
 	fun savePreferences()

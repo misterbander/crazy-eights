@@ -9,7 +9,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
-import ktx.freetype.registerFreeTypeFontLoaders
+import ktx.assets.async.AssetStorage
+import ktx.async.newAsyncContext
+import ktx.freetype.async.registerFreeTypeFontLoaders
 import space.earlygrey.shapedrawer.ShapeDrawer
 
 /**
@@ -34,13 +36,17 @@ abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 		pixmap.dispose()
 		ShapeDrawer(batch, region)
 	}
-	val assetManager by lazy { AssetManager().apply { registerFreeTypeFontLoaders() } }
+	val assetStorage by lazy {
+		AssetStorage(newAsyncContext(Runtime.getRuntime().availableProcessors(), "AssetStorage-Thread")).apply {
+			registerFreeTypeFontLoaders()
+		}
+	}
 	
 	override fun dispose()
 	{
 		batch.dispose()
 		shapeRenderer.dispose()
-		assetManager.dispose()
+		assetStorage.dispose()
 		super.dispose()
 	}
 }

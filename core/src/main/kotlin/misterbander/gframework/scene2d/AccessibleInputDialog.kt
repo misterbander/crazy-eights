@@ -52,8 +52,7 @@ abstract class AccessibleInputDialog(
 	
 	private fun adjustPosition(height: Int): Boolean
 	{
-		val focusedTextField = stage?.keyboardFocus as? GTextField
-			?: return false
+		val focusedTextField = stage?.keyboardFocus as? GTextField ?: return false
 		stage.stageToScreenCoordinates(windowScreenPos.set(x, y))
 		focusedTextField.localToScreenCoordinates(textFieldScreenPos.set(0F, 0F))
 		

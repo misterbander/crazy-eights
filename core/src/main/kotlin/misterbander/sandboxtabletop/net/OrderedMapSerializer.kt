@@ -19,8 +19,5 @@ import com.badlogic.gdx.utils.OrderedMap
 
 class OrderedMapSerializer : GdxMapSerializer()
 {
-	override fun create(length: Int): OrderedMap<Any, Any>
-	{
-		return OrderedMap(length)
-	}
+	override fun create(length: Int): OrderedMap<Any, Any> = OrderedMap(length)
 }

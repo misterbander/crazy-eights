@@ -49,10 +49,7 @@ class RoomServerListener(private val server: Server) : Listener
 		state.serverObjects += serverObject
 	}
 	
-	override fun connected(connection: Connection)
-	{
-		connection.setName("Server-side client connection ${connection.id}")
-	}
+	override fun connected(connection: Connection) = connection.setName("Server-side client connection ${connection.id}")
 	
 	override fun disconnected(connection: Connection)
 	{

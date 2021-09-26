@@ -53,8 +53,6 @@ abstract class SandboxTabletopDialog(
 		centerPosition()
 	}
 	
-	override fun hide()
-	{
+	override fun hide() =
 		hide(fadeOut(ANIMATION_DURATION, Interpolation.exp5In) along scaleTo(0.95F, 0.95F, ANIMATION_DURATION, Interpolation.exp5In))
-	}
 }

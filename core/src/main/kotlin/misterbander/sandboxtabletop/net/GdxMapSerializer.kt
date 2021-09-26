@@ -35,10 +35,7 @@ open class GdxMapSerializer : Serializer<GdxMap<*, *>>()
 		}
 	}
 	
-	open fun create(length: Int): GdxMap<Any, Any>
-	{
-		return GdxMap(length)
-	}
+	open fun create(length: Int): GdxMap<Any, Any> = GdxMap(length)
 	
 	override fun read(kryo: Kryo, input: Input, type: Class<out GdxMap<*, *>>): GdxMap<*, *>
 	{

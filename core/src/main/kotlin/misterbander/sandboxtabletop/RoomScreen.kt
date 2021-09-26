@@ -132,10 +132,7 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				})
 			}
 			
-			override fun hit(x: Float, y: Float, touchable: Boolean): Actor
-			{
-				return this
-			}
+			override fun hit(x: Float, y: Float, touchable: Boolean): Actor = this
 		}
 		uiStage += scene2d.table {
 			setFillParent(true)
@@ -280,10 +277,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		chatHistoryScrollPane.scrollPercentY = 100F
 	}
 	
-	private fun BitmapFont.chatTextWidth(message: String): Float
-	{
-		return min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
-	}
+	private fun BitmapFont.chatTextWidth(message: String): Float =
+		min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
 	
 	override fun disconnected(connection: Connection)
 	{

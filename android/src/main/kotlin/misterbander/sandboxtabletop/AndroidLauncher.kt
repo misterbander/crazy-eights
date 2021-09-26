@@ -15,9 +15,8 @@ class AndroidLauncher : AndroidApplication(), KeyboardHeightObserver
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
 		super.onCreate(savedInstanceState)
-		val configuration = AndroidApplicationConfiguration()
 		sandboxTabletop = SandboxTabletop()
-		initialize(sandboxTabletop, configuration)
+		initialize(sandboxTabletop, AndroidApplicationConfiguration())
 		
 		keyboardHeightProvider = KeyboardHeightProvider(this)
 		
@@ -49,7 +48,8 @@ class AndroidLauncher : AndroidApplication(), KeyboardHeightObserver
 	override fun onKeyboardHeightChanged(height: Int, orientation: Int)
 	{
 		val gScreen = sandboxTabletop.shownScreen as? GScreen<*> ?: return
-		for (observer in gScreen.keyboardHeightObservers)
-			observer.onKeyboardHeightChanged(height, orientation)
+		gScreen.keyboardHeightObservers.forEach {
+			it.onKeyboardHeightChanged(height, orientation)
+		}
 	}
 }

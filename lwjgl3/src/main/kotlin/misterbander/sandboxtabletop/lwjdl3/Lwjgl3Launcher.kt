@@ -10,18 +10,10 @@ object Lwjgl3Launcher
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-		createApplication()
+		val configuration = Lwjgl3ApplicationConfiguration()
+		configuration.setTitle("SandboxTabletop")
+		configuration.setWindowedMode(1280, 720)
+		configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
+		Lwjgl3Application(SandboxTabletop(), configuration)
 	}
-	
-	private fun createApplication(): Lwjgl3Application = Lwjgl3Application(SandboxTabletop(), defaultConfiguration)
-	
-	private val defaultConfiguration: Lwjgl3ApplicationConfiguration
-		get()
-		{
-			val configuration = Lwjgl3ApplicationConfiguration()
-			configuration.setTitle("SandboxTabletop")
-			configuration.setWindowedMode(1280, 720)
-			configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
-			return configuration
-		}
 }

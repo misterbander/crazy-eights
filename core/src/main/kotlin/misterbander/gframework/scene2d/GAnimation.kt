@@ -22,7 +22,8 @@ class GAnimation(
 ) : Actor()
 {
 	val animation: Animation<TextureRegion>
-	private var stateTime = 0F
+	var stateTime = 0F
+	var isPaused = false
 	
 	init
 	{
@@ -43,7 +44,8 @@ class GAnimation(
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		stateTime += delta
+		if (!isPaused)
+			stateTime += delta
 	}
 	
 	override fun draw(batch: Batch, parentAlpha: Float)

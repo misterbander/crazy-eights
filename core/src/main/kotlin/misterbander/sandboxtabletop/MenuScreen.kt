@@ -1,12 +1,13 @@
 package misterbander.sandboxtabletop
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.utils.ScreenUtils
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import ktx.actors.alpha
@@ -29,6 +30,10 @@ import misterbander.sandboxtabletop.scene2d.dialogs.MessageDialog
 
 class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
+	private val logo = game.assetStorage[Textures.title].apply {
+		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+	}
+	
 	private val createRoomDialog = CreateRoomDialog(this)
 	private val joinRoomDialog = JoinRoomDialog(this)
 	val messageDialog = MessageDialog(this)
@@ -68,8 +73,6 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	init
 	{
-		val logo: Texture = game.assetManager["textures/logo.png"]
-		logo.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
 		uiStage += scene2d.table {
 			setFillParent(true)
 			image(logo).cell(pad = 16F).inCell.top()
@@ -90,10 +93,10 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private fun showTable(table: Table)
 	{
 		uiStage.addCaptureListener(ignoreTouchDown)
-		activeTable += Actions.alpha(0F) then Actions.run {
+		activeTable += alpha(0F) then Actions.run {
 			activeTable.isVisible = false
 			table.isVisible = true
-			table += Actions.fadeIn(ANIMATION_DURATION, Interpolation.exp5Out) then Actions.run {
+			table += fadeIn(ANIMATION_DURATION, Interpolation.exp5Out) then Actions.run {
 				uiStage.removeCaptureListener(ignoreTouchDown)
 				activeTable = table
 			}
@@ -102,8 +105,7 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	override fun clearScreen()
 	{
-		Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, 1F)
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+		ScreenUtils.clear(BACKGROUND_COLOR, true)
 		game.batch.use(uiCamera) {
 			val shapeDrawer = game.shapeDrawer
 			shapeDrawer.update()

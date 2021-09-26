@@ -36,7 +36,6 @@ import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.gTextField
-import misterbander.gframework.util.shader
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
@@ -63,6 +62,10 @@ import kotlin.math.min
 
 class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
+	// Shaders
+	val brightenShader = game.assetStorage[Shaders.brighten]
+	private val vignetteShader = game.assetStorage[Shaders.vignette]
+	
 	// UI
 	private val gameMenuDialog = GameMenuDialog(this)
 	
@@ -98,10 +101,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
 	val gizmo1 = Gizmo(game.shapeDrawer, Color.GREEN) // TODO ###### remove debug
 	val gizmo2 = Gizmo(game.shapeDrawer, Color.CYAN)
-	
-	// Shaders
-	private val vignetteShader = shader("shaders/passthrough.vsh", "shaders/vignette.fsh")
-	val brightenShader = shader("shaders/passthrough.vsh", "shaders/brighten.fsh")
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
@@ -218,11 +217,8 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 	}
 	
-	override fun render(delta: Float)
+	override fun clearScreen()
 	{
-		transitionCamera.update()
-		transition.update(delta)
-		clearScreen()
 		game.batch.use {
 			it.shader = vignetteShader
 			game.shapeDrawer.setColor(BACKGROUND_COLOR)
@@ -231,10 +227,6 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			it.color = Color.WHITE
 //			it.draw(handRegion, 0F, 0F, viewport.worldWidth, 96F) TODO hand region
 		}
-		renderStage(camera, stage, delta)
-		renderStage(uiCamera, uiStage, delta)
-		updateWorld()
-		transition.render()
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -375,12 +367,5 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 		Network.stop()
-	}
-	
-	override fun dispose()
-	{
-		super.dispose()
-		vignetteShader.dispose()
-		brightenShader.dispose()
 	}
 }

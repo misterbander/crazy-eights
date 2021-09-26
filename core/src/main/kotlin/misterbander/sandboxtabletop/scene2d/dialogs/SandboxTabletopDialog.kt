@@ -1,9 +1,10 @@
 package misterbander.sandboxtabletop.scene2d.dialogs
 
 import com.badlogic.gdx.math.Interpolation
-import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.utils.Align
+import ktx.actors.along
 import ktx.actors.alpha
 import ktx.actors.centerPosition
 import ktx.actors.onChange
@@ -47,21 +48,13 @@ abstract class SandboxTabletopDialog(
 		scaleY = scaleFactor
 		show(
 			screen.uiStage,
-			Actions.parallel(
-				Actions.fadeIn(ANIMATION_DURATION, Interpolation.exp5Out),
-				Actions.scaleTo(1F, 1F, ANIMATION_DURATION, Interpolation.exp5Out)
-			)
+			fadeIn(ANIMATION_DURATION, Interpolation.exp5Out) along scaleTo(1F, 1F, ANIMATION_DURATION, Interpolation.exp5Out)
 		)
 		centerPosition()
 	}
 	
 	override fun hide()
 	{
-		hide(
-			Actions.parallel(
-				Actions.fadeOut(ANIMATION_DURATION, Interpolation.exp5In),
-				Actions.scaleTo(0.95F, 0.95F, ANIMATION_DURATION, Interpolation.exp5In)
-			)
-		)
+		hide(fadeOut(ANIMATION_DURATION, Interpolation.exp5In) along scaleTo(0.95F, 0.95F, ANIMATION_DURATION, Interpolation.exp5In))
 	}
 }

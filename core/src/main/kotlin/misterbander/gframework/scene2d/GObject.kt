@@ -1,6 +1,5 @@
 package misterbander.gframework.scene2d
 
-import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.utils.OrderedMap
 import ktx.collections.plusAssign
@@ -12,30 +11,60 @@ import misterbander.gframework.scene2d.module.GModule
 /**
  * `GObject`s are special `Scene2D` groups that can hold child actors and can contain modules that add custom behavior.
  *
- * `GObject` defines [onSpawn], which gets called whenever the [GObject] is added to the world.
+ * `GObject` defines [onSpawn], which gets called whenever the [GObject] is added to a stage using the += overload
+ * defined in `misterbander/gframework/scene2d/actors.kt`. By default, it calls each module's `onSpawn`.
  *
- * `GObject` also defines [destroy], which can be used to safely remove [GObject]s with `Box2D` bodies during collision
- * callbacks.
- * @property screen the parent GScreen
+ * `GObject` also defines [destroy], which can be used to delay removal. Useful for safely removing [GObject]s during
+ * collision callbacks where creation and removal of objects are prohibited.
+ * @property screen the parent [GScreen]
  */
 abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 {
 	val modules = OrderedMap<Class<out GModule<T>>, GModule<T>>()
-	var body: Body? = null
+	
+	fun onSpawnInternal()
+	{
+		modules.forEach { it.value.onSpawn() }
+		onSpawn()
+	}
 	
 	/**
-	 * Called when this `GObject` is spawned in the world. You can set up your `Box2D` bodies and fixtures here.
+	 * Called when this `GObject` is added to a stage using the += overload defined in
+	 * `misterbander/gframework/scene2d/actors.kt`. This is called right after `onSpawn` methods of all modules have
+	 * been called.
 	 */
 	open fun onSpawn() = Unit
 	
-	/**
-	 * "Update" method for the `GObject`. This gets called every frame. If overridden, make sure to call `super.act()`.
-	 */
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		modules.forEach { it.value.update(delta) }
+		modules.forEach {
+			it.value.update(delta)
+			for (i in 0 until screen.fixedUpdateCount)
+				it.value.fixedUpdate()
+		}
+		update(delta)
+		for (i in 0 until screen.fixedUpdateCount)
+			fixedUpdate()
 	}
+	
+	/**
+	 * Called once every frame, right after `update` and `fixedUpdate` methods of all modules have been called.
+	 * @param delta the time in seconds since the last render
+	 */
+	open fun update(delta: Float) = Unit
+	
+	/**
+	 * Similar to [update], but this is called in a fixed timestep fashion, i.e. delta is always fixed at 1/60F, hence
+	 * why there is no delta parameter passed. This is called right after `update` and `fixedUpdate` methods of all
+	 * modules have been called.
+	 *
+	 * It is guaranteed that `fixedUpdate` is called 60 times per second. However, in case of an FPS drop, `fixedUpdate`
+	 * might be called more than once per frame as means of 'catching up'.
+	 *
+	 * Physics related code should be placed here.
+	 */
+	open fun fixedUpdate() = Unit
 	
 	/**
 	 * Returns whether this `GObject` contains a module of the specified class.
@@ -74,11 +103,8 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	override fun remove(): Boolean
 	{
 		val removed = super.remove()
-		if (body != null)
-		{
-			screen.world?.destroyBody(body)
-			body = null
-		}
+		if (removed)
+			modules.forEach { it.value.onDestroy() }
 		return removed
 	}
 }

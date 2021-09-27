@@ -20,7 +20,7 @@ import misterbander.gframework.scene2d.module.GModule
  */
 abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 {
-	val modules = OrderedMap<Class<out GModule<T>>, GModule<T>>()
+	val modules = OrderedMap<Class<out GModule<*>>, GModule<*>>()
 	
 	fun onSpawnInternal()
 	{
@@ -71,7 +71,7 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	 * @param U concrete class of the module
 	 * @return True if this `GObject` contains a module of the specified class, false otherwise.
 	 */
-	inline fun <reified U : GModule<T>> hasModule(): Boolean = getModule<U>() != null
+	inline fun <reified U : GModule<*>> hasModule(): Boolean = getModule<U>() != null
 	
 	/**
 	 * Returns the module of the specified class.
@@ -79,13 +79,13 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	 * @return The module of the specified class. If the module of the specified class does not exist, then null is
 	 * returned.
 	 */
-	inline fun <reified U : GModule<T>> getModule(): U? = modules[U::class.java] as U?
+	inline fun <reified U : GModule<*>> getModule(): U? = modules[U::class.java] as U?
 	
 	/**
 	 * Adds a module of the specified class to this `GObject`.
 	 * @param U concrete class of the module
 	 */
-	inline operator fun <reified U : GModule<T>> GObject<T>.plusAssign(module: U)
+	inline operator fun <reified U : GModule<*>> GObject<*>.plusAssign(module: U)
 	{
 		modules[U::class.java] = module
 	}

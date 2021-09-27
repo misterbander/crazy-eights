@@ -64,7 +64,7 @@ open class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : G
 	 * @param startTargetScreenTransition if true, then the 'in' transition will be played right after switching to the
 	 * target screen
 	 */
-	fun start(progress: Float = 0F, targetScreen: GScreen<T>, startTargetScreenTransition: Boolean = true)
+	fun start(progress: Float = 0F, targetScreen: GScreen<*>, startTargetScreenTransition: Boolean = true)
 	{
 		start(progress) {
 			screen.game.setScreen(targetScreen::class.java)

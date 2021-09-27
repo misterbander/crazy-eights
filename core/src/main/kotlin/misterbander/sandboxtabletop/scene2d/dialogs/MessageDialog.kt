@@ -14,7 +14,7 @@ class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(scree
 		labelCell.prefWidth(192F)
 		onChange {
 			screen.click.play()
-			hide()
+			actionlessHide()
 			buttonAction?.invoke()
 		}
 	}

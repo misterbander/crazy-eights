@@ -9,17 +9,17 @@ import ktx.collections.GdxMap
 import ktx.collections.set
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.plusAssign
-import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.ServerCard
 import misterbander.sandboxtabletop.model.ServerObject
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
 
-class Tabletop(private val screen: RoomScreen)
+class Tabletop(private val room: Room)
 {
 	val game: SandboxTabletop
-		get() = screen.game
+		get() = room.game
 	
 	val idGObjectMap = IntMap<GObject<SandboxTabletop>>()
 	
@@ -40,7 +40,7 @@ class Tabletop(private val screen: RoomScreen)
 			if (serverObject is ServerCard)
 			{
 				val (id, x, y, rotation, rank, suit, isFaceUp, lockHolder) = serverObject
-				val card = Card(screen, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
+				val card = Card(room, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
 				idGObjectMap[id] = card
 				cards += card
 			}
@@ -50,7 +50,7 @@ class Tabletop(private val screen: RoomScreen)
 	operator fun plusAssign(user: User)
 	{
 		users[user.username] = user
-		val cursor = SandboxTabletopCursor(screen, user, user == game.user)
+		val cursor = SandboxTabletopCursor(room, user, user == game.user)
 		userCursorMap[user.username] = cursor
 		if (user != game.user)
 			cursors += cursor

@@ -28,7 +28,7 @@ import misterbander.sandboxtabletop.scene2d.dialogs.InfoDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.JoinRoomDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.MessageDialog
 
-class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
+class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
 	private val logo = game.assetStorage[Textures.title].apply {
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
@@ -135,13 +135,13 @@ class MenuScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			}
 			is TabletopState ->
 			{
-				val roomScreen = game.getScreen<RoomScreen>()
-				roomScreen.tabletop.setState(`object`)
+				val room = game.getScreen<Room>()
+				room.tabletop.setState(`object`)
 				messageDialog.actionlessHide()
 				infoDialog.hide()
 				Network.client!!.removeListener(this)
-				Network.client!!.addListener(roomScreen)
-				transition.start(targetScreen = roomScreen)
+				Network.client!!.addListener(room)
+				transition.start(targetScreen = room)
 			}
 		}
 	}

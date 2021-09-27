@@ -13,17 +13,17 @@ import ktx.math.vec2
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
-import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 
 class Rotatable(
+	private val room: Room,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable,
 	draggable: Draggable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
-	private val roomScreen = screen as RoomScreen
 	var justRotated = false
 	var isPinching = false
 	
@@ -143,7 +143,7 @@ class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				roomScreen.objectMovedEvents[lockable.id]!!.apply {
+				room.objectMovedEvents[lockable.id]!!.apply {
 					x = newStageX
 					y = newStageY
 				}
@@ -159,7 +159,7 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		roomScreen.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+		room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
 			id = lockable.id
 			this.x = smoothMovable.xInterpolator.target
 			this.y = smoothMovable.yInterpolator.target

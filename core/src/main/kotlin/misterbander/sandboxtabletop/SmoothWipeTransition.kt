@@ -10,6 +10,9 @@ class SmoothWipeTransition(
 	private val sandboxTabletopScreen: SandboxTabletopScreen
 ) : TransitionLayer<SandboxTabletop>(sandboxTabletopScreen)
 {
+	private val game: SandboxTabletop
+		get() = screen.game
+	
 	override val duration: Float
 		get() = 0.4F
 	
@@ -32,12 +35,12 @@ class SmoothWipeTransition(
 	
 	override fun render(delta: Float)
 	{
-		val shapeDrawer = screen.game.shapeDrawer
+		val shapeDrawer = game.shapeDrawer
 		val width = sandboxTabletopScreen.transitionViewport.worldWidth
 		val height = sandboxTabletopScreen.transitionViewport.worldHeight
 		if (isTransitioningIn)
 		{
-			screen.game.batch.use(sandboxTabletopScreen.transitionCamera) {
+			game.batch.use(sandboxTabletopScreen.transitionCamera) {
 				shapeDrawer.update()
 				shapeDrawer.filledRectangle(2*progress*width, 0F, width, height, Color.BLACK)
 				shapeDrawer.filledRectangle(
@@ -48,7 +51,7 @@ class SmoothWipeTransition(
 		}
 		else
 		{
-			screen.game.batch.use(sandboxTabletopScreen.transitionCamera) {
+			game.batch.use(sandboxTabletopScreen.transitionCamera) {
 				shapeDrawer.update()
 				shapeDrawer.filledRectangle((2*progress - 2)*width, 0F, width, height, Color.BLACK)
 				shapeDrawer.filledRectangle(

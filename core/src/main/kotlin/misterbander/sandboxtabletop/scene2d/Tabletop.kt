@@ -18,6 +18,9 @@ import misterbander.sandboxtabletop.model.User
 
 class Tabletop(private val screen: RoomScreen)
 {
+	val game: SandboxTabletop
+		get() = screen.game
+	
 	val idGObjectMap = IntMap<GObject<SandboxTabletop>>()
 	
 	val users = OrderedMap<String, User>()
@@ -47,9 +50,9 @@ class Tabletop(private val screen: RoomScreen)
 	operator fun plusAssign(user: User)
 	{
 		users[user.username] = user
-		val cursor = SandboxTabletopCursor(screen, user, user == screen.game.user)
+		val cursor = SandboxTabletopCursor(screen, user, user == game.user)
 		userCursorMap[user.username] = cursor
-		if (user != screen.game.user)
+		if (user != game.user)
 			cursors += cursor
 		else if (Gdx.app.type != Application.ApplicationType.Desktop)
 		{

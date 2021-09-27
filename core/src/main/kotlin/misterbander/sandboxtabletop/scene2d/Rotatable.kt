@@ -23,7 +23,7 @@ class Rotatable(
 	draggable: Draggable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
-	private val roomScreen = parent.screen as RoomScreen
+	private val roomScreen = screen as RoomScreen
 	var justRotated = false
 	var isPinching = false
 	

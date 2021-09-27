@@ -20,6 +20,9 @@ import misterbander.gframework.scene2d.module.GModule
  */
 abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 {
+	val game: T
+		get() = screen.game
+	
 	val modules = OrderedMap<Class<out GModule<*>>, GModule<*>>()
 	
 	fun onSpawnInternal()

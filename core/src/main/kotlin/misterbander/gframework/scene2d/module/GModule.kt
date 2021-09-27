@@ -1,6 +1,7 @@
 package misterbander.gframework.scene2d.module
 
 import misterbander.gframework.GFramework
+import misterbander.gframework.GScreen
 import misterbander.gframework.scene2d.GObject
 
 /**
@@ -9,6 +10,11 @@ import misterbander.gframework.scene2d.GObject
  */
 abstract class GModule<T : GFramework>(val parent: GObject<T>)
 {
+	val game: T
+		get() = parent.game
+	val screen: GScreen<T>
+		get() = parent.screen
+	
 	/**
 	 * Called whenever the parent [GObject] is added to a stage using the += overload defined in
 	 * `misterbander/gframework/scene2d/actors.kt`

@@ -26,7 +26,7 @@ class Lockable(
 			{
 				pointers++
 				if (!isLocked)
-					Network.client?.sendTCP(ObjectLockEvent(id, parent.screen.game.user.username))
+					Network.client?.sendTCP(ObjectLockEvent(id, game.user.username))
 			}
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
@@ -45,5 +45,5 @@ class Lockable(
 		get() = lockHolder != null
 	
 	val isLockHolder: Boolean
-		get() = lockHolder == parent.screen.game.user
+		get() = lockHolder == game.user
 }

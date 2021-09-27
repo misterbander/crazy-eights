@@ -50,7 +50,7 @@ class Draggable(
 				)
 				val (newStageX, newStageY) = parent.localToStageCoordinates(tempVec.set(x - dragStartX, y - dragStartY))
 				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
-				val roomScreen = parent.screen as RoomScreen
+				val roomScreen = screen as RoomScreen
 				roomScreen.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
 					id = lockable.id
 					this.x = newStageX

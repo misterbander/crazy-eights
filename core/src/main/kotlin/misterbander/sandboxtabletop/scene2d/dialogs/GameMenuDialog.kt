@@ -24,7 +24,7 @@ class GameMenuDialog(screen: RoomScreen) : SandboxTabletopDialog(screen, "Game M
 					screen.selfDisconnect = true
 					Network.client!!.removeListener(screen)
 					Network.stop()
-					screen.transition.start(targetScreen = screen.game.getScreen<MenuScreen>())
+					screen.transition.start(targetScreen = game.getScreen<MenuScreen>())
 				}
 			})
 		}

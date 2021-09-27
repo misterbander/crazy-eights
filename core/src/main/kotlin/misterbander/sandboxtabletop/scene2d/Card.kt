@@ -13,7 +13,6 @@ import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.ServerCard.Rank
 import misterbander.sandboxtabletop.model.ServerCard.Suit
 import misterbander.sandboxtabletop.model.User
-import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 
 class Card(
@@ -40,7 +39,7 @@ class Card(
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
 	private val lockable: Lockable = Lockable(id, lockHolder, smoothMovable) {
 		if (!draggable.justDragged && !rotatable.justRotated)
-			Network.client?.sendTCP(FlipCardEvent(id))
+			game.client?.sendTCP(FlipCardEvent(id))
 	}
 	private val draggable = Draggable(room, clickListener, smoothMovable, lockable)
 	private val rotatable = Rotatable(room, smoothMovable, lockable, draggable)

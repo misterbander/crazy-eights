@@ -41,18 +41,22 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 						try
 						{
 							info("Network | INFO") { "Starting server on port $port..." }
-							Network.stopJob?.await()
+							game.stopNetworkJob?.await()
+							val server: Server
+							val client: Client
 							withContext(mainMenu.asyncContext) {
-								Network.server = Server().apply { start(); bind(port) }
-								Network.client = Client().apply {
-									addListener(mainMenu)
-									start()
-									connect("localhost", port)
-								}
+								server = Server()
+								server.start()
+								server.bind(port)
+								client = Client()
+								client.addListener(mainMenu)
+								client.start()
+								client.connect("localhost", port)
+								game.network = Network(server, client)
 							}
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
-							Network.client!!.sendTCP(Handshake(data = arrayOf(game.user.username)))
+							client.sendTCP(Handshake(data = arrayOf(game.user.username)))
 						}
 						catch (e: Exception)
 						{

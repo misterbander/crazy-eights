@@ -41,7 +41,6 @@ import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
-import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
@@ -79,7 +78,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		onKey { character ->
 			if ((character == '\r' || character == '\n') && text.isNotEmpty())
 			{
-				Network.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text", false))
+				game.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text", false))
 				text = ""
 				uiStage.keyboardFocus = null
 			}
@@ -207,9 +206,9 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				cursorPosition.x = inputX
 				cursorPosition.y = inputY
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
-				Network.client?.sendTCP(cursorPosition)
+				game.client?.sendTCP(cursorPosition)
 			}
-			objectMovedEvents.forEach { Network.client?.sendTCP(it.value) }
+			objectMovedEvents.forEach { game.client?.sendTCP(it.value) }
 			objectMovedEvents.clear()
 		}
 	}
@@ -361,6 +360,6 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		selfDisconnect = false
 		
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
-		Network.stop()
+		game.stopNetwork()
 	}
 }

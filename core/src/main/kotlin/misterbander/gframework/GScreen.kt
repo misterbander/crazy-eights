@@ -64,8 +64,8 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 	 */
 	val keyboardHeightObservers = GdxSet<KeyboardHeightObserver>()
 	
-	val scheduledAddingGObjects = OrderedMap<GObject<T>, Group>()
-	val scheduledRemovalGObjects = OrderedSet<GObject<T>>()
+	val scheduledAddingGObjects = OrderedMap<GObject<*>, Group>()
+	val scheduledRemovalGObjects = OrderedSet<GObject<*>>()
 	
 	private var deltaAccumulator = 0F
 	var fixedUpdateCount = 0
@@ -91,7 +91,7 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 		layers.forEach { it.render(delta) }
 		layers.forEach { it.postRender(delta) }
 		scheduledAddingGObjects.forEach {
-			val gObject: GObject<T> = it.key
+			val gObject: GObject<*> = it.key
 			val group: Group? = it.value
 			if (group != null)
 				group += gObject
@@ -123,7 +123,7 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 	 * @param gObject the [GObject] to spawn
 	 * @param parent the parent group to add the [GObject], defaults to [stage] root
 	 */
-	fun scheduleSpawnGObject(gObject: GObject<T>, parent: Group = stage.root)
+	fun scheduleSpawnGObject(gObject: GObject<*>, parent: Group = stage.root)
 	{
 		scheduledAddingGObjects[gObject] = parent
 	}

@@ -10,15 +10,15 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.GObject
 import misterbander.sandboxtabletop.PLAYER_NAMETAG_LABEL_STYLE
-import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.User
 
 class SandboxTabletopCursor(
-	screen: RoomScreen,
+	room: Room,
 	user: User,
 	noLabel: Boolean = false
-) : GObject<SandboxTabletop>(screen)
+) : GObject<SandboxTabletop>(room)
 {
 	private val base: TextureRegion
 	private val border: TextureRegion
@@ -33,7 +33,7 @@ class SandboxTabletopCursor(
 		base = Scene2DSkin.defaultSkin["cursorbase"]
 		border = Scene2DSkin.defaultSkin["cursorborder"]
 		setSize(base.regionWidth.toFloat(), base.regionHeight.toFloat())
-		setPositionAndTargetPosition(screen.uiViewport.minWorldWidth/2, screen.uiViewport.minWorldHeight/2)
+		setPositionAndTargetPosition(room.uiViewport.minWorldWidth/2, room.uiViewport.minWorldHeight/2)
 		if (!noLabel)
 		{
 			this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE).apply {

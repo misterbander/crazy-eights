@@ -60,7 +60,7 @@ import misterbander.sandboxtabletop.scene2d.Tabletop
 import misterbander.sandboxtabletop.scene2d.dialogs.GameMenuDialog
 import kotlin.math.min
 
-class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
+class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
 	// Shaders
 	val brightenShader = game.assetStorage[Shaders.brighten]
@@ -282,10 +282,10 @@ class RoomScreen(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	override fun disconnected(connection: Connection)
 	{
-		val menuScreen = game.getScreen<MenuScreen>()
+		val mainMenu = game.getScreen<MainMenu>()
 		if (!selfDisconnect)
-			menuScreen.messageDialog.show("Disconnected", "Server closed.", "OK")
-		transition.start(targetScreen = menuScreen)
+			mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
+		transition.start(targetScreen = mainMenu)
 	}
 	
 	override fun received(connection: Connection, `object`: Any)

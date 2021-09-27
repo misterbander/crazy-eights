@@ -8,11 +8,12 @@ import ktx.math.component1
 import ktx.math.component2
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
-import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 
 class Draggable(
+	private val room: Room,
 	private val clickListener: ClickListener,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
@@ -50,8 +51,7 @@ class Draggable(
 				)
 				val (newStageX, newStageY) = parent.localToStageCoordinates(tempVec.set(x - dragStartX, y - dragStartY))
 				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
-				val roomScreen = screen as RoomScreen
-				roomScreen.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+				room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
 					id = lockable.id
 					this.x = newStageX
 					this.y = newStageY

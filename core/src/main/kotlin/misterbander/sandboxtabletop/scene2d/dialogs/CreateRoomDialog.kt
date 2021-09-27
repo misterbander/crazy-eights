@@ -10,14 +10,14 @@ import ktx.log.info
 import ktx.scene2d.*
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
-import misterbander.sandboxtabletop.MenuScreen
+import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import java.net.BindException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
+class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Create Room")
 {
 	init
 	{
@@ -33,19 +33,19 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 		buttonTable.apply {
 			add(scene2d.textButton("Create", TEXT_BUTTON_STYLE) {
 				onChange {
-					screen.click.play()
+					mainMenu.click.play()
 					hide()
-					screen.infoDialog.show("Create Room", "Creating room...")
+					mainMenu.infoDialog.show("Create Room", "Creating room...")
 					KtxAsync.launch {
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
 							info("Network | INFO") { "Starting server on port $port..." }
 							Network.stopJob?.await()
-							withContext(screen.asyncContext) {
+							withContext(mainMenu.asyncContext) {
 								Network.server = Server().apply { start(); bind(port) }
 								Network.client = Client().apply {
-									addListener(screen)
+									addListener(mainMenu)
 									start()
 									connect("localhost", port)
 								}
@@ -56,17 +56,17 @@ class CreateRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Create Room")
 						}
 						catch (e: Exception)
 						{
-							screen.infoDialog.hide()
+							mainMenu.infoDialog.hide()
 							if (e is BindException)
-								screen.messageDialog.show("Error", "Port address $port is already in use.", "OK", this@CreateRoomDialog::show)
+								mainMenu.messageDialog.show("Error", "Port address $port is already in use.", "OK", this@CreateRoomDialog::show)
 							else
-								screen.messageDialog.show("Error", e.toString(), "OK", this@CreateRoomDialog::show)
+								mainMenu.messageDialog.show("Error", e.toString(), "OK", this@CreateRoomDialog::show)
 						}
 					}
 				}
 			}).prefWidth(224F)
 			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
-				onChange { screen.click.play(); hide() }
+				onChange { mainMenu.click.play(); hide() }
 			})
 		}
 		addListener(UnfocusListener(this))

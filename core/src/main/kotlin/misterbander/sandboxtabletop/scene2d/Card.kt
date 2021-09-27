@@ -8,7 +8,7 @@ import ktx.actors.plusAssign
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.gframework.scene2d.GObject
-import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.ServerCard.Rank
 import misterbander.sandboxtabletop.model.ServerCard.Suit
@@ -17,7 +17,7 @@ import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 
 class Card(
-	screen: RoomScreen,
+	private val room: Room,
 	val id: Int,
 	x: Float,
 	y: Float,
@@ -26,7 +26,7 @@ class Card(
 	suit: Suit = Suit.NO_SUIT,
 	isFaceUp: Boolean = false,
 	lockHolder: User? = null
-) : GObject<SandboxTabletop>(screen)
+) : GObject<SandboxTabletop>(room)
 {
 	private val faceUpDrawable: Drawable = Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "cardjoker" else "card${suit}${rank}"]
 	private val faceDownDrawable: Drawable = Scene2DSkin.defaultSkin["cardbackred"]
@@ -42,8 +42,8 @@ class Card(
 		if (!draggable.justDragged && !rotatable.justRotated)
 			Network.client?.sendTCP(FlipCardEvent(id))
 	}
-	private val draggable = Draggable(clickListener, smoothMovable, lockable)
-	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
+	private val draggable = Draggable(room, clickListener, smoothMovable, lockable)
+	private val rotatable = Rotatable(room, smoothMovable, lockable, draggable)
 	
 	init
 	{
@@ -67,7 +67,7 @@ class Card(
 	{
 		if (clickListener.isOver)
 		{
-			batch.shader = (screen as RoomScreen).brightenShader
+			batch.shader = room.brightenShader
 			super.draw(batch, parentAlpha)
 			batch.shader = null
 		}

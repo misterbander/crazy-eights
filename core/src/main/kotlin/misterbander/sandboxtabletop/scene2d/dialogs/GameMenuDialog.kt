@@ -2,12 +2,12 @@ package misterbander.sandboxtabletop.scene2d.dialogs
 
 import ktx.actors.onChange
 import ktx.scene2d.*
-import misterbander.sandboxtabletop.MenuScreen
-import misterbander.sandboxtabletop.RoomScreen
+import misterbander.sandboxtabletop.MainMenu
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 import misterbander.sandboxtabletop.net.Network
 
-class GameMenuDialog(screen: RoomScreen) : SandboxTabletopDialog(screen, "Game Menu")
+class GameMenuDialog(room: Room) : SandboxTabletopDialog(room, "Game Menu")
 {
 	init
 	{
@@ -15,16 +15,16 @@ class GameMenuDialog(screen: RoomScreen) : SandboxTabletopDialog(screen, "Game M
 		buttonTable.apply {
 			defaults().center().space(16F)
 			padTop(16F)
-			add(scene2d.textButton("Continue", TEXT_BUTTON_STYLE) { onChange { screen.click.play(); hide() } })
+			add(scene2d.textButton("Continue", TEXT_BUTTON_STYLE) { onChange { room.click.play(); hide() } })
 			row()
 			add(scene2d.textButton("Quit", TEXT_BUTTON_STYLE) {
 				onChange {
-					screen.click.play()
+					room.click.play()
 					hide()
-					screen.selfDisconnect = true
-					Network.client!!.removeListener(screen)
+					room.selfDisconnect = true
+					Network.client!!.removeListener(room)
 					Network.stop()
-					screen.transition.start(targetScreen = game.getScreen<MenuScreen>())
+					room.transition.start(targetScreen = game.getScreen<MainMenu>())
 				}
 			})
 		}

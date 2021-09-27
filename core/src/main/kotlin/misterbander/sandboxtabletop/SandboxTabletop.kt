@@ -174,9 +174,9 @@ class SandboxTabletop : GFramework()
 				user.color.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
 			savePreferences()
 			
-			addScreen(MenuScreen(this@SandboxTabletop))
-			addScreen(RoomScreen(this@SandboxTabletop))
-			setScreen<MenuScreen>()
+			addScreen(MainMenu(this@SandboxTabletop))
+			addScreen(Room(this@SandboxTabletop))
+			setScreen<MainMenu>()
 		}
 	}
 	

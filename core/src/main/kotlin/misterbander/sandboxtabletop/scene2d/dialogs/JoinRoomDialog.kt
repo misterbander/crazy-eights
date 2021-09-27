@@ -13,14 +13,14 @@ import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE
-import misterbander.sandboxtabletop.MenuScreen
+import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import kotlin.coroutines.cancellation.CancellationException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
+class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Room")
 {
 	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
 	private var joinServerJob: Job? = null
@@ -42,9 +42,9 @@ class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
 		buttonTable.apply {
 			add(scene2d.textButton("Join", TEXT_BUTTON_STYLE) {
 				onChange {
-					screen.click.play()
+					mainMenu.click.play()
 					hide()
-					screen.messageDialog.show("Join Room", "Joining room...", "Cancel") {
+					mainMenu.messageDialog.show("Join Room", "Joining room...", "Cancel") {
 						joinServerJob?.cancel()
 						joinServerJob = null
 						Network.stop()
@@ -57,9 +57,9 @@ class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
 						{
 							Network.stopJob?.await()
 							Network.client = Client()
-							withContext(screen.asyncContext) {
+							withContext(mainMenu.asyncContext) {
 								Network.client!!.apply {
-									addListener(screen)
+									addListener(mainMenu)
 									start()
 									connect(ip, port)
 								}
@@ -71,15 +71,15 @@ class JoinRoomDialog(screen: MenuScreen) : RoomDialog(screen, "Join Room")
 						catch (e: Exception)
 						{
 							Network.stop()
-							screen.infoDialog.hide()
+							mainMenu.infoDialog.hide()
 							if (e !is CancellationException && !isShown())
-								screen.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
+								mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
 						}
 					}
 				}
 			}).prefWidth(224F)
 			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
-				onChange { screen.click.play(); hide() }
+				onChange { mainMenu.click.play(); hide() }
 			})
 		}
 		addListener(UnfocusListener(this))

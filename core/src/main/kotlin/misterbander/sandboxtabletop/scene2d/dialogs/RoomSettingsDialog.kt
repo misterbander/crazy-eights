@@ -6,15 +6,15 @@ import misterbander.gframework.scene2d.GTextField
 import misterbander.gframework.scene2d.gTextField
 import misterbander.sandboxtabletop.COLOR_BUTTON_STYLE
 import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
-import misterbander.sandboxtabletop.MenuScreen
+import misterbander.sandboxtabletop.MainMenu
 
-abstract class RoomDialog(screen: MenuScreen, title: String) : SandboxTabletopDialog(screen, title)
+abstract class RoomSettingsDialog(mainMenu: MainMenu, title: String) : SandboxTabletopDialog(mainMenu, title)
 {
 	val usernameTextField by lazy {
 		scene2d.gTextField(this, "", FORM_TEXT_FIELD_STYLE) { maxLength = 20 }
 	}
 	val colorButton = scene2d.imageButton(COLOR_BUTTON_STYLE) {
-		onChange { screen.click.play(); colorPickerDialog.show() }
+		onChange { mainMenu.click.play(); colorPickerDialog.show() }
 	}
 	val portTextField by lazy {
 		scene2d.gTextField(this, "", FORM_TEXT_FIELD_STYLE) {
@@ -22,7 +22,7 @@ abstract class RoomDialog(screen: MenuScreen, title: String) : SandboxTabletopDi
 		}
 	}
 	
-	private val colorPickerDialog by lazy { ColorPickerDialog(screen, this) }
+	private val colorPickerDialog by lazy { ColorPickerDialog(mainMenu, this) }
 	
 	override fun show()
 	{

@@ -45,9 +45,10 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 					mainMenu.click.play()
 					hide()
 					mainMenu.messageDialog.show("Join Room", "Joining room...", "Cancel") {
+						info("JoinRoomDialog | INFO") { "Cancelling connection..." }
 						joinServerJob?.cancel()
 						joinServerJob = null
-						Network.stop()
+						game.stopNetwork()
 						show()
 					}
 					joinServerJob = KtxAsync.launch {
@@ -55,22 +56,21 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
-							Network.stopJob?.await()
-							Network.client = Client()
+							game.stopNetworkJob?.await()
+							val client = Client()
+							game.network = Network(null, client)
 							withContext(mainMenu.asyncContext) {
-								Network.client!!.apply {
-									addListener(mainMenu)
-									start()
-									connect(ip, port)
-								}
+								client.addListener(mainMenu)
+								client.start()
+								client.connect(ip, port)
 							}
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
-							Network.client!!.sendTCP(Handshake(data = arrayOf(game.user.username)))
+							client.sendTCP(Handshake(data = arrayOf(game.user.username)))
 						}
 						catch (e: Exception)
 						{
-							Network.stop()
+							game.stopNetwork()
 							mainMenu.infoDialog.hide()
 							if (e !is CancellationException && !isShown())
 								mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)

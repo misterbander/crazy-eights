@@ -25,32 +25,19 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
-object Network
+class Network(val server: Server?, val client: Client)
 {
-	var server: Server? = null
-		set(value)
-		{
-			if (field != null && value != null)
-				throw IllegalStateException("Overwriting nonnull server field")
-			field = value?.apply {
-				kryo.registerClasses()
-				addListener(RoomServerListener(value))
-			}
-		}
-	var client: Client? = null
-		set(value)
-		{
-			if (field != null && value != null)
-				throw IllegalStateException("Overwriting nonnull client field")
-			field = value?.apply {
-				kryo.registerClasses()
-				setName("Client")
-			}
-		}
-	
 	private val asyncContext = newSingleThreadAsyncContext("Network-AsyncExecutor-Thread")
-	var stopJob: Deferred<Unit>? = null
-		private set
+	
+	init
+	{
+		server?.apply {
+			kryo.registerClasses()
+			addListener(RoomServerListener(this))
+		}
+		client.kryo.registerClasses()
+		client.setName("Client")
+	}
 	
 	private fun Kryo.registerClasses()
 	{
@@ -77,14 +64,8 @@ object Network
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
-	fun stop()
-	{
-		stopJob = KtxAsync.async(asyncContext) {
-			server?.apply { stop(); dispose() }
-			client?.apply { stop(); dispose() }
-			server = null
-			client = null
-			stopJob = null
-		}
+	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
+		server?.apply { stop(); dispose() }
+		client.apply { stop(); dispose() }
 	}
 }

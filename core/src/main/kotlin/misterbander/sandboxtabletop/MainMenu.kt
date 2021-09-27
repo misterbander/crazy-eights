@@ -20,7 +20,6 @@ import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*
 import misterbander.sandboxtabletop.model.TabletopState
-import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.scene2d.dialogs.CreateRoomDialog
@@ -129,7 +128,7 @@ class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			is HandshakeReject ->
 			{
 				info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
-				Network.stop()
+				game.stopNetwork()
 				infoDialog.hide()
 				messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 			}
@@ -139,8 +138,8 @@ class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				room.tabletop.setState(`object`)
 				messageDialog.actionlessHide()
 				infoDialog.hide()
-				Network.client!!.removeListener(this)
-				Network.client!!.addListener(room)
+				game.client!!.removeListener(this)
+				game.client!!.addListener(room)
 				transition.start(targetScreen = room)
 			}
 		}

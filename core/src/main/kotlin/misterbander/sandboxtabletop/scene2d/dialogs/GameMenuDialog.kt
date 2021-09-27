@@ -5,7 +5,6 @@ import ktx.scene2d.*
 import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
-import misterbander.sandboxtabletop.net.Network
 
 class GameMenuDialog(room: Room) : SandboxTabletopDialog(room, "Game Menu")
 {
@@ -22,8 +21,8 @@ class GameMenuDialog(room: Room) : SandboxTabletopDialog(room, "Game Menu")
 					room.click.play()
 					hide()
 					room.selfDisconnect = true
-					Network.client!!.removeListener(room)
-					Network.stop()
+					game.client?.removeListener(room)
+					game.stopNetwork()
 					room.transition.start(targetScreen = game.getScreen<MainMenu>())
 				}
 			})

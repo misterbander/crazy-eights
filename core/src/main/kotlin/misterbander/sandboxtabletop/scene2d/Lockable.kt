@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.User
-import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 
@@ -26,7 +25,7 @@ class Lockable(
 			{
 				pointers++
 				if (!isLocked)
-					Network.client?.sendTCP(ObjectLockEvent(id, game.user.username))
+					game.client?.sendTCP(ObjectLockEvent(id, game.user.username))
 			}
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
@@ -34,7 +33,7 @@ class Lockable(
 				pointers--
 				if (pointers == 0 && isLockHolder)
 				{
-					Network.client?.sendTCP(ObjectUnlockEvent(id))
+					game.client?.sendTCP(ObjectUnlockEvent(id))
 					onUnlock?.invoke()
 				}
 			}

@@ -21,6 +21,7 @@ import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
@@ -60,6 +61,7 @@ class Network(val server: Server?, val client: Client)
 		register(ObjectLockEvent::class.java)
 		register(ObjectUnlockEvent::class.java)
 		register(ObjectMovedEvent::class.java).setInstantiator { objectMovedEventPool.obtain() }
+		register(ObjectRotatedEvent::class.java).setInstantiator { objectRotatedEventPool.obtain() }
 		register(FlipCardEvent::class.java)
 	}
 	

@@ -43,9 +43,11 @@ import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.objectMovedEventPool
+import misterbander.sandboxtabletop.net.objectRotatedEventPool
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
@@ -111,6 +113,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	// Networking
 	private var cursorPosition = CursorPosition()
 	val objectMovedEvents = IntMap<ObjectMovedEvent>()
+	val objectRotatedEvents = IntMap<ObjectRotatedEvent>()
 	private var syncServerTask: Timer.Task? = null
 	private var tickDelay = 1/40F
 	var selfDisconnect = false
@@ -210,7 +213,9 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				game.client?.sendTCP(cursorPosition)
 			}
 			objectMovedEvents.forEach { game.client?.sendTCP(it.value); objectMovedEventPool.free(it.value) }
+			objectRotatedEvents.forEach { game.client?.sendTCP(it.value); objectRotatedEventPool.free(it.value) }
 			objectMovedEvents.clear()
+			objectRotatedEvents.clear()
 		}
 	}
 	
@@ -311,7 +316,6 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			{
 				val cursor: SandboxTabletopCursor? = tabletop.userCursorMap[`object`.username]
 				cursor?.setTargetPosition(`object`.x, `object`.y)
-//				println(`object`)
 				cursorPositionPool.free(`object`)
 			}
 			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
@@ -333,13 +337,15 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			}
 			is ObjectMovedEvent ->
 			{
-				val (id, x, y, rotation) = `object`
-				val smoothMovable = tabletop.idGObjectMap[id]!!.getModule<SmoothMovable>()
-				smoothMovable?.apply {
-					setTargetPosition(x, y)
-					rotationInterpolator.target = rotation
-				}
+				val (id, x, y) = `object`
+				tabletop.idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
 				objectMovedEventPool.free(`object`)
+			}
+			is ObjectRotatedEvent ->
+			{
+				val (id, rotation) = `object`
+				tabletop.idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+				objectRotatedEventPool.free(`object`)
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {
 				val card = tabletop.idGObjectMap[`object`.id] as Card
@@ -357,6 +363,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		
 		cursorPosition.reset()
 		objectMovedEvents.clear()
+		objectRotatedEvents.clear()
 		syncServerTask?.cancel()
 		syncServerTask = null
 		selfDisconnect = false

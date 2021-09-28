@@ -42,6 +42,7 @@ import misterbander.gframework.util.toPixmap
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.cursorPositionPool
+import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
@@ -208,7 +209,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
 				game.client?.sendTCP(cursorPosition)
 			}
-			objectMovedEvents.forEach { game.client?.sendTCP(it.value) }
+			objectMovedEvents.forEach { game.client?.sendTCP(it.value); objectMovedEventPool.free(it.value) }
 			objectMovedEvents.clear()
 		}
 	}
@@ -338,6 +339,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 					setTargetPosition(x, y)
 					rotationInterpolator.target = rotation
 				}
+				objectMovedEventPool.free(`object`)
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {
 				val card = tabletop.idGObjectMap[`object`.id] as Card

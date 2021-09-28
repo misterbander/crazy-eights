@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.util.Pool
 import ktx.log.debug
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 
 typealias KryoPool<T> = Pool<T>
 
@@ -24,3 +25,4 @@ inline fun <reified Type> kryoPool(crossinline provider: () -> Type): KryoPool<T
 
 val cursorPositionPool = kryoPool { CursorPosition() }
 val objectMovedEventPool = kryoPool { ObjectMovedEvent() }
+val objectRotatedEventPool = kryoPool { ObjectRotatedEvent() }

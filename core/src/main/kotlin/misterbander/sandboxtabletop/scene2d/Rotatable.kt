@@ -1,9 +1,7 @@
 package misterbander.sandboxtabletop.scene2d
 
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.utils.IntSet
 import ktx.actors.KtxInputListener
 import ktx.collections.getOrPut
 import ktx.math.component1
@@ -16,6 +14,7 @@ import misterbander.gframework.util.tempVec
 import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
+import misterbander.sandboxtabletop.net.objectRotatedEventPool
 
 class Rotatable(
 	private val room: Room,
@@ -55,9 +54,10 @@ class Rotatable(
 			private var localCenterOffsetX = 0F
 			private var localCenterOffsetY = 0F
 			private val centerOffsetVec = vec2()
-			private val pointers = IntSet()
-			private val stagePointer1 = vec2()
-			private val stagePointer2 = vec2()
+			private var pointer1 = -1
+			private var pointer2 = -1
+			private val pointer1Position = vec2()
+			private val pointer2Position = vec2()
 			
 			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
@@ -66,8 +66,11 @@ class Rotatable(
 				{
 					// ActorGestureListener does not identify pointers that initially touched down
 					// on this actor, we need to take care of that manually
-					pointers.add(pointer)
-					if (pointers.size == 2)
+					if (pointer1 == -1)
+						pointer1 = pointer
+					else if (pointer2 == -1)
+						pointer2 = pointer
+					if (pointer1 != -1 && pointer2 != -1)
 					{
 						isPinching = true
 						justStartedPinching = true
@@ -78,29 +81,40 @@ class Rotatable(
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
-				if (pointers.remove(pointer))
+				if (pointer == pointer1 || pointer == pointer2)
 				{
+					var otherPointer = -1
+					if (pointer == pointer1)
+					{
+						pointer1 = -1
+						otherPointer = pointer2
+					}
+					else if (pointer == pointer2)
+					{
+						pointer2 = -1
+						otherPointer = pointer1
+					}
 					isPinching = false
 					justStartedPinching = false
-					if (pointers.size == 1)
+					if (otherPointer != -1)
 					{
-						var otherStageX = 0F
-						var otherStageY = 0F
-						if (MathUtils.isEqual(event.stageX, stagePointer1.x) && MathUtils.isEqual(event.stageY, stagePointer1.y))
+						val otherX: Float
+						val otherY: Float
+						if (otherPointer == pointer1)
 						{
-							otherStageX = stagePointer2.x
-							otherStageY = stagePointer2.y
+							otherX = pointer1Position.x
+							otherY = pointer1Position.y
 						}
-						else if (MathUtils.isEqual(event.stageX, stagePointer2.x) && MathUtils.isEqual(event.stageY, stagePointer2.y))
+						else
 						{
-							otherStageX = stagePointer1.x
-							otherStageY = stagePointer1.y
+							otherX = pointer2Position.x
+							otherY = pointer2Position.y
 						}
 //						println("pointer1=$stagePointer1")
 //						println("pointer2=$stagePointer2")
 //						println("x=${event.stageX} y=${event.stageY}")
-						draggable.stageOffsetX = otherStageX - parent.x
-						draggable.stageOffsetY = otherStageY - parent.y
+						val (dragX, dragY) = parent.parentToLocalCoordinates(tempVec.set(otherX, otherY))
+						draggable.unrotatedDragPositionVec.set(dragX, dragY).rotateDeg(parent.rotation)
 					}
 				}
 //				println("$parent pointer $pointer touch up, pointers = $pointers")
@@ -116,8 +130,8 @@ class Rotatable(
 			{
 				if (!lockable.isLockHolder || !isPinching)
 					return
-				parent.localToStageCoordinates(stagePointer1.set(pointer1))
-				parent.localToStageCoordinates(stagePointer2.set(pointer2))
+				parent.localToParentCoordinates(pointer1Position.set(pointer1))
+				parent.localToParentCoordinates(pointer2Position.set(pointer2))
 				if (justStartedPinching)
 				{
 					localCenterOffsetX = (initialPointer1.x + initialPointer2.x)/2
@@ -136,16 +150,17 @@ class Rotatable(
 				val pointerCenterX = (pointer1.x + pointer2.x)/2
 				val pointerCenterY = (pointer1.y + pointer2.y)/2
 				centerOffsetVec.set(localCenterOffsetX, localCenterOffsetY).rotateDeg(dAngle)
-				val (newStageX, newStageY) = parent.localToStageCoordinates(
+				val (newX, newY) = parent.localToParentCoordinates(
 					tempVec.set(pointerCenterX - centerOffsetVec.x, pointerCenterY - centerOffsetVec.y)
 				)
 				
 				// Apply final position and rotation
-				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
+				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				room.objectMovedEvents[lockable.id]!!.apply {
-					x = newStageX
-					y = newStageY
+				room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+					id = lockable.id
+					x = newX
+					y = newY
 				}
 			}
 		})
@@ -159,10 +174,8 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+		room.objectRotatedEvents.getOrPut(lockable.id) { objectRotatedEventPool.obtain() }.apply {
 			id = lockable.id
-			this.x = smoothMovable.xInterpolator.target
-			this.y = smoothMovable.yInterpolator.target
 			this.rotation = smoothMovable.rotationInterpolator.target
 		}
 	}

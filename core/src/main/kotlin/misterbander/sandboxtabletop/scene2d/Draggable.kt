@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import ktx.collections.getOrPut
 import ktx.math.component1
 import ktx.math.component2
+import ktx.math.vec2
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 import misterbander.sandboxtabletop.Room
@@ -19,8 +20,8 @@ class Draggable(
 	private val lockable: Lockable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
-	var stageOffsetX = 0F
-	var stageOffsetY = 0F
+	val unrotatedDragPositionVec = vec2()
+	val dragPositionVec = vec2()
 	var justDragged = false
 	
 	init
@@ -34,8 +35,9 @@ class Draggable(
 			
 			override fun dragStart(event: InputEvent, x: Float, y: Float, pointer: Int)
 			{
-				stageOffsetX = event.stageX - parent.x
-				stageOffsetY = event.stageY - parent.y
+				// x, y are positions in local coords. We store the x and y in unrotatedDragPositionVec as if the
+				// parent is not rotated when the user starts dragging
+				unrotatedDragPositionVec.set(x, y).rotateDeg(parent.rotation)
 				justDragged = true
 			}
 			
@@ -43,19 +45,19 @@ class Draggable(
 			{
 				if (!lockable.isLockHolder || parent.getModule<Rotatable>()?.isPinching == true)
 					return
-				// x, y, dragStartX and dragStartY are all positions in local coords
-				// To calculate drag delta we just need to calculate x - dragStartX, y - dragStartY
-				// and translate them back into stage coords
-				val (dragStartX, dragStartY) = parent.stageToLocalCoordinates(
-					tempVec.set(parent.x + stageOffsetX, parent.y + stageOffsetY)
-				)
-				val (newStageX, newStageY) = parent.localToStageCoordinates(tempVec.set(x - dragStartX, y - dragStartY))
-				smoothMovable.setPositionAndTargetPosition(newStageX, newStageY)
+				// To implement drag, we just need to move the object such that the mouse is always at
+				// (dragPositionVec.x, dragPositionVec.y) in local coordinates
+				// dragPositionVec is unrotatedDragPositionVec with rotation applied to account for rotation
+				// interpolation
+				dragPositionVec.set(unrotatedDragPositionVec)
+				dragPositionVec.rotateDeg(-parent.rotation)
+				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
+//				println(dragPositionVec)
+				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
 					id = lockable.id
-					this.x = newStageX
-					this.y = newStageY
-					rotation = smoothMovable.rotationInterpolator.target
+					this.x = newX
+					this.y = newY
 				}
 			}
 		})

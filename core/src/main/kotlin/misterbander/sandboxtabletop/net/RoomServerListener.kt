@@ -23,6 +23,7 @@ import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
@@ -137,10 +138,17 @@ class RoomServerListener(private val server: Server) : Listener
 			}
 			is ObjectMovedEvent ->
 			{
-				val (id, x, y, rotation) = `object`
-				idObjectMap[id].apply { this.x = x; this.y = y; this.rotation = rotation }
+				val (id, x, y) = `object`
+				idObjectMap[id].apply { this.x = x; this.y = y }
 				server.sendToAllTCP(`object`)
 				objectMovedEventPool.free(`object`)
+			}
+			is ObjectRotatedEvent ->
+			{
+				val (id, rotation) = `object`
+				idObjectMap[id].rotation = rotation
+				server.sendToAllTCP(`object`)
+				objectRotatedEventPool.free(`object`)
 			}
 			is FlipCardEvent ->
 			{

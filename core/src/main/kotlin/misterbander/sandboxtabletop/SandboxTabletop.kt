@@ -36,21 +36,21 @@ class SandboxTabletop : GFramework()
 			magFilter = Texture.TextureFilter.Linear
 		}
 	}
-	val jhengheiuiMini by lazy {
+	val jhengheiuis by lazy {
 		generator.generateFont {
 			size = 25
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 		}
 	}
-	val jhengheiuiTiny by lazy {
+	val jhengheiuixs by lazy {
 		generator.generateFont {
 			size = 15
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 		}
 	}
-	val jhengheiuiMax by lazy {
+	val jhengheiuil by lazy {
 		generator.generateFont {
 			size = 50
 			minFilter = Texture.TextureFilter.Linear
@@ -62,7 +62,7 @@ class SandboxTabletop : GFramework()
 	private val skin by lazy {
 		skin {
 			addRegions(assetStorage[TextureAtlases.gui])
-			label(INFO_LABEL_STYLE) { font = jhengheiuiMini; fontColor = Color.WHITE }
+			label(INFO_LABEL_STYLE) { font = jhengheiuis; fontColor = Color.WHITE }
 			label(CHAT_LABEL_STYLE, INFO_LABEL_STYLE) {
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 4F
@@ -71,7 +71,7 @@ class SandboxTabletop : GFramework()
 				background.bottomHeight = 4F
 			}
 			label(PLAYER_NAMETAG_LABEL_STYLE) {
-				font = jhengheiuiTiny
+				font = jhengheiuixs
 				fontColor = Color.WHITE
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 2F
@@ -81,7 +81,7 @@ class SandboxTabletop : GFramework()
 			}
 			window(WINDOW_STYLE) {
 				background = this@skin["window"]
-				titleFont = jhengheiuiMini
+				titleFont = jhengheiuis
 				titleFontColor = Color.WHITE
 			}
 			scrollPane(SCROLL_PANE_STYLE) {
@@ -117,7 +117,7 @@ class SandboxTabletop : GFramework()
 			}
 			val gTextFieldStyleBase = "mbtextfieldstylebase"
 			gTextField(gTextFieldStyleBase) {
-				font = jhengheiuiMini
+				font = jhengheiuis
 				fontColor = Color.WHITE
 				messageFontColor = Color.GRAY
 				focusedFontColor = Color.WHITE

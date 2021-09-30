@@ -26,7 +26,6 @@ import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
-import ktx.actors.setScrollFocus
 import ktx.actors.then
 import ktx.async.interval
 import ktx.graphics.use
@@ -52,10 +51,8 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.Card
-import misterbander.sandboxtabletop.scene2d.Draggable
 import misterbander.sandboxtabletop.scene2d.Gizmo
 import misterbander.sandboxtabletop.scene2d.Lockable
-import misterbander.sandboxtabletop.scene2d.Rotatable
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
 import misterbander.sandboxtabletop.scene2d.SmoothMovable
 import misterbander.sandboxtabletop.scene2d.Tabletop
@@ -295,6 +292,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	override fun received(connection: Connection, `object`: Any)
 	{
+		val idGObjectMap = tabletop.idGObjectMap
 		when (`object`)
 		{
 			is UserJoinEvent -> Gdx.app.postRunnable {
@@ -320,35 +318,23 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			}
 			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
 				val (id, lockerUsername) = `object`
-				val toLock = tabletop.idGObjectMap[id]!!
-				val lockable = toLock.getModule<Lockable>()
-				if (lockable != null && !lockable.isLocked)
-				{
-					toLock.toFront()
-					toLock.setScrollFocus()
-					lockable.lockHolder = tabletop.users[lockerUsername]
-				}
+				idGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
 			}
-			is ObjectUnlockEvent -> Gdx.app.postRunnable {
-				val toUnlock = tabletop.idGObjectMap[`object`.id]
-				toUnlock.getModule<Lockable>()?.lockHolder = null
-				toUnlock.getModule<Draggable>()?.justDragged = false
-				toUnlock.getModule<Rotatable>()?.justRotated = false
-			}
+			is ObjectUnlockEvent -> Gdx.app.postRunnable { idGObjectMap[`object`.id].getModule<Lockable>()?.unlock() }
 			is ObjectMovedEvent ->
 			{
 				val (id, x, y) = `object`
-				tabletop.idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+				idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
 				objectMovedEventPool.free(`object`)
 			}
 			is ObjectRotatedEvent ->
 			{
 				val (id, rotation) = `object`
-				tabletop.idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+				idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
 				objectRotatedEventPool.free(`object`)
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {
-				val card = tabletop.idGObjectMap[`object`.id] as Card
+				val card = idGObjectMap[`object`.id] as Card
 				card.isFaceUp = !card.isFaceUp
 			}
 		}

@@ -37,9 +37,14 @@ class Card(
 	
 	// Modules
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
-	private val lockable: Lockable = Lockable(id, lockHolder, smoothMovable) {
-		if (!draggable.justDragged && !rotatable.justRotated)
-			game.client?.sendTCP(FlipCardEvent(id))
+	private val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
+	{
+		override fun unlock()
+		{
+			if (!draggable.justDragged && !rotatable.justRotated)
+				game.client?.sendTCP(FlipCardEvent(id))
+			super.unlock()
+		}
 	}
 	private val draggable = Draggable(room, clickListener, smoothMovable, lockable)
 	private val rotatable = Rotatable(room, smoothMovable, lockable, draggable)

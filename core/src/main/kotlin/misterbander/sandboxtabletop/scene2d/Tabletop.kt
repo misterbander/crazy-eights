@@ -67,8 +67,8 @@ class Tabletop(private val room: Room)
 		userCursorMap.remove(user.username)?.remove()
 		idGObjectMap.values().forEach { gObject: GObject<SandboxTabletop> ->
 			val lockable = gObject.getModule<Lockable>()
-			if (lockable != null && lockable.lockHolder == user)
-				lockable.lockHolder = null
+			if (lockable != null && lockable.isLockHolder)
+				lockable.unlock()
 		}
 	}
 	

@@ -129,8 +129,9 @@ class RoomServerListener(private val server: Server) : Listener
 			}
 			is ObjectUnlockEvent -> // User unlocks an object
 			{
-				val toUnlock = idObjectMap[`object`.id]!!
-				if (toUnlock is ServerLockable)
+				val (id, unlockerUsername) = `object`
+				val toUnlock = idObjectMap[id]!!
+				if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
 				{
 					toUnlock.lockHolder = null
 					server.sendToAllTCP(`object`)

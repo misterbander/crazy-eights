@@ -41,7 +41,7 @@ class Card(
 	{
 		override fun unlock()
 		{
-			if (!draggable.justDragged && !rotatable.justRotated)
+			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated)
 				game.client?.sendTCP(FlipCardEvent(id))
 			super.unlock()
 		}

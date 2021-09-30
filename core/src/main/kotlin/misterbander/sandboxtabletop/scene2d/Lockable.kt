@@ -1,18 +1,19 @@
 package misterbander.sandboxtabletop.scene2d
 
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
+import ktx.actors.setScrollFocus
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 
-class Lockable(
+open class Lockable(
 	val id: Int,
-	var lockHolder: User? = null,
-	smoothMovable: SmoothMovable,
-	onUnlock: (() -> Unit)? = null
+	private var lockHolder: User? = null,
+	smoothMovable: SmoothMovable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
 	init
@@ -28,14 +29,17 @@ class Lockable(
 					game.client?.sendTCP(ObjectLockEvent(id, game.user.username))
 			}
 			
+			override fun longPress(actor: Actor, x: Float, y: Float): Boolean
+			{
+				println("I AM LONG PRESSING OMGGGGGGG actor=$actor")
+				return false
+			}
+			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				pointers--
 				if (pointers == 0 && isLockHolder)
-				{
 					game.client?.sendTCP(ObjectUnlockEvent(id))
-					onUnlock?.invoke()
-				}
 			}
 		})
 	}
@@ -45,4 +49,21 @@ class Lockable(
 	
 	val isLockHolder: Boolean
 		get() = lockHolder == game.user
+	
+	open fun lock(user: User)
+	{
+		if (!isLocked)
+		{
+			parent.toFront()
+			parent.setScrollFocus()
+			lockHolder = user
+		}
+	}
+	
+	open fun unlock()
+	{
+		lockHolder = null
+		parent.getModule<Draggable>()?.justDragged = false
+		parent.getModule<Rotatable>()?.justRotated = false
+	}
 }

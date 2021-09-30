@@ -38,8 +38,8 @@ open class Lockable(
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				pointers--
-				if (pointers == 0 && isLockHolder)
-					game.client?.sendTCP(ObjectUnlockEvent(id))
+				if (pointers == 0)
+					game.client?.sendTCP(ObjectUnlockEvent(id, game.user.username))
 			}
 		})
 	}

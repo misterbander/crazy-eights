@@ -54,7 +54,8 @@ class Draggable(
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 //				println(dragPositionVec)
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
-				room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+				room.objectMovedEventBuffer.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+					seqNumber = room.newSeqNumber
 					id = lockable.id
 					this.x = newX
 					this.y = newY

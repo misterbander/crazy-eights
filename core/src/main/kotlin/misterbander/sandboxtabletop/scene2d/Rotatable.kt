@@ -157,7 +157,8 @@ class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				room.objectMovedEvents.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+				room.objectMovedEventBuffer.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+					seqNumber = room.newSeqNumber
 					id = lockable.id
 					x = newX
 					y = newY
@@ -174,7 +175,8 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		room.objectRotatedEvents.getOrPut(lockable.id) { objectRotatedEventPool.obtain() }.apply {
+		room.objectRotatedEventBuffer.getOrPut(lockable.id) { objectRotatedEventPool.obtain() }.apply {
+			seqNumber = room.newSeqNumber
 			id = lockable.id
 			this.rotation = smoothMovable.rotationInterpolator.target
 		}

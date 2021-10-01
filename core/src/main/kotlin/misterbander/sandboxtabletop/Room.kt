@@ -28,6 +28,7 @@ import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.interval
+import ktx.collections.set
 import ktx.graphics.use
 import ktx.log.info
 import ktx.math.component1
@@ -43,6 +44,7 @@ import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.objectRotatedEventPool
+import misterbander.sandboxtabletop.net.packets.Acknowledgeable
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
@@ -109,8 +111,12 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	// Networking
 	private var cursorPosition = CursorPosition()
-	val objectMovedEvents = IntMap<ObjectMovedEvent>()
-	val objectRotatedEvents = IntMap<ObjectRotatedEvent>()
+	var newSeqNumber = 0
+		get() = field++
+		private set
+	private val unacknowledgedPackets = IntMap<Acknowledgeable>()
+	val objectMovedEventBuffer = IntMap<ObjectMovedEvent>()
+	val objectRotatedEventBuffer = IntMap<ObjectRotatedEvent>()
 	private var syncServerTask: Timer.Task? = null
 	private var tickDelay = 1/40F
 	var selfDisconnect = false
@@ -209,10 +215,18 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
 				game.client?.sendTCP(cursorPosition)
 			}
-			objectMovedEvents.forEach { game.client?.sendTCP(it.value); objectMovedEventPool.free(it.value) }
-			objectRotatedEvents.forEach { game.client?.sendTCP(it.value); objectRotatedEventPool.free(it.value) }
-			objectMovedEvents.clear()
-			objectRotatedEvents.clear()
+			objectMovedEventBuffer.forEach {
+				val event: ObjectMovedEvent = it.value
+				game.client?.sendTCP(event)
+				synchronized(unacknowledgedPackets) { unacknowledgedPackets[event.seqNumber] = event }
+			}
+			objectRotatedEventBuffer.forEach {
+				val event: ObjectRotatedEvent = it.value
+				game.client?.sendTCP(event)
+				synchronized(unacknowledgedPackets) { unacknowledgedPackets[event.seqNumber] = event }
+			}
+			objectMovedEventBuffer.clear()
+			objectRotatedEventBuffer.clear()
 		}
 	}
 	
@@ -313,7 +327,8 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			is CursorPosition ->
 			{
 				val cursor: SandboxTabletopCursor? = tabletop.userCursorMap[`object`.username]
-				cursor?.setTargetPosition(`object`.x, `object`.y)
+				if (cursor != tabletop.myCursor)
+					cursor?.setTargetPosition(`object`.x, `object`.y)
 				cursorPositionPool.free(`object`)
 			}
 			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
@@ -323,14 +338,28 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			is ObjectUnlockEvent -> Gdx.app.postRunnable { idGObjectMap[`object`.id].getModule<Lockable>()?.unlock() }
 			is ObjectMovedEvent ->
 			{
-				val (id, x, y) = `object`
-				idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+				synchronized<Unit>(unacknowledgedPackets) {
+					if (unacknowledgedPackets[`object`.seqNumber] != null)
+						objectMovedEventPool.free(unacknowledgedPackets.remove(`object`.seqNumber) as ObjectMovedEvent)
+					else
+					{
+						val (_, id, x, y) = `object`
+						idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+					}
+				}
 				objectMovedEventPool.free(`object`)
 			}
 			is ObjectRotatedEvent ->
 			{
-				val (id, rotation) = `object`
-				idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+				synchronized<Unit>(unacknowledgedPackets) {
+					if (unacknowledgedPackets[`object`.seqNumber] != null)
+						objectRotatedEventPool.free(unacknowledgedPackets.remove(`object`.seqNumber) as ObjectRotatedEvent)
+					else
+					{
+						val (_, id, rotation) = `object`
+						idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+					}
+				}
 				objectRotatedEventPool.free(`object`)
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {
@@ -348,8 +377,8 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		tabletop.reset()
 		
 		cursorPosition.reset()
-		objectMovedEvents.clear()
-		objectRotatedEvents.clear()
+		objectMovedEventBuffer.clear()
+		objectRotatedEventBuffer.clear()
 		syncServerTask?.cancel()
 		syncServerTask = null
 		selfDisconnect = false

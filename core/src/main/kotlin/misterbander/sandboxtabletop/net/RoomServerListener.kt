@@ -5,6 +5,7 @@ import com.badlogic.gdx.utils.IntSet
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import ktx.async.schedule
 import ktx.collections.plusAssign
 import ktx.collections.set
 import ktx.log.info
@@ -101,61 +102,66 @@ class RoomServerListener(private val server: Server) : Listener
 			return
 		}
 		
-		when (`object`)
+		schedule(0.5F) // TODO remove simulated lag for debugging purposes
 		{
-			is User -> // A new user tries to join
+			when (`object`)
 			{
-				connection.arbitraryData = `object`
-				state.users[`object`.username] = `object`
-				connection.sendTCP(state)
-				server.sendToAllTCP(UserJoinEvent(`object`))
-				info("Server | INFO") { "${`object`.username} joined the game" }
-			}
-			is Chat -> server.sendToAllTCP(`object`)
-			is CursorPosition ->
-			{
-				server.sendToAllTCP(`object`)
-				cursorPositionPool.free(`object`)
-			}
-			is ObjectLockEvent -> // User attempts to lock an object
-			{
-				val (id, lockerUsername) = `object`
-				val toLock = idObjectMap[id]!!
-				if (toLock is ServerLockable && !toLock.isLocked) // Only unlocked draggables can be locked
+				is User -> // A new user tries to join
 				{
-					toLock.lockHolder = state.users[lockerUsername]
+					connection.arbitraryData = `object`
+					state.users[`object`.username] = `object`
+					connection.sendTCP(state)
+					server.sendToAllTCP(UserJoinEvent(`object`))
+					info("Server | INFO") { "${`object`.username} joined the game" }
+				}
+				is Chat -> server.sendToAllTCP(`object`)
+				is CursorPosition ->
+				{
+					server.sendToAllTCP(`object`)
+					cursorPositionPool.free(`object`)
+				}
+				is ObjectLockEvent -> // User attempts to lock an object
+				{
+					val (id, lockerUsername) = `object`
+					val toLock = idObjectMap[id]!!
+					if (toLock is ServerLockable && !toLock.isLocked) // Only unlocked draggables can be locked
+					{
+						toLock.lockHolder = state.users[lockerUsername]
+						state.serverObjects.removeValue(toLock, true)
+						state.serverObjects += toLock
+						server.sendToAllTCP(`object`)
+					}
+				}
+				is ObjectUnlockEvent -> // User unlocks an object
+				{
+					val (id, unlockerUsername) = `object`
+					val toUnlock = idObjectMap[id]!!
+					if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
+					{
+						toUnlock.lockHolder = null
+						server.sendToAllTCP(`object`)
+					}
+				}
+				is ObjectMovedEvent ->
+				{
+					val (_, id, x, y) = `object`
+					idObjectMap[id].apply { this.x = x; this.y = y }
+					server.sendToAllTCP(`object`)
+					objectMovedEventPool.free(`object`)
+				}
+				is ObjectRotatedEvent ->
+				{
+					val (_, id, rotation) = `object`
+					idObjectMap[id].rotation = rotation
+					server.sendToAllTCP(`object`)
+					objectRotatedEventPool.free(`object`)
+				}
+				is FlipCardEvent ->
+				{
+					val card = idObjectMap[`object`.id] as ServerCard
+					card.isFaceUp = !card.isFaceUp
 					server.sendToAllTCP(`object`)
 				}
-			}
-			is ObjectUnlockEvent -> // User unlocks an object
-			{
-				val (id, unlockerUsername) = `object`
-				val toUnlock = idObjectMap[id]!!
-				if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
-				{
-					toUnlock.lockHolder = null
-					server.sendToAllTCP(`object`)
-				}
-			}
-			is ObjectMovedEvent ->
-			{
-				val (id, x, y) = `object`
-				idObjectMap[id].apply { this.x = x; this.y = y }
-				server.sendToAllTCP(`object`)
-				objectMovedEventPool.free(`object`)
-			}
-			is ObjectRotatedEvent ->
-			{
-				val (id, rotation) = `object`
-				idObjectMap[id].rotation = rotation
-				server.sendToAllTCP(`object`)
-				objectRotatedEventPool.free(`object`)
-			}
-			is FlipCardEvent ->
-			{
-				val card = idObjectMap[`object`.id] as ServerCard
-				card.isFaceUp = !card.isFaceUp
-				server.sendToAllTCP(`object`)
 			}
 		}
 	}

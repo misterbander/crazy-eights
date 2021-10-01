@@ -14,6 +14,10 @@ import misterbander.sandboxtabletop.model.ServerCard.Rank
 import misterbander.sandboxtabletop.model.ServerCard.Suit
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
+import misterbander.sandboxtabletop.scene2d.modules.Draggable
+import misterbander.sandboxtabletop.scene2d.modules.Lockable
+import misterbander.sandboxtabletop.scene2d.modules.Rotatable
+import misterbander.sandboxtabletop.scene2d.modules.SmoothMovable
 
 class Card(
 	private val room: Room,

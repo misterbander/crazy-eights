@@ -1,4 +1,4 @@
-package misterbander.sandboxtabletop.scene2d
+package misterbander.sandboxtabletop.scene2d.modules
 
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.InputEvent

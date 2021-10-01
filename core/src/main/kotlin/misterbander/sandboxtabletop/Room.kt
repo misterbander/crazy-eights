@@ -54,11 +54,11 @@ import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.Card
 import misterbander.sandboxtabletop.scene2d.Gizmo
-import misterbander.sandboxtabletop.scene2d.Lockable
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
-import misterbander.sandboxtabletop.scene2d.SmoothMovable
 import misterbander.sandboxtabletop.scene2d.Tabletop
 import misterbander.sandboxtabletop.scene2d.dialogs.GameMenuDialog
+import misterbander.sandboxtabletop.scene2d.modules.Lockable
+import misterbander.sandboxtabletop.scene2d.modules.SmoothMovable
 import kotlin.math.min
 
 class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener

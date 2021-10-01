@@ -13,6 +13,7 @@ import misterbander.sandboxtabletop.PLAYER_NAMETAG_LABEL_STYLE
 import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.scene2d.modules.SmoothMovable
 
 class SandboxTabletopCursor(
 	room: Room,

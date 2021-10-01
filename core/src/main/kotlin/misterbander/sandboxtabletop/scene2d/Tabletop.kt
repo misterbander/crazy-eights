@@ -15,6 +15,7 @@ import misterbander.sandboxtabletop.model.ServerCard
 import misterbander.sandboxtabletop.model.ServerObject
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.scene2d.modules.Lockable
 
 class Tabletop(private val room: Room)
 {

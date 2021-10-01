@@ -1,4 +1,4 @@
-package misterbander.sandboxtabletop.scene2d
+package misterbander.sandboxtabletop.scene2d.modules
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener

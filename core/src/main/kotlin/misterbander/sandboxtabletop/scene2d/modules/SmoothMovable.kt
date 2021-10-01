@@ -1,4 +1,4 @@
-package misterbander.sandboxtabletop.scene2d
+package misterbander.sandboxtabletop.scene2d.modules
 
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule

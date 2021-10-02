@@ -22,10 +22,10 @@ class Tabletop(private val room: Room)
 	val game: SandboxTabletop
 		get() = room.game
 	
-	val idGObjectMap = IntMap<GObject<SandboxTabletop>>()
+	val idToGObjectMap = IntMap<GObject<SandboxTabletop>>()
 	
 	val users = OrderedMap<String, User>()
-	val userCursorMap = GdxMap<String, SandboxTabletopCursor>()
+	val userToCursorMap = GdxMap<String, SandboxTabletopCursor>()
 	val cursors = Group()
 	var myCursor: SandboxTabletopCursor? = null
 	val cards = Group()
@@ -42,7 +42,7 @@ class Tabletop(private val room: Room)
 			{
 				val (id, x, y, rotation, rank, suit, isFaceUp, lockHolder) = serverObject
 				val card = Card(room, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
-				idGObjectMap[id] = card
+				idToGObjectMap[id] = card
 				cards += card
 			}
 		}
@@ -52,7 +52,7 @@ class Tabletop(private val room: Room)
 	{
 		users[user.username] = user
 		val cursor = SandboxTabletopCursor(room, user, user == game.user)
-		userCursorMap[user.username] = cursor
+		userToCursorMap[user.username] = cursor
 		if (user != game.user)
 			cursors += cursor
 		else if (Gdx.app.type != Application.ApplicationType.Desktop)
@@ -65,8 +65,8 @@ class Tabletop(private val room: Room)
 	operator fun minusAssign(user: User)
 	{
 		users.remove(user.username)
-		userCursorMap.remove(user.username)?.remove()
-		idGObjectMap.values().forEach { gObject: GObject<SandboxTabletop> ->
+		userToCursorMap.remove(user.username)?.remove()
+		idToGObjectMap.values().forEach { gObject: GObject<SandboxTabletop> ->
 			val lockable = gObject.getModule<Lockable>()
 			if (lockable != null && lockable.isLockHolder)
 				lockable.unlock()
@@ -75,10 +75,10 @@ class Tabletop(private val room: Room)
 	
 	fun reset()
 	{
-		idGObjectMap.clear()
+		idToGObjectMap.clear()
 		
 		users.clear()
-		userCursorMap.clear()
+		userToCursorMap.clear()
 		cursors.clearChildren()
 		myCursor = null
 		cards.clearChildren()

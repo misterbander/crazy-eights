@@ -306,7 +306,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	override fun received(connection: Connection, `object`: Any)
 	{
-		val idGObjectMap = tabletop.idGObjectMap
+		val idToGObjectMap = tabletop.idToGObjectMap
 		when (`object`)
 		{
 			is UserJoinEvent -> Gdx.app.postRunnable {
@@ -326,16 +326,16 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			}
 			is CursorPosition ->
 			{
-				val cursor: SandboxTabletopCursor? = tabletop.userCursorMap[`object`.username]
+				val cursor: SandboxTabletopCursor? = tabletop.userToCursorMap[`object`.username]
 				if (cursor != tabletop.myCursor)
 					cursor?.setTargetPosition(`object`.x, `object`.y)
 				cursorPositionPool.free(`object`)
 			}
 			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
 				val (id, lockerUsername) = `object`
-				idGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
+				idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
 			}
-			is ObjectUnlockEvent -> Gdx.app.postRunnable { idGObjectMap[`object`.id].getModule<Lockable>()?.unlock() }
+			is ObjectUnlockEvent -> Gdx.app.postRunnable { idToGObjectMap[`object`.id].getModule<Lockable>()?.unlock() }
 			is ObjectMovedEvent ->
 			{
 				synchronized<Unit>(unacknowledgedPackets) {
@@ -344,7 +344,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 					else
 					{
 						val (_, id, x, y) = `object`
-						idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
 					}
 				}
 				objectMovedEventPool.free(`object`)
@@ -357,13 +357,13 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 					else
 					{
 						val (_, id, rotation) = `object`
-						idGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
 					}
 				}
 				objectRotatedEventPool.free(`object`)
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {
-				val card = idGObjectMap[`object`.id] as Card
+				val card = idToGObjectMap[`object`.id] as Card
 				card.isFaceUp = !card.isFaceUp
 			}
 		}

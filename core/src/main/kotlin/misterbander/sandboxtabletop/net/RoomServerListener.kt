@@ -36,7 +36,7 @@ class RoomServerListener(private val server: Server) : Listener
 	
 	private var newId = 0
 		get() = field++
-	private val idObjectMap = IntMap<ServerObject>()
+	private val idToObjectMap = IntMap<ServerObject>()
 	private val state = TabletopState()
 	
 	init
@@ -47,7 +47,7 @@ class RoomServerListener(private val server: Server) : Listener
 	
 	private fun addServerObject(serverObject: ServerObject)
 	{
-		idObjectMap[serverObject.id] = serverObject
+		idToObjectMap[serverObject.id] = serverObject
 		state.serverObjects += serverObject
 	}
 	
@@ -123,7 +123,7 @@ class RoomServerListener(private val server: Server) : Listener
 				is ObjectLockEvent -> // User attempts to lock an object
 				{
 					val (id, lockerUsername) = `object`
-					val toLock = idObjectMap[id]!!
+					val toLock = idToObjectMap[id]!!
 					if (toLock is ServerLockable && !toLock.isLocked) // Only unlocked draggables can be locked
 					{
 						toLock.lockHolder = state.users[lockerUsername]
@@ -135,7 +135,7 @@ class RoomServerListener(private val server: Server) : Listener
 				is ObjectUnlockEvent -> // User unlocks an object
 				{
 					val (id, unlockerUsername) = `object`
-					val toUnlock = idObjectMap[id]!!
+					val toUnlock = idToObjectMap[id]!!
 					if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
 					{
 						toUnlock.lockHolder = null
@@ -145,20 +145,20 @@ class RoomServerListener(private val server: Server) : Listener
 				is ObjectMovedEvent ->
 				{
 					val (_, id, x, y) = `object`
-					idObjectMap[id].apply { this.x = x; this.y = y }
+					idToObjectMap[id].apply { this.x = x; this.y = y }
 					server.sendToAllTCP(`object`)
 					objectMovedEventPool.free(`object`)
 				}
 				is ObjectRotatedEvent ->
 				{
 					val (_, id, rotation) = `object`
-					idObjectMap[id].rotation = rotation
+					idToObjectMap[id].rotation = rotation
 					server.sendToAllTCP(`object`)
 					objectRotatedEventPool.free(`object`)
 				}
 				is FlipCardEvent ->
 				{
-					val card = idObjectMap[`object`.id] as ServerCard
+					val card = idToObjectMap[`object`.id] as ServerCard
 					card.isFaceUp = !card.isFaceUp
 					server.sendToAllTCP(`object`)
 				}

@@ -1,7 +1,6 @@
 package misterbander.sandboxtabletop.scene2d.modules
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import ktx.collections.getOrPut
 import ktx.math.component1
@@ -15,7 +14,6 @@ import misterbander.sandboxtabletop.net.objectMovedEventPool
 
 class Draggable(
 	private val room: Room,
-	private val clickListener: ClickListener,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
@@ -62,11 +60,5 @@ class Draggable(
 				}
 			}
 		})
-	}
-	
-	override fun update(delta: Float)
-	{
-		smoothMovable.scaleInterpolator.target =
-			if (!lockable.isLocked && clickListener.isPressed || lockable.isLocked) 1.05F else 1F
 	}
 }

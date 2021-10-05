@@ -11,7 +11,8 @@ val BACKGROUND_COLOR = Color(0x5F1F56FF)
 val ACCENT_COLOR = Color(0x7C2870FF)
 const val ANIMATION_DURATION = 0.2F
 
-const val INFO_LABEL_STYLE = "infolabelstyle"
+const val INFO_LABEL_STYLE_S = "infolabelstyles"
+const val INFO_LABEL_STYLE_XS = "infolabelstylexs"
 const val CHAT_LABEL_STYLE = "chatlabelstyle"
 const val PLAYER_NAMETAG_LABEL_STYLE = "playernametaglabelstyle"
 const val WINDOW_STYLE = "windowstyle"

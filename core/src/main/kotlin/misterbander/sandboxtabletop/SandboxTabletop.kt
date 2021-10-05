@@ -62,8 +62,9 @@ class SandboxTabletop : GFramework()
 	private val skin by lazy {
 		skin {
 			addRegions(assetStorage[TextureAtlases.gui])
-			label(INFO_LABEL_STYLE) { font = jhengheiuis; fontColor = Color.WHITE }
-			label(CHAT_LABEL_STYLE, INFO_LABEL_STYLE) {
+			label(INFO_LABEL_STYLE_S) { font = jhengheiuis; fontColor = Color.WHITE }
+			label(INFO_LABEL_STYLE_XS) { font = jhengheiuixs; fontColor = Color.WHITE }
+			label(CHAT_LABEL_STYLE, INFO_LABEL_STYLE_S) {
 				background = this@skin.newDrawable("chatbackground")
 				background.topHeight = 4F
 				background.leftWidth = 16F

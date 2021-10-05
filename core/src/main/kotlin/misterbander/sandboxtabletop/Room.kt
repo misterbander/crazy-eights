@@ -10,9 +10,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.actions.AlphaAction
-import com.badlogic.gdx.scenes.scene2d.actions.DelayAction
-import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
@@ -270,9 +269,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 		chatPopup += scene2d.container(chatLabel) {
 			width(chatLabel.style.font.chatTextWidth(message))
-			val alphaAction = AlphaAction().apply { alpha = 0F; duration = 1F }
-			val removeActorAction = RemoveActorAction().apply { target = this@container } // Action to remove label after fade out
-			this += DelayAction(10F) then alphaAction then removeActorAction
+			this += delay(10F) then alpha(0F, 1F) then Actions.removeActor(this)
 		}
 		
 		if (chatPopup.children.size == 7) // Maximum 6 children

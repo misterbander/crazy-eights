@@ -9,7 +9,7 @@ import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
 import misterbander.gframework.scene2d.UnfocusListener
-import misterbander.sandboxtabletop.INFO_LABEL_STYLE
+import misterbander.sandboxtabletop.INFO_LABEL_STYLE_S
 import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 import misterbander.sandboxtabletop.net.Network
@@ -23,11 +23,11 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 	{
 		contentTable.apply {
 			defaults().left().space(16F)
-			add(scene2d.label("Username:", INFO_LABEL_STYLE))
+			add(scene2d.label("Username:", INFO_LABEL_STYLE_S))
 			add(usernameTextField).prefWidth(288F)
 			add(colorButton)
 			row()
-			add(scene2d.label("Server Port:", INFO_LABEL_STYLE))
+			add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
 			add(portTextField).prefWidth(288F)
 		}
 		buttonTable.apply {

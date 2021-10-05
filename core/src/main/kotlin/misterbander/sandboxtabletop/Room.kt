@@ -282,7 +282,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 		
 		// Add to history
-		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE) {
+		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE_S) {
 			wrap = true
 			if (color != null)
 				this.color = color.cpy()

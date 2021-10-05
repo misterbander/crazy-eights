@@ -3,13 +3,13 @@ package misterbander.sandboxtabletop.scene2d.dialogs
 import ktx.actors.onChange
 import ktx.scene2d.*
 import misterbander.gframework.util.wrap
-import misterbander.sandboxtabletop.INFO_LABEL_STYLE
+import misterbander.sandboxtabletop.INFO_LABEL_STYLE_S
 import misterbander.sandboxtabletop.SandboxTabletopScreen
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 
 class MessageDialog(screen: SandboxTabletopScreen) : SandboxTabletopDialog(screen, "")
 {
-	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE)
+	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE_S)
 	private val textButton = scene2d.textButton("", TEXT_BUTTON_STYLE) {
 		labelCell.prefWidth(192F)
 		onChange {

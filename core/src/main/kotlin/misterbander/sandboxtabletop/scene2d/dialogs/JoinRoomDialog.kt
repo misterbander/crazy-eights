@@ -12,7 +12,7 @@ import ktx.scene2d.*
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
-import misterbander.sandboxtabletop.INFO_LABEL_STYLE
+import misterbander.sandboxtabletop.INFO_LABEL_STYLE_S
 import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
 import misterbander.sandboxtabletop.net.Network
@@ -29,14 +29,14 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 	{
 		contentTable.apply {
 			defaults().left().space(16F)
-			add(scene2d.label("Username:", INFO_LABEL_STYLE))
+			add(scene2d.label("Username:", INFO_LABEL_STYLE_S))
 			add(usernameTextField).prefWidth(288F)
 			add(colorButton)
 			row()
-			add(scene2d.label("Server IP Address:", INFO_LABEL_STYLE))
+			add(scene2d.label("Server IP Address:", INFO_LABEL_STYLE_S))
 			add(ipTextField).prefWidth(288F)
 			row()
-			add(scene2d.label("Server Port:", INFO_LABEL_STYLE))
+			add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
 			add(portTextField).prefWidth(288F)
 		}
 		buttonTable.apply {

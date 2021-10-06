@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.OrderedSet
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.badlogic.gdx.utils.viewport.Viewport
+import ktx.actors.plusAssign
 import ktx.app.KtxScreen
 import ktx.collections.GdxSet
 import ktx.collections.set
@@ -20,7 +21,6 @@ import misterbander.gframework.layer.StageLayer
 import misterbander.gframework.layer.TransitionLayer
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.KeyboardHeightObserver
-import misterbander.gframework.scene2d.plusAssign
 
 /**
  * `GScreen`s are extensions of [KtxScreen]s. By default, it consists of three [GLayer]s: one for the main layer, one

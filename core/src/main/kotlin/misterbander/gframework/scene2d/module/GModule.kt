@@ -16,8 +16,7 @@ abstract class GModule<T : GFramework>(val parent: GObject<T>)
 		get() = parent.screen
 	
 	/**
-	 * Called whenever the parent [GObject] is added to a stage using the += overload defined in
-	 * `misterbander/gframework/scene2d/actors.kt`
+	 * Called whenever the parent [GObject] is added to a stage.
 	 */
 	open fun onSpawn() = Unit
 	

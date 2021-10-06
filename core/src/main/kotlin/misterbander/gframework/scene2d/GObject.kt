@@ -1,7 +1,9 @@
 package misterbander.gframework.scene2d
 
 import com.badlogic.gdx.scenes.scene2d.Group
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.OrderedMap
+import ktx.actors.isShown
 import ktx.collections.plusAssign
 import ktx.collections.set
 import misterbander.gframework.GFramework
@@ -11,8 +13,7 @@ import misterbander.gframework.scene2d.module.GModule
 /**
  * `GObject`s are special `Scene2D` groups that can hold child actors and can contain modules that add custom behavior.
  *
- * `GObject` defines [onSpawn], which gets called whenever the [GObject] is added to a stage using the += overload
- * defined in `misterbander/gframework/scene2d/actors.kt`. By default, it calls each module's `onSpawn`.
+ * Whenever the `GObject` is added to a stage, [onSpawn], as well as the `onSpawn` methods of all modules, will be called.
  *
  * `GObject` also defines [destroy], which can be used to delay removal. Useful for safely removing [GObject]s during
  * collision callbacks where creation and removal of objects are prohibited.
@@ -22,18 +23,11 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 {
 	val game: T
 		get() = screen.game
-	
 	val modules = OrderedMap<Class<out GModule<*>>, GModule<*>>()
-	
-	fun onSpawnInternal()
-	{
-		modules.forEach { it.value.onSpawn() }
-		onSpawn()
-	}
+	private var isAlive = false
 	
 	/**
-	 * Called when this `GObject` is added to a stage using the += overload defined in
-	 * `misterbander/gframework/scene2d/actors.kt`. This is called right after `onSpawn` methods of all modules have
+	 * Called when this `GObject` is added to a stage. This is called right after `onSpawn` methods of all modules have
 	 * been called.
 	 */
 	open fun onSpawn() = Unit
@@ -107,7 +101,21 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	{
 		val removed = super.remove()
 		if (removed)
+		{
 			modules.forEach { it.value.onDestroy() }
+			isAlive = false
+		}
 		return removed
+	}
+	
+	override fun setStage(stage: Stage?)
+	{
+		super.setStage(stage)
+		if (!isAlive && isShown())
+		{
+			modules.forEach { it.value.onSpawn() }
+			onSpawn()
+			isAlive = true
+		}
 	}
 }

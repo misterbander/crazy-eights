@@ -5,10 +5,10 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.OrderedMap
+import ktx.actors.plusAssign
 import ktx.collections.GdxMap
 import ktx.collections.set
 import misterbander.gframework.scene2d.GObject
-import misterbander.gframework.scene2d.plusAssign
 import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.model.ServerCard

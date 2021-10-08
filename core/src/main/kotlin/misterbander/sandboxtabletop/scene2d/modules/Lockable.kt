@@ -55,7 +55,8 @@ open class Lockable(
 		if (!isLocked)
 		{
 			parent.toFront()
-			parent.setScrollFocus()
+			if (user == game.user)
+				parent.setScrollFocus()
 			lockHolder = user
 		}
 	}

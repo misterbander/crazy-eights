@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
+import com.badlogic.gdx.utils.OrderedSet
 import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
@@ -27,6 +28,7 @@ import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.interval
+import ktx.collections.minusAssign
 import ktx.collections.set
 import ktx.graphics.use
 import ktx.log.info
@@ -113,9 +115,8 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	var newSeqNumber = 0
 		get() = field++
 		private set
-	private val unacknowledgedPackets = IntMap<Acknowledgeable>()
-	val objectMovedEventBuffer = IntMap<ObjectMovedEvent>()
-	val objectRotatedEventBuffer = IntMap<ObjectRotatedEvent>()
+	val unacknowledgedPackets = IntMap<Acknowledgeable>()
+	val eventBuffer = OrderedSet<Any>()
 	private var syncServerTask: Timer.Task? = null
 	private var tickDelay = 1/40F
 	var selfDisconnect = false
@@ -214,18 +215,12 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
 				game.client?.sendTCP(cursorPosition)
 			}
-			objectMovedEventBuffer.forEach {
-				val event: ObjectMovedEvent = it.value
+			eventBuffer.forEach { event: Any ->
 				game.client?.sendTCP(event)
-				synchronized(unacknowledgedPackets) { unacknowledgedPackets[event.seqNumber] = event }
+				if (event is Acknowledgeable)
+					synchronized(unacknowledgedPackets) { unacknowledgedPackets[event.seqNumber] = event }
 			}
-			objectRotatedEventBuffer.forEach {
-				val event: ObjectRotatedEvent = it.value
-				game.client?.sendTCP(event)
-				synchronized(unacknowledgedPackets) { unacknowledgedPackets[event.seqNumber] = event }
-			}
-			objectMovedEventBuffer.clear()
-			objectRotatedEventBuffer.clear()
+			eventBuffer.clear()
 		}
 	}
 	
@@ -292,6 +287,14 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	private fun BitmapFont.chatTextWidth(message: String): Float =
 		min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
+	
+	inline fun <reified T> findAndRemoveFromEventBuffer(crossinline predicate: (T) -> Boolean): T?
+	{
+		val event = eventBuffer.find { it is T && predicate(it) }
+		if (event != null)
+			eventBuffer -= event
+		return event as T?
+	}
 	
 	override fun disconnected(connection: Connection)
 	{
@@ -374,8 +377,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		tabletop.reset()
 		
 		cursorPosition.reset()
-		objectMovedEventBuffer.clear()
-		objectRotatedEventBuffer.clear()
+		eventBuffer.clear()
 		syncServerTask?.cancel()
 		syncServerTask = null
 		selfDisconnect = false

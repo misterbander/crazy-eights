@@ -3,7 +3,7 @@ package misterbander.sandboxtabletop.scene2d.modules
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import ktx.actors.KtxInputListener
-import ktx.collections.getOrPut
+import ktx.collections.plusAssign
 import ktx.math.component1
 import ktx.math.component2
 import ktx.math.minusAssign
@@ -15,6 +15,8 @@ import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.objectRotatedEventPool
+import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 
 class Rotatable(
 	private val room: Room,
@@ -157,11 +159,13 @@ class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				room.objectMovedEventBuffer.getOrPut(lockable.id) { objectMovedEventPool.obtain() }.apply {
+				val objectMovedEvent = room.findAndRemoveFromEventBuffer<ObjectMovedEvent> { it.id == lockable.id }
+				(objectMovedEvent ?: objectMovedEventPool.obtain()!!).apply {
 					seqNumber = room.newSeqNumber
 					id = lockable.id
 					x = newX
 					y = newY
+					room.eventBuffer += this
 				}
 			}
 		})
@@ -175,10 +179,12 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		room.objectRotatedEventBuffer.getOrPut(lockable.id) { objectRotatedEventPool.obtain() }.apply {
+		val objectRotatedEvent = room.findAndRemoveFromEventBuffer<ObjectRotatedEvent> { it.id == lockable.id }
+		(objectRotatedEvent ?: objectRotatedEventPool.obtain()!!).apply {
 			seqNumber = room.newSeqNumber
 			id = lockable.id
 			this.rotation = smoothMovable.rotationInterpolator.target
+			room.eventBuffer += this
 		}
 	}
 }

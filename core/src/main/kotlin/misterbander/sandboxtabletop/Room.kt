@@ -15,7 +15,6 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
-import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.OrderedSet
 import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
@@ -29,7 +28,6 @@ import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.interval
 import ktx.collections.minusAssign
-import ktx.collections.set
 import ktx.graphics.use
 import ktx.log.info
 import ktx.math.component1
@@ -45,7 +43,6 @@ import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.objectRotatedEventPool
-import misterbander.sandboxtabletop.net.packets.Acknowledgeable
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
@@ -112,10 +109,6 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	
 	// Networking
 	private var cursorPosition = CursorPosition()
-	var newSeqNumber = 0
-		get() = field++
-		private set
-	val unacknowledgedPackets = IntMap<Acknowledgeable>()
 	val eventBuffer = OrderedSet<Any>()
 	private var syncServerTask: Timer.Task? = null
 	private var tickDelay = 1/40F
@@ -217,8 +210,10 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			}
 			eventBuffer.forEach { event: Any ->
 				game.client?.sendTCP(event)
-				if (event is Acknowledgeable)
-					synchronized(unacknowledgedPackets) { unacknowledgedPackets[event.seqNumber] = event }
+				if (event is ObjectMovedEvent)
+					objectMovedEventPool.free(event)
+				else if (event is ObjectRotatedEvent)
+					objectRotatedEventPool.free(event)
 			}
 			eventBuffer.clear()
 		}
@@ -338,28 +333,16 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			is ObjectUnlockEvent -> Gdx.app.postRunnable { idToGObjectMap[`object`.id].getModule<Lockable>()?.unlock() }
 			is ObjectMovedEvent ->
 			{
-				synchronized<Unit>(unacknowledgedPackets) {
-					if (unacknowledgedPackets[`object`.seqNumber] != null)
-						objectMovedEventPool.free(unacknowledgedPackets.remove(`object`.seqNumber) as ObjectMovedEvent)
-					else
-					{
-						val (_, id, x, y) = `object`
-						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
-					}
-				}
+				val (id, x, y, moverUsername) = `object`
+				if (game.user.username != moverUsername)
+					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
 				objectMovedEventPool.free(`object`)
 			}
 			is ObjectRotatedEvent ->
 			{
-				synchronized<Unit>(unacknowledgedPackets) {
-					if (unacknowledgedPackets[`object`.seqNumber] != null)
-						objectRotatedEventPool.free(unacknowledgedPackets.remove(`object`.seqNumber) as ObjectRotatedEvent)
-					else
-					{
-						val (_, id, rotation) = `object`
-						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
-					}
-				}
+				val (id, rotation, rotatorUsername) = `object`
+				if (game.user.username != rotatorUsername)
+					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
 				objectRotatedEventPool.free(`object`)
 			}
 			is FlipCardEvent -> Gdx.app.postRunnable {

@@ -55,10 +55,10 @@ class Draggable(
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				val objectMovedEvent = room.findAndRemoveFromEventBuffer<ObjectMovedEvent> { it.id == lockable.id }
 				(objectMovedEvent ?: objectMovedEventPool.obtain()!!).apply {
-					seqNumber = room.newSeqNumber
 					id = lockable.id
 					this.x = newX
 					this.y = newY
+					moverUsername = game.user.username
 					room.eventBuffer += this
 				}
 			}

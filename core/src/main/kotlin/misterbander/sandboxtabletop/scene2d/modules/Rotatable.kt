@@ -161,10 +161,10 @@ class Rotatable(
 				setRotation(initialRotation + dAngle, isImmediate = true)
 				val objectMovedEvent = room.findAndRemoveFromEventBuffer<ObjectMovedEvent> { it.id == lockable.id }
 				(objectMovedEvent ?: objectMovedEventPool.obtain()!!).apply {
-					seqNumber = room.newSeqNumber
 					id = lockable.id
 					x = newX
 					y = newY
+					moverUsername = game.user.username
 					room.eventBuffer += this
 				}
 			}
@@ -181,9 +181,9 @@ class Rotatable(
 		justRotated = true
 		val objectRotatedEvent = room.findAndRemoveFromEventBuffer<ObjectRotatedEvent> { it.id == lockable.id }
 		(objectRotatedEvent ?: objectRotatedEventPool.obtain()!!).apply {
-			seqNumber = room.newSeqNumber
 			id = lockable.id
 			this.rotation = smoothMovable.rotationInterpolator.target
+			rotatorUsername = game.user.username
 			room.eventBuffer += this
 		}
 	}

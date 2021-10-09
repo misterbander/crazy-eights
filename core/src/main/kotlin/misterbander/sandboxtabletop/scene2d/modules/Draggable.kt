@@ -53,13 +53,14 @@ class Draggable(
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 //				println(dragPositionVec)
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
-				val objectMovedEvent = room.findAndRemoveFromEventBuffer<ObjectMovedEvent> { it.id == lockable.id }
-				(objectMovedEvent ?: objectMovedEventPool.obtain()!!).apply {
+				val objectMovedEvent = room.clientListener.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
+					?: objectMovedEventPool.obtain()!!
+				objectMovedEvent.apply {
 					id = lockable.id
 					this.x = newX
 					this.y = newY
 					moverUsername = game.user.username
-					room.eventBuffer += this
+					room.clientListener.outgoingPacketBuffer += this
 				}
 			}
 		})

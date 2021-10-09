@@ -60,7 +60,7 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 							val client = Client()
 							game.network = Network(null, client)
 							withContext(mainMenu.asyncContext) {
-								client.addListener(mainMenu)
+								client.addListener(mainMenu.ClientListener())
 								client.start()
 								client.connect(ip, port)
 							}

@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.OrderedSet
+import com.badlogic.gdx.utils.Queue
 import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
@@ -59,7 +60,7 @@ import misterbander.sandboxtabletop.scene2d.modules.Lockable
 import misterbander.sandboxtabletop.scene2d.modules.SmoothMovable
 import kotlin.math.min
 
-class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
+class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 {
 	// Shaders
 	val brightenShader = game.assetStorage[Shaders.brighten]
@@ -108,11 +109,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 //	private val handRegion: TextureRegion = game.skin.getRegion("hand")
 	
 	// Networking
-	private var cursorPosition = CursorPosition()
-	val eventBuffer = OrderedSet<Any>()
-	private var syncServerTask: Timer.Task? = null
-	private var tickDelay = 1/40F
-	var selfDisconnect = false
+	var clientListener = ClientListener()
 	
 	init
 	{
@@ -198,25 +195,14 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 			cursorBasePixmap.dispose()
 		}
 		
-		cursorPosition.username = game.user.username
-		syncServerTask = interval(tickDelay, tickDelay) {
-			val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
-			if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
-			{
-				cursorPosition.x = inputX
-				cursorPosition.y = inputY
-				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
-				game.client?.sendTCP(cursorPosition)
-			}
-			eventBuffer.forEach { event: Any ->
-				game.client?.sendTCP(event)
-				if (event is ObjectMovedEvent)
-					objectMovedEventPool.free(event)
-				else if (event is ObjectRotatedEvent)
-					objectRotatedEventPool.free(event)
-			}
-			eventBuffer.clear()
-		}
+		clientListener.startSyncServerTask()
+	}
+	
+	override fun render(delta: Float)
+	{
+		super.render(delta)
+		while (clientListener.incomingPacketBuffer.notEmpty())
+			clientListener.processPacket(clientListener.incomingPacketBuffer.removeFirst())
 	}
 	
 	override fun clearScreen()
@@ -283,89 +269,132 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 	private fun BitmapFont.chatTextWidth(message: String): Float =
 		min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
 	
-	inline fun <reified T> findAndRemoveFromEventBuffer(crossinline predicate: (T) -> Boolean): T?
-	{
-		val event = eventBuffer.find { it is T && predicate(it) }
-		if (event != null)
-			eventBuffer -= event
-		return event as T?
-	}
-	
-	override fun disconnected(connection: Connection)
-	{
-		val mainMenu = game.getScreen<MainMenu>()
-		if (!selfDisconnect)
-			mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
-		transition.start(targetScreen = mainMenu)
-	}
-	
-	override fun received(connection: Connection, `object`: Any)
-	{
-		val idToGObjectMap = tabletop.idToGObjectMap
-		when (`object`)
-		{
-			is UserJoinEvent -> Gdx.app.postRunnable {
-				val user = `object`.user
-				if (user != game.user)
-					tabletop += user
-				chat("${user.username} joined the game", Color.YELLOW)
-			}
-			is UserLeaveEvent -> Gdx.app.postRunnable {
-				val user = `object`.user
-				tabletop -= user
-				chat("${user.username} left the game", Color.YELLOW)
-			}
-			is Chat -> Gdx.app.postRunnable {
-				chat(`object`.message, if (`object`.isSystemMessage) Color.YELLOW else null)
-				info("Client | CHAT") { `object`.message }
-			}
-			is CursorPosition ->
-			{
-				val cursor: SandboxTabletopCursor? = tabletop.userToCursorMap[`object`.username]
-				if (cursor != tabletop.myCursor)
-					cursor?.setTargetPosition(`object`.x, `object`.y)
-				cursorPositionPool.free(`object`)
-			}
-			is ObjectLockEvent -> Gdx.app.postRunnable { // User attempts to lock an object
-				val (id, lockerUsername) = `object`
-				idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
-			}
-			is ObjectUnlockEvent -> Gdx.app.postRunnable { idToGObjectMap[`object`.id].getModule<Lockable>()?.unlock() }
-			is ObjectMovedEvent ->
-			{
-				val (id, x, y, moverUsername) = `object`
-				if (game.user.username != moverUsername)
-					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
-				objectMovedEventPool.free(`object`)
-			}
-			is ObjectRotatedEvent ->
-			{
-				val (id, rotation, rotatorUsername) = `object`
-				if (game.user.username != rotatorUsername)
-					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
-				objectRotatedEventPool.free(`object`)
-			}
-			is FlipCardEvent -> Gdx.app.postRunnable {
-				val card = idToGObjectMap[`object`.id] as Card
-				card.isFaceUp = !card.isFaceUp
-			}
-		}
-	}
-	
 	override fun hide()
 	{
 		chatPopup.clearChildren()
 		chatHistory.clearChildren()
-		
 		tabletop.reset()
 		
-		cursorPosition.reset()
-		eventBuffer.clear()
-		syncServerTask?.cancel()
-		syncServerTask = null
-		selfDisconnect = false
+		clientListener.stopSyncServerTask()
 		
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 		game.stopNetwork()
+	}
+	
+	inner class ClientListener : Listener
+	{
+		private var cursorPosition = CursorPosition()
+		val outgoingPacketBuffer = OrderedSet<Any>()
+		val incomingPacketBuffer = Queue<Any>()
+		
+		private var syncServerTask: Timer.Task? = null
+		private var tickDelay = 1/40F
+		var selfDisconnect = false
+		
+		fun startSyncServerTask()
+		{
+			cursorPosition.username = game.user.username
+			syncServerTask = interval(tickDelay, tickDelay) {
+				val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
+				if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
+				{
+					cursorPosition.x = inputX
+					cursorPosition.y = inputY
+					tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
+					game.client?.sendTCP(cursorPosition)
+				}
+				
+				outgoingPacketBuffer.forEach { event: Any ->
+					game.client?.sendTCP(event)
+					if (event is ObjectMovedEvent)
+						objectMovedEventPool.free(event)
+					else if (event is ObjectRotatedEvent)
+						objectRotatedEventPool.free(event)
+				}
+				outgoingPacketBuffer.clear()
+			}
+		}
+		
+		fun stopSyncServerTask()
+		{
+			syncServerTask?.cancel()
+			syncServerTask = null
+		}
+		
+		inline fun <reified T> removeFromOutgoingPacketBuffer(crossinline predicate: (T) -> Boolean): T?
+		{
+			val event = outgoingPacketBuffer.find { it is T && predicate(it) }
+			if (event != null)
+				outgoingPacketBuffer -= event
+			return event as T?
+		}
+		
+		override fun disconnected(connection: Connection)
+		{
+			val mainMenu = game.getScreen<MainMenu>()
+			if (!selfDisconnect)
+				mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
+			transition.start(targetScreen = mainMenu)
+		}
+		
+		override fun received(connection: Connection, `object`: Any) = incomingPacketBuffer.addLast(`object`)
+		
+		fun processPacket(packet: Any)
+		{
+			val idToGObjectMap = tabletop.idToGObjectMap
+			when (packet)
+			{
+				is UserJoinEvent ->
+				{
+					val user = packet.user
+					if (user != game.user)
+						tabletop += user
+					chat("${user.username} joined the game", Color.YELLOW)
+				}
+				is UserLeaveEvent ->
+				{
+					val user = packet.user
+					tabletop -= user
+					chat("${user.username} left the game", Color.YELLOW)
+				}
+				is Chat ->
+				{
+					chat(packet.message, if (packet.isSystemMessage) Color.YELLOW else null)
+					info("Client | CHAT") { packet.message }
+				}
+				is CursorPosition ->
+				{
+					val cursor: SandboxTabletopCursor? = tabletop.userToCursorMap[packet.username]
+					if (cursor != tabletop.myCursor)
+						cursor?.setTargetPosition(packet.x, packet.y)
+					cursorPositionPool.free(packet)
+				}
+				is ObjectLockEvent -> // User attempts to lock an object
+				{
+					val (id, lockerUsername) = packet
+					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
+				}
+				is ObjectUnlockEvent -> idToGObjectMap[packet.id].getModule<Lockable>()?.unlock()
+				is ObjectMovedEvent ->
+				{
+					val (id, x, y, moverUsername) = packet
+					if (game.user.username != moverUsername)
+						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+					objectMovedEventPool.free(packet)
+				}
+				is ObjectRotatedEvent ->
+				{
+					val (id, rotation, rotatorUsername) = packet
+					if (game.user.username != rotatorUsername)
+						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+					objectRotatedEventPool.free(packet)
+				}
+				is FlipCardEvent ->
+				{
+					val card = idToGObjectMap[packet.id] as Card
+					card.isFaceUp = !card.isFaceUp
+				}
+			}
+		}
 	}
 }

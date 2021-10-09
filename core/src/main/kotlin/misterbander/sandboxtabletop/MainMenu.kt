@@ -27,7 +27,7 @@ import misterbander.sandboxtabletop.scene2d.dialogs.InfoDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.JoinRoomDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.MessageDialog
 
-class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
+class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game)
 {
 	private val logo = game.assetStorage[Textures.title].apply {
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
@@ -116,31 +116,35 @@ class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 		}
 	}
 	
-	override fun received(connection: Connection, `object`: Any)
+	inner class ClientListener : Listener
 	{
-		when (`object`)
+		override fun received(connection: Connection, `object`: Any)
 		{
-			is Handshake -> // Handshake is successful
+			when (`object`)
 			{
-				info("Client | INFO") { "Handshake successful. Joining as ${game.user.username}..." }
-				connection.sendTCP(game.user)
-			}
-			is HandshakeReject ->
-			{
-				info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
-				game.stopNetwork()
-				infoDialog.hide()
-				messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
-			}
-			is TabletopState ->
-			{
-				val room = game.getScreen<Room>()
-				room.tabletop.setState(`object`)
-				messageDialog.actionlessHide()
-				infoDialog.hide()
-				game.client!!.removeListener(this)
-				game.client!!.addListener(room)
-				transition.start(targetScreen = room)
+				is Handshake -> // Handshake is successful
+				{
+					info("Client | INFO") { "Handshake successful. Joining as ${game.user.username}..." }
+					connection.sendTCP(game.user)
+				}
+				is HandshakeReject ->
+				{
+					info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
+					game.stopNetwork()
+					infoDialog.hide()
+					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
+				}
+				is TabletopState ->
+				{
+					val room = game.getScreen<Room>()
+					room.tabletop.setState(`object`)
+					room.clientListener = room.ClientListener()
+					messageDialog.actionlessHide()
+					infoDialog.hide()
+					game.client!!.removeListener(this)
+					game.client!!.addListener(room.clientListener)
+					transition.start(targetScreen = room)
+				}
 			}
 		}
 	}

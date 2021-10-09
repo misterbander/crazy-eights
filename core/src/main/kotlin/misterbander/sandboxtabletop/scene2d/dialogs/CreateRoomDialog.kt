@@ -49,7 +49,7 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 								server.start()
 								server.bind(port)
 								client = Client()
-								client.addListener(mainMenu)
+								client.addListener(mainMenu.ClientListener())
 								client.start()
 								client.connect("localhost", port)
 								game.network = Network(server, client)

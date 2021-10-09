@@ -159,13 +159,14 @@ class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				val objectMovedEvent = room.findAndRemoveFromEventBuffer<ObjectMovedEvent> { it.id == lockable.id }
-				(objectMovedEvent ?: objectMovedEventPool.obtain()!!).apply {
+				val objectMovedEvent = room.clientListener.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
+					?: objectMovedEventPool.obtain()!!
+				objectMovedEvent.apply {
 					id = lockable.id
 					x = newX
 					y = newY
 					moverUsername = game.user.username
-					room.eventBuffer += this
+					room.clientListener.outgoingPacketBuffer += this
 				}
 			}
 		})
@@ -179,12 +180,13 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		val objectRotatedEvent = room.findAndRemoveFromEventBuffer<ObjectRotatedEvent> { it.id == lockable.id }
-		(objectRotatedEvent ?: objectRotatedEventPool.obtain()!!).apply {
+		val objectRotatedEvent = room.clientListener.removeFromOutgoingPacketBuffer<ObjectRotatedEvent> { it.id == lockable.id }
+			?: objectRotatedEventPool.obtain()!!
+		objectRotatedEvent.apply {
 			id = lockable.id
 			this.rotation = smoothMovable.rotationInterpolator.target
 			rotatorUsername = game.user.username
-			room.eventBuffer += this
+			room.clientListener.outgoingPacketBuffer += this
 		}
 	}
 }

@@ -82,11 +82,13 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 				game.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text", false))
 				text = ""
 				uiStage.keyboardFocus = null
+				uiStage.scrollFocus = null
 			}
 		}
 		onKeyboardFocus { focused ->
 			chatPopup.isVisible = !focused
 			chatHistoryScrollPane.isVisible = focused
+			uiStage.scrollFocus = if (focused) chatHistoryScrollPane else null
 			Gdx.input.setOnscreenKeyboardVisible(focused)
 		}
 	}
@@ -122,6 +124,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 					override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
 					{
 						uiStage.keyboardFocus = null
+						uiStage.scrollFocus = null
 						Gdx.input.setOnscreenKeyboardVisible(false)
 						return false
 					}
@@ -144,19 +147,22 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 				}.inCell.left()
 			}.cell(pad = 16F, expandX = true, fillX = true, maxHeight = 312F)
 		}
-		uiStage.scrollFocus = chatHistoryScrollPane
 		uiStage.addListener(object : KtxInputListener()
 		{
 			override fun keyDown(event: InputEvent, keycode: Int): Boolean
 			{
 				if (event.keyCode == Input.Keys.T && !chatTextField.hasKeyboardFocus())
 				{
-					Gdx.app.postRunnable { uiStage.keyboardFocus = chatTextField }
+					Gdx.app.postRunnable {
+						uiStage.keyboardFocus = chatTextField
+						uiStage.scrollFocus = chatHistoryScrollPane
+					}
 					return true
 				}
 				else if (event.keyCode == Input.Keys.ESCAPE)
 				{
 					uiStage.keyboardFocus = null
+					uiStage.scrollFocus = null
 					return true
 				}
 				return false

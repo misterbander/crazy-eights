@@ -1,6 +1,7 @@
 package misterbander.sandboxtabletop
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
@@ -122,23 +123,22 @@ class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		{
 			when (`object`)
 			{
-				is Handshake -> // Handshake is successful
-				{
+				is Handshake -> Gdx.app.postRunnable {
+					// Handshake is successful
 					info("Client | INFO") { "Handshake successful. Joining as ${game.user.username}..." }
 					connection.sendTCP(game.user)
 				}
-				is HandshakeReject ->
-				{
+				is HandshakeReject -> Gdx.app.postRunnable {
 					info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
 					game.stopNetwork()
 					infoDialog.hide()
 					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 				}
-				is TabletopState ->
-				{
+				is TabletopState -> Gdx.app.postRunnable {
 					val room = game.getScreen<Room>()
 					room.tabletop.setState(`object`)
 					room.clientListener = room.ClientListener()
+					room.chat("${game.user.username} joined the game", Color.YELLOW)
 					messageDialog.actionlessHide()
 					infoDialog.hide()
 					game.client!!.removeListener(this)

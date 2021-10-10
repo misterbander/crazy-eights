@@ -34,6 +34,7 @@ class SandboxTabletop : GFramework()
 			size = 40
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
+			incremental = true
 		}
 	}
 	val jhengheiuis by lazy {
@@ -41,6 +42,7 @@ class SandboxTabletop : GFramework()
 			size = 25
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
+			incremental = true
 		}
 	}
 	val jhengheiuixs by lazy {
@@ -48,6 +50,7 @@ class SandboxTabletop : GFramework()
 			size = 15
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
+			incremental = true
 		}
 	}
 	val jhengheiuil by lazy {
@@ -55,6 +58,7 @@ class SandboxTabletop : GFramework()
 			size = 50
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
+			incremental = true
 		}
 	}
 	

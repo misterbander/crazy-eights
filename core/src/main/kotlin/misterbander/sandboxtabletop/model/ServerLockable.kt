@@ -6,4 +6,6 @@ interface ServerLockable
 	
 	val isLocked: Boolean
 		get() = lockHolder != null
+	val canLock: Boolean
+		get() = !isLocked
 }

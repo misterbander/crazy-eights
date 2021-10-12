@@ -1,5 +1,7 @@
 package misterbander.sandboxtabletop.scene2d.modules
 
+import com.badlogic.gdx.Application
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import ktx.collections.plusAssign
@@ -8,11 +10,14 @@ import ktx.math.component2
 import ktx.math.vec2
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
+import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
+import misterbander.sandboxtabletop.scene2d.DragTarget
 
-class Draggable(
+open class Draggable(
+	private val room: Room,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
@@ -25,9 +30,12 @@ class Draggable(
 	{
 		parent.addListener(object : DragListener()
 		{
+			private var currentDragTarget: DragTarget? = null
+			
 			init
 			{
-				tapSquareSize = 8F
+				if (Gdx.app.type == Application.ApplicationType.Desktop)
+					tapSquareSize = 8F
 			}
 			
 			override fun dragStart(event: InputEvent, x: Float, y: Float, pointer: Int)
@@ -35,13 +43,16 @@ class Draggable(
 				// x, y are positions in local coords. We store the x and y in unrotatedDragPositionVec as if the
 				// parent is not rotated when the user starts dragging
 				unrotatedDragPositionVec.set(x, y).rotateDeg(parent.rotation)
-				justDragged = true
+				justDragged = canDrag
 			}
 			
 			override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)
 			{
-				if (!lockable.isLockHolder || parent.getModule<Rotatable>()?.isPinching == true)
+				if (!lockable.isLockHolder || parent.getModule<Rotatable>()?.isPinching == true || !justDragged)
 					return
+				
+				this@Draggable.drag(event, x, y, pointer)
+				
 				// To implement drag, we just need to move the object such that the mouse is always at
 				// (dragPositionVec.x, dragPositionVec.y) in local coordinates
 				// dragPositionVec is unrotatedDragPositionVec with rotation applied to account for rotation
@@ -50,17 +61,46 @@ class Draggable(
 				dragPositionVec.rotateDeg(-parent.rotation)
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
-				val client = game.client ?: return
-				val objectMovedEvent = client.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
-					?: objectMovedEventPool.obtain()!!
-				objectMovedEvent.apply {
-					id = lockable.id
-					this.x = newX
-					this.y = newY
-					moverUsername = game.user.username
-					client.outgoingPacketBuffer += this
+				game.client?.apply {
+					val objectMovedEvent = removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
+						?: objectMovedEventPool.obtain()!!
+					objectMovedEvent.apply {
+						id = lockable.id
+						this.x = newX
+						this.y = newY
+						moverUsername = game.user.username
+					}
+					outgoingPacketBuffer += objectMovedEvent
+				}
+				
+				currentDragTarget?.highlightable?.forceHighlight = false
+				currentDragTarget = null
+				val dragTarget = room.tabletop.hitDragTarget(event.stageX, event.stageY)
+				if (dragTarget?.canAccept(parent) == true)
+				{
+					currentDragTarget = dragTarget
+					dragTarget.highlightable?.forceHighlight = true
 				}
 			}
+			
+			override fun dragStop(event: InputEvent, x: Float, y: Float, pointer: Int)
+			{
+				currentDragTarget?.apply {
+					accept(parent)
+					highlightable?.forceHighlight = false
+				}
+				currentDragTarget = null
+			}
 		})
+	}
+	
+	open fun drag(event: InputEvent, x: Float, y: Float, pointer: Int) = Unit
+	
+	open val canDrag: Boolean
+		get() = true
+	
+	fun cancel()
+	{
+		justDragged = false
 	}
 }

@@ -6,7 +6,7 @@ filter: Linear,Linear
 repeat: none
 button
   rotate: false
-  xy: 1298, 148
+  xy: 1442, 552
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -15,7 +15,7 @@ button
   index: -1
 buttondown
   rotate: false
-  xy: 1442, 342
+  xy: 1298, 274
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -24,7 +24,7 @@ buttondown
   index: -1
 buttonover
   rotate: false
-  xy: 1730, 924
+  xy: 1298, 358
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -33,448 +33,462 @@ buttonover
   index: -1
 cardbackred
   rotate: false
-  xy: 434, 232
+  xy: 1450, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs10
   rotate: false
-  xy: 2, 2
+  xy: 442, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs2
   rotate: false
-  xy: 2, 778
+  xy: 154, 794
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs3
   rotate: false
-  xy: 866, 426
+  xy: 290, 406
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs4
   rotate: false
-  xy: 434, 620
+  xy: 1018, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs5
   rotate: false
-  xy: 1154, 232
+  xy: 1010, 442
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs6
   rotate: false
-  xy: 866, 620
+  xy: 1882, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs7
   rotate: false
-  xy: 146, 196
+  xy: 442, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs8
   rotate: false
-  xy: 1298, 814
+  xy: 578, 248
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubs9
   rotate: false
-  xy: 722, 814
+  xy: 1306, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubsace
   rotate: false
-  xy: 578, 620
+  xy: 1306, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubsjack
   rotate: false
-  xy: 290, 2
+  xy: 874, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubsking
   rotate: false
-  xy: 1010, 232
+  xy: 578, 54
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardclubsqueen
   rotate: false
-  xy: 1298, 232
+  xy: 1154, 248
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds10
   rotate: false
-  xy: 1154, 814
+  xy: 290, 18
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds2
   rotate: false
-  xy: 578, 426
+  xy: 1450, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds3
   rotate: false
-  xy: 1586, 620
+  xy: 1154, 54
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds4
   rotate: false
-  xy: 722, 232
+  xy: 146, 2
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds5
   rotate: false
-  xy: 290, 196
+  xy: 874, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds6
   rotate: false
-  xy: 1442, 814
+  xy: 722, 54
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds7
   rotate: false
-  xy: 722, 426
+  xy: 1882, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds8
   rotate: false
-  xy: 2, 390
+  xy: 2, 196
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamonds9
   rotate: false
-  xy: 722, 38
+  xy: 434, 406
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamondsace
   rotate: false
-  xy: 1442, 426
+  xy: 1298, 442
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamondsjack
   rotate: false
-  xy: 1298, 620
+  xy: 866, 442
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamondsking
   rotate: false
-  xy: 866, 814
+  xy: 1594, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 carddiamondsqueen
   rotate: false
-  xy: 146, 584
+  xy: 2, 2
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts10
   rotate: false
-  xy: 866, 38
+  xy: 722, 442
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts2
   rotate: false
-  xy: 1154, 426
+  xy: 722, 248
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts3
   rotate: false
-  xy: 434, 38
+  xy: 1738, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts4
   rotate: false
-  xy: 2, 584
+  xy: 2, 390
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts5
   rotate: false
-  xy: 866, 232
+  xy: 434, 212
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts6
   rotate: false
-  xy: 578, 814
+  xy: 1162, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts7
   rotate: false
-  xy: 1298, 426
+  xy: 866, 54
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts8
   rotate: false
-  xy: 1010, 814
+  xy: 146, 390
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardhearts9
   rotate: false
-  xy: 146, 2
+  xy: 586, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardheartsace
   rotate: false
-  xy: 290, 778
+  xy: 586, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardheartsjack
   rotate: false
-  xy: 722, 620
+  xy: 1594, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardheartsking
   rotate: false
-  xy: 1154, 38
+  xy: 1010, 54
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardheartsqueen
   rotate: false
-  xy: 434, 814
+  xy: 1018, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
+cardholder
+  rotate: false
+  xy: 2, 584
+  size: 148, 198
+  orig: 148, 198
+  offset: 0, 0
+  index: -1
+cardholderover
+  rotate: false
+  xy: 2, 786
+  size: 148, 198
+  orig: 148, 198
+  offset: 0, 0
+  index: -1
 cardjoker
   rotate: false
-  xy: 1010, 426
+  xy: 434, 18
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades10
   rotate: false
-  xy: 2, 196
+  xy: 298, 794
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades2
   rotate: false
-  xy: 290, 390
+  xy: 730, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades3
   rotate: false
-  xy: 1010, 38
+  xy: 866, 248
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades4
   rotate: false
-  xy: 578, 232
+  xy: 1738, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades5
   rotate: false
-  xy: 146, 778
+  xy: 154, 600
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades6
   rotate: false
-  xy: 1154, 620
+  xy: 578, 442
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades7
   rotate: false
-  xy: 434, 426
+  xy: 1162, 636
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades8
   rotate: false
-  xy: 1442, 620
+  xy: 1010, 248
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspades9
   rotate: false
-  xy: 578, 38
+  xy: 146, 196
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspadesace
   rotate: false
-  xy: 290, 584
+  xy: 730, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspadesjack
   rotate: false
-  xy: 146, 390
+  xy: 298, 600
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspadesking
   rotate: false
-  xy: 1010, 620
+  xy: 290, 212
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 cardspadesqueen
   rotate: false
-  xy: 1586, 814
+  xy: 1154, 442
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 chatbackground
   rotate: false
-  xy: 1442, 238
+  xy: 578, 18
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 closebutton
   rotate: false
-  xy: 1586, 448
+  xy: 1442, 448
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 closebuttondisabled
   rotate: false
-  xy: 394, 972
+  xy: 442, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 closebuttondown
   rotate: false
-  xy: 434, 2
+  xy: 394, 988
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 closebuttonover
   rotate: false
-  xy: 1298, 44
+  xy: 514, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 colorcircle
   rotate: false
-  xy: 1382, 180
+  xy: 1382, 390
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 cursorbase
   rotate: false
-  xy: 1882, 972
+  xy: 478, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cursorborder
   rotate: false
-  xy: 358, 972
+  xy: 358, 988
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 hand
   rotate: false
-  xy: 1586, 552
+  xy: 1442, 484
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 hueslider
   rotate: false
-  xy: 2, 972
+  xy: 2, 988
   size: 352, 32
   split: 16, 16, 0, 32
   pad: 0, 0, -1, -1
@@ -483,49 +497,49 @@ hueslider
   index: -1
 huesliderknob
   rotate: false
-  xy: 1586, 484
+  xy: 1298, 70
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobdown
   rotate: false
-  xy: 1526, 358
+  xy: 1662, 568
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobover
   rotate: false
-  xy: 1654, 552
+  xy: 1382, 322
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 menuicon
   rotate: false
-  xy: 1622, 516
+  xy: 1698, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 menuicondown
   rotate: false
-  xy: 1690, 584
+  xy: 1382, 286
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 textcursor
   rotate: false
-  xy: 1730, 788
+  xy: 2026, 956
   size: 4, 64
   orig: 4, 64
   offset: 0, 0
   index: -1
 textfield
   rotate: false
-  xy: 1298, 80
+  xy: 1594, 568
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 16, 15, 17
@@ -534,7 +548,7 @@ textfield
   index: -1
 textfieldfocused
   rotate: false
-  xy: 1730, 856
+  xy: 1526, 568
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 17, 15, 17
@@ -543,14 +557,14 @@ textfieldfocused
   index: -1
 textselection
   rotate: false
-  xy: 1814, 940
+  xy: 1298, 206
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 window
   rotate: false
-  xy: 1442, 274
+  xy: 1298, 138
   size: 64, 64
   split: 2, 2, 50, 2
   pad: 0, 0, 50, 0

@@ -7,8 +7,14 @@ import ktx.collections.GdxArray
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.model.ServerCard
+import misterbander.sandboxtabletop.model.ServerCard.Rank
+import misterbander.sandboxtabletop.model.ServerCard.Suit
+import misterbander.sandboxtabletop.model.ServerCardGroup
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.net.packets.CardGroupChangedEvent
+import misterbander.sandboxtabletop.net.packets.CardGroupCreatedEvent
+import misterbander.sandboxtabletop.net.packets.CardGroupDismantledEvent
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
@@ -23,6 +29,7 @@ fun Kryo.registerClasses()
 {
 	register(Any::class.java)
 	register(Array<String>::class.java)
+	register(IntArray::class.java)
 	register(GdxArray::class.java, GdxArraySerializer())
 	register(OrderedMap::class.java, OrderedMapSerializer())
 	register(Handshake::class.java)
@@ -35,11 +42,16 @@ fun Kryo.registerClasses()
 	register(TabletopState::class.java)
 	register(CursorPosition::class.java).setInstantiator { cursorPositionPool.obtain() }
 	register(ServerCard::class.java)
-	register(ServerCard.Rank::class.java)
-	register(ServerCard.Suit::class.java)
+	register(Rank::class.java)
+	register(Suit::class.java)
+	register(ServerCardGroup::class.java)
+	register(ServerCardGroup.Type::class.java)
 	register(ObjectLockEvent::class.java)
 	register(ObjectUnlockEvent::class.java)
 	register(ObjectMovedEvent::class.java).setInstantiator { objectMovedEventPool.obtain() }
 	register(ObjectRotatedEvent::class.java).setInstantiator { objectRotatedEventPool.obtain() }
 	register(FlipCardEvent::class.java)
+	register(CardGroupCreatedEvent::class.java)
+	register(CardGroupChangedEvent::class.java)
+	register(CardGroupDismantledEvent::class.java)
 }

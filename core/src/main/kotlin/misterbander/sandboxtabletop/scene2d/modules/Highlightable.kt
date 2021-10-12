@@ -6,17 +6,18 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.sandboxtabletop.SandboxTabletop
 
-class Highlightable(
+open class Highlightable(
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
 {
 	private val clickListener: ClickListener
 	private var over = false
+	var forceHighlight = false
 	
-	val shouldHighlight: Boolean
-		get() = over
-	val shouldExpand: Boolean
+	open val shouldHighlight: Boolean
+		get() = over || forceHighlight
+	open val shouldExpand: Boolean
 		get() = !lockable.isLocked && clickListener.isPressed || lockable.isLocked
 	
 	init

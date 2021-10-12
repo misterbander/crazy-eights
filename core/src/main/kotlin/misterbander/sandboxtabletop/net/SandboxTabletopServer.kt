@@ -9,8 +9,12 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
+import ktx.collections.GdxArray
+import ktx.collections.gdxArrayOf
+import ktx.collections.isNotEmpty
 import ktx.collections.plusAssign
 import ktx.collections.set
+import ktx.log.debug
 import ktx.log.info
 import misterbander.sandboxtabletop.VERSION_STRING
 import misterbander.sandboxtabletop.model.Chat
@@ -18,10 +22,14 @@ import misterbander.sandboxtabletop.model.CursorPosition
 import misterbander.sandboxtabletop.model.ServerCard
 import misterbander.sandboxtabletop.model.ServerCard.Rank
 import misterbander.sandboxtabletop.model.ServerCard.Suit
+import misterbander.sandboxtabletop.model.ServerCardGroup
 import misterbander.sandboxtabletop.model.ServerLockable
 import misterbander.sandboxtabletop.model.ServerObject
 import misterbander.sandboxtabletop.model.TabletopState
 import misterbander.sandboxtabletop.model.User
+import misterbander.sandboxtabletop.net.packets.CardGroupChangedEvent
+import misterbander.sandboxtabletop.net.packets.CardGroupCreatedEvent
+import misterbander.sandboxtabletop.net.packets.CardGroupDismantledEvent
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.Handshake
 import misterbander.sandboxtabletop.net.packets.HandshakeReject
@@ -37,7 +45,7 @@ class SandboxTabletopServer
 	private var newId = 0
 		get() = field++
 	private val idToObjectMap = IntMap<ServerObject>()
-	private val state = TabletopState()
+	val state = TabletopState()
 	
 	private val asyncContext = newSingleThreadAsyncContext("SandboxTabletopServer-AsyncExecutor-Thread")
 	private val server = Server().apply {
@@ -48,20 +56,62 @@ class SandboxTabletopServer
 	
 	init
 	{
-		addServerObject(ServerCard(newId, 30F, 40F, 0F, Rank.FIVE, Suit.HEARTS, true))
-		addServerObject(ServerCard(newId, 30F, 40F, 30F, Rank.TWO, Suit.SPADES, true))
+		addServerObject(ServerCard(newId, x = 30F, y = 40F, rotation = 0F, rank = Rank.FIVE, suit = Suit.HEARTS, isFaceUp = true))
+		addServerObject(ServerCard(newId, x = 30F, y = 40F, rotation = 30F, rank = Rank.TWO, suit = Suit.SPADES, isFaceUp = true))
+		addServerObject(ServerCardGroup(
+			newId, x = 640F, y = 360F, rotation = 0F, cards = gdxArrayOf(
+				ServerCard(newId, suit = Suit.JOKER),
+				ServerCard(newId, rank = Rank.KING, suit = Suit.CLUBS),
+				ServerCard(newId, rank = Rank.QUEEN, suit = Suit.CLUBS),
+				ServerCard(newId, rank = Rank.JACK, suit = Suit.CLUBS),
+				ServerCard(newId, rank = Rank.NINE, suit = Suit.CLUBS),
+				ServerCard(newId, rank = Rank.EIGHT, suit = Suit.CLUBS),
+				ServerCard(newId, rank = Rank.FIVE, suit = Suit.CLUBS),
+				ServerCard(newId, rank = Rank.ACE, suit = Suit.CLUBS)
+			)
+		))
+		addServerObject(ServerCardGroup(
+			newId, x = 800F, y = 400F, rotation = 15F, cards = gdxArrayOf(
+				ServerCard(newId, rank = Rank.KING, suit = Suit.HEARTS),
+				ServerCard(newId, rank = Rank.QUEEN, suit = Suit.HEARTS)
+			)
+		))
+		
+		debug("Server | DEBUG") { "Initialized Room server" }
+		debug("Server | DEBUG") { "ID object map = ${idToObjectMap.map { "\n\t$it" }}" }
+		debug("Server | DEBUG") { "Server objects = ${state.serverObjects.map { "\n\t$it" }}" }
 	}
 	
-	private fun addServerObject(serverObject: ServerObject)
+	private fun addServerObject(serverObject: ServerObject, insertAtIndex: Int = -1)
 	{
 		idToObjectMap[serverObject.id] = serverObject
-		state.serverObjects += serverObject
+		if (serverObject is ServerCardGroup)
+			serverObject.cards.forEach { idToObjectMap[it.id] = it }
+		if (insertAtIndex != -1)
+			state.serverObjects.insert(insertAtIndex, serverObject)
+		else
+			state.serverObjects += serverObject
 	}
 	
 	fun start(port: Int)
 	{
 		server.start()
 		server.bind(port)
+	}
+	
+	private fun setServerCardGroup(id: Int, newCardGroupId: Int)
+	{
+		val card = idToObjectMap[id] as ServerCard
+		val cardGroup = if (card.cardGroupId != -1) idToObjectMap[card.cardGroupId] as ServerCardGroup else null
+		val newCardGroup = if (newCardGroupId != -1) idToObjectMap[newCardGroupId] as ServerCardGroup else null
+		cardGroup?.minusAssign(card)
+		if (newCardGroup != null)
+		{
+			newCardGroup += card
+			state.serverObjects.removeValue(card, true)
+		}
+		else
+			state.serverObjects += card
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
@@ -150,11 +200,13 @@ class SandboxTabletopServer
 				{
 					val (id, lockerUsername) = `object`
 					val toLock = idToObjectMap[id]!!
-					if (toLock is ServerLockable && !toLock.isLocked) // Only unlocked draggables can be locked
+					if (toLock is ServerLockable && toLock.canLock) // Only unlocked draggables can be locked
 					{
+						debug("Server | DEBUG") { "$lockerUsername locks $toLock" }
 						toLock.lockHolder = state.users[lockerUsername]
-						state.serverObjects.removeValue(toLock, true)
-						state.serverObjects += toLock
+						// Remove the object and add it again to move it to the front
+						if (state.serverObjects.removeValue(toLock, true))
+							state.serverObjects += toLock
 						server.sendToAllTCP(`object`)
 					}
 				}
@@ -164,6 +216,7 @@ class SandboxTabletopServer
 					val toUnlock = idToObjectMap[id]!!
 					if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
 					{
+						debug("Server | DEBUG") { "${toUnlock.lockHolder?.username} unlocks $toUnlock" }
 						toUnlock.lockHolder = null
 						server.sendToAllTCP(`object`)
 					}
@@ -186,6 +239,38 @@ class SandboxTabletopServer
 				{
 					val card = idToObjectMap[`object`.id] as ServerCard
 					card.isFaceUp = !card.isFaceUp
+					server.sendToAllTCP(`object`)
+				}
+				is CardGroupCreatedEvent ->
+				{
+					val cards = GdxArray<ServerCard>()
+					`object`.cardIds.forEach { cards += idToObjectMap[it] as ServerCard }
+					
+					val (_, firstX, firstY, firstRotation) = cards[0]
+					val cardGroup = ServerCardGroup(newId, firstX, firstY, firstRotation, cards)
+					addServerObject(cardGroup, state.serverObjects.indexOf(cards[0], true))
+					cards.forEach {
+						it.x = 0F; it.y = 0F; it.rotation = 0F
+						state.serverObjects.removeValue(it, true)
+					}
+					
+					server.sendToAllTCP(`object`.copy(id = cardGroup.id))
+				}
+				is CardGroupChangedEvent ->
+				{
+					val (cardIds, newCardGroupId) = `object`
+					cardIds.forEach { setServerCardGroup(it, newCardGroupId) }
+					server.sendToAllTCP(`object`)
+				}
+				is CardGroupDismantledEvent ->
+				{
+					val cardGroup = idToObjectMap[`object`.id] as ServerCardGroup
+					while (cardGroup.cards.isNotEmpty())
+					{
+						val card = cardGroup.cards.removeIndex(0)
+						setServerCardGroup(card.id, -1)
+					}
+					state.serverObjects.removeValue(cardGroup, true)
 					server.sendToAllTCP(`object`)
 				}
 			}

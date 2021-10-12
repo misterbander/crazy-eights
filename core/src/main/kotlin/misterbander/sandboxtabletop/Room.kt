@@ -25,6 +25,10 @@ import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.collections.GdxArray
+import ktx.collections.gdxArrayOf
+import ktx.collections.plusAssign
+import ktx.collections.set
 import ktx.graphics.use
 import ktx.log.info
 import ktx.math.component1
@@ -41,6 +45,9 @@ import misterbander.sandboxtabletop.net.BufferedListener
 import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.objectRotatedEventPool
+import misterbander.sandboxtabletop.net.packets.CardGroupChangedEvent
+import misterbander.sandboxtabletop.net.packets.CardGroupCreatedEvent
+import misterbander.sandboxtabletop.net.packets.CardGroupDismantledEvent
 import misterbander.sandboxtabletop.net.packets.FlipCardEvent
 import misterbander.sandboxtabletop.net.packets.ObjectLockEvent
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
@@ -49,6 +56,8 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 import misterbander.sandboxtabletop.scene2d.Card
+import misterbander.sandboxtabletop.scene2d.CardGroup
+import misterbander.sandboxtabletop.scene2d.Debug
 import misterbander.sandboxtabletop.scene2d.Gizmo
 import misterbander.sandboxtabletop.scene2d.SandboxTabletopCursor
 import misterbander.sandboxtabletop.scene2d.Tabletop
@@ -98,6 +107,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		isVisible = false
 	}
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
+	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
 	val gizmo1 = Gizmo(game.shapeDrawer, Color.GREEN) // TODO ###### remove debug
 	val gizmo2 = Gizmo(game.shapeDrawer, Color.CYAN)
 	
@@ -158,6 +168,8 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 					actor(chatHistoryScrollPane)
 				}.inCell.left()
 			}.cell(pad = 16F, expandX = true, fillX = true, maxHeight = 312F)
+			row()
+			actor(debugInfo).cell(colspan = 2, padLeft = 16F).inCell.left()
 		}
 		uiStage.addListener(object : KtxInputListener()
 		{
@@ -184,8 +196,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		stage += tabletop.cursors
 		stage += gizmo1
 		stage += gizmo2
-		
-//		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
+		stage += Debug(this)
 		
 		stage += syncServerAction
 	}
@@ -215,6 +226,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		}
 		
 		cursorPosition.username = game.user.username
+		selfDisconnect = false
 	}
 	
 	override fun clearScreen()
@@ -322,14 +334,16 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 				}
 				is Chat ->
 				{
-					chat(packet.message, if (packet.isSystemMessage) Color.YELLOW else null)
-					info("Client | CHAT") { packet.message }
+					val (_, message, isSystemMessage) = packet
+					chat(message, if (isSystemMessage) Color.YELLOW else null)
+					info("Client | CHAT") { message }
 				}
 				is CursorPosition ->
 				{
-					val cursor: SandboxTabletopCursor? = tabletop.userToCursorMap[packet.username]
+					val (username, x, y) = packet
+					val cursor: SandboxTabletopCursor? = tabletop.userToCursorMap[username]
 					if (cursor != tabletop.myCursor)
-						cursor?.setTargetPosition(packet.x, packet.y)
+						cursor?.setTargetPosition(x, y)
 					cursorPositionPool.free(packet)
 				}
 				is ObjectLockEvent -> // User attempts to lock an object
@@ -356,6 +370,39 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 				{
 					val card = idToGObjectMap[packet.id] as Card
 					card.isFaceUp = !card.isFaceUp
+				}
+				is CardGroupCreatedEvent ->
+				{
+					val (id, cardIds) = packet
+					val cards = GdxArray<Card>()
+					cardIds.forEach { cards += idToGObjectMap[it] as Card }
+					
+					val firstX = cards[0].smoothMovable.xInterpolator.target
+					val firstY = cards[0].smoothMovable.yInterpolator.target
+					val firstRotation = cards[0].smoothMovable.rotationInterpolator.target
+					val cardGroup = CardGroup(this@Room, id, firstX, firstY, firstRotation, gdxArrayOf())
+					tabletop.cards.addActorAfter(cards[0], cardGroup)
+					cards.forEach { cardGroup += it }
+					idToGObjectMap[id] = cardGroup
+				}
+				is CardGroupChangedEvent ->
+				{
+					val (cardIds, newCardGroupId, changerUsername) = packet
+					if (changerUsername != game.user.username || newCardGroupId != -1)
+					{
+						val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
+						cardIds.forEach {
+							val card = idToGObjectMap[it] as Card
+							card.cardGroup?.minusAssign(card)
+							newCardGroup?.plusAssign(card)
+						}
+					}
+				}
+				is CardGroupDismantledEvent ->
+				{
+					val (id, dismantlerUsername) = packet
+					if (dismantlerUsername != game.user.username)
+						(idToGObjectMap[id] as CardGroup).dismantle()
 				}
 			}
 		}

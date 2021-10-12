@@ -11,11 +11,7 @@ data class ServerCard(
 	override var lockHolder: User? = null
 ) : ServerObject, ServerLockable
 {
-	override fun setPosition(x: Float, y: Float)
-	{
-		this.x = x
-		this.y = y
-	}
+	var cardGroupId: Int = -1
 	
 	enum class Rank
 	{

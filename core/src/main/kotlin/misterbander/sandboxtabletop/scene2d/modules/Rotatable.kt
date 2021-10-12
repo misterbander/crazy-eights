@@ -17,7 +17,7 @@ import misterbander.sandboxtabletop.net.objectRotatedEventPool
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 
-class Rotatable(
+open class Rotatable(
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable,
 	draggable: Draggable
@@ -31,6 +31,8 @@ class Rotatable(
 		// Rotate using scroll wheel
 		parent.addListener(object : KtxInputListener()
 		{
+			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean = true
+			
 			override fun scrolled(event: InputEvent, x: Float, y: Float, amountX: Float, amountY: Float): Boolean
 			{
 				if (!lockable.isLockHolder)
@@ -41,7 +43,8 @@ class Rotatable(
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
-				parent.stage.scrollFocus = null
+				if (lockable.isLockHolder)
+					parent.stage.scrollFocus = null
 			}
 		})
 		// Rotate using pinch gesture
@@ -76,7 +79,6 @@ class Rotatable(
 						justStartedPinching = true
 					}
 				}
-//				println("$parent pointer $pointer touch down, pointers = $pointers")
 			}
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
@@ -110,14 +112,10 @@ class Rotatable(
 							otherX = pointer2Position.x
 							otherY = pointer2Position.y
 						}
-//						println("pointer1=$stagePointer1")
-//						println("pointer2=$stagePointer2")
-//						println("x=${event.stageX} y=${event.stageY}")
 						val (dragX, dragY) = parent.parentToLocalCoordinates(tempVec.set(otherX, otherY))
 						draggable.unrotatedDragPositionVec.set(dragX, dragY).rotateDeg(parent.rotation)
 					}
 				}
-//				println("$parent pointer $pointer touch up, pointers = $pointers")
 			}
 			
 			override fun pinch(
@@ -130,6 +128,8 @@ class Rotatable(
 			{
 				if (!lockable.isLockHolder || !isPinching)
 					return
+				this@Rotatable.pinch(event, initialPointer1, initialPointer2, pointer1, pointer2)
+				
 				parent.localToParentCoordinates(pointer1Position.set(pointer1))
 				parent.localToParentCoordinates(pointer2Position.set(pointer2))
 				if (justStartedPinching)
@@ -157,19 +157,28 @@ class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				val client = game.client ?: return
-				val objectMovedEvent = client.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
-					?: objectMovedEventPool.obtain()!!
-				objectMovedEvent.apply {
-					id = lockable.id
-					x = newX
-					y = newY
-					moverUsername = game.user.username
-					client.outgoingPacketBuffer += this
+				game.client?.apply {
+					val objectMovedEvent = removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
+						?: objectMovedEventPool.obtain()!!
+					objectMovedEvent.apply {
+						id = lockable.id
+						x = newX
+						y = newY
+						moverUsername = game.user.username
+					}
+					outgoingPacketBuffer += objectMovedEvent
 				}
 			}
 		})
 	}
+	
+	open fun pinch(
+		event: InputEvent,
+		initialPointer1: Vector2,
+		initialPointer2: Vector2,
+		pointer1: Vector2,
+		pointer2: Vector2
+	) = Unit
 	
 	private fun setRotation(rotation: Float, isRelative: Boolean = false, isImmediate: Boolean = false)
 	{
@@ -179,14 +188,15 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		val client = game.client ?: return
-		val objectRotatedEvent = client.removeFromOutgoingPacketBuffer<ObjectRotatedEvent> { it.id == lockable.id }
-			?: objectRotatedEventPool.obtain()!!
-		objectRotatedEvent.apply {
-			id = lockable.id
-			this.rotation = smoothMovable.rotationInterpolator.target
-			rotatorUsername = game.user.username
-			client.outgoingPacketBuffer += this
+		game.client?.apply {
+			val objectRotatedEvent = removeFromOutgoingPacketBuffer<ObjectRotatedEvent> { it.id == lockable.id }
+				?: objectRotatedEventPool.obtain()!!
+			objectRotatedEvent.apply {
+				id = lockable.id
+				this.rotation = smoothMovable.rotationInterpolator.target
+				rotatorUsername = game.user.username
+			}
+			outgoingPacketBuffer += objectRotatedEvent
 		}
 	}
 }

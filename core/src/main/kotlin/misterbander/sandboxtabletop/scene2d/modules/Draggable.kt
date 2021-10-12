@@ -8,13 +8,11 @@ import ktx.math.component2
 import ktx.math.vec2
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
-import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
 
 class Draggable(
-	private val room: Room,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
 ) : GModule<SandboxTabletop>(smoothMovable.parent)
@@ -51,16 +49,16 @@ class Draggable(
 				dragPositionVec.set(unrotatedDragPositionVec)
 				dragPositionVec.rotateDeg(-parent.rotation)
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
-//				println(dragPositionVec)
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
-				val objectMovedEvent = room.clientListener.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
+				val client = game.client ?: return
+				val objectMovedEvent = client.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
 					?: objectMovedEventPool.obtain()!!
 				objectMovedEvent.apply {
 					id = lockable.id
 					this.x = newX
 					this.y = newY
 					moverUsername = game.user.username
-					room.clientListener.outgoingPacketBuffer += this
+					client.outgoingPacketBuffer += this
 				}
 			}
 		})

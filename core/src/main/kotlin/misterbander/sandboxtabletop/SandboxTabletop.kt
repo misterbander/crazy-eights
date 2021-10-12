@@ -5,9 +5,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.MathUtils
-import com.esotericsoftware.kryonet.Client
-import com.esotericsoftware.kryonet.Server
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
@@ -21,6 +18,8 @@ import misterbander.gframework.GFramework
 import misterbander.gframework.scene2d.gTextField
 import misterbander.sandboxtabletop.model.User
 import misterbander.sandboxtabletop.net.Network
+import misterbander.sandboxtabletop.net.SandboxTabletopClient
+import misterbander.sandboxtabletop.net.SandboxTabletopServer
 
 /**
  * [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.
@@ -152,13 +151,11 @@ class SandboxTabletop : GFramework()
 	
 	lateinit var user: User
 	
-	var network: Network? = null
-	val server: Server?
-		get() = network?.server
-	val client: Client?
-		get() = network?.client
-	var stopNetworkJob: Deferred<Unit>? = null
-		private set
+	val network = Network()
+	val server: SandboxTabletopServer?
+		get() = network.server
+	val client: SandboxTabletopClient?
+		get() = network.client
 	
 	override fun create()
 	{
@@ -203,16 +200,5 @@ class SandboxTabletop : GFramework()
 		preferences["username"] = user.username
 		preferences["color"] = user.color.toString()
 		preferences.flush()
-	}
-	
-	fun stopNetwork()
-	{
-		KtxAsync.launch {
-			stopNetworkJob = network?.stopAsync()
-			network = null
-			stopNetworkJob?.await()
-			stopNetworkJob = null
-			info("SandboxTabletop | INFO") { "Network stopped" }
-		}
 	}
 }

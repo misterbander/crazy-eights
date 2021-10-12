@@ -1,9 +1,7 @@
 package misterbander.sandboxtabletop.scene2d.dialogs
 
-import com.esotericsoftware.kryonet.Client
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ktx.actors.isShown
 import ktx.actors.onChange
 import ktx.async.KtxAsync
@@ -15,7 +13,6 @@ import misterbander.sandboxtabletop.FORM_TEXT_FIELD_STYLE
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE_S
 import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
-import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -47,8 +44,7 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 					mainMenu.messageDialog.show("Join Room", "Joining room...", "Cancel") {
 						info("JoinRoomDialog | INFO") { "Cancelling connection..." }
 						joinServerJob?.cancel()
-						joinServerJob = null
-						game.stopNetwork()
+						game.network.stop()
 						show()
 					}
 					joinServerJob = KtxAsync.launch {
@@ -56,24 +52,20 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
-							game.stopNetworkJob?.await()
-							val client = Client()
-							game.network = Network(null, client)
-							withContext(mainMenu.asyncContext) {
-								client.addListener(mainMenu.ClientListener())
-								client.start()
-								client.connect(ip, port)
-							}
+							val client = game.network.createAndConnectClient(ip, port)
+							client.addListener(mainMenu.ClientListener())
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
 							client.sendTCP(Handshake(data = arrayOf(game.user.username)))
 						}
 						catch (e: Exception)
 						{
-							game.stopNetwork()
 							mainMenu.infoDialog.hide()
 							if (e !is CancellationException && !isShown())
+							{
 								mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
+								game.network.stop()
+							}
 						}
 					}
 				}

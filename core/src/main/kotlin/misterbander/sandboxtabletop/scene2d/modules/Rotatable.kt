@@ -11,7 +11,6 @@ import ktx.math.vec2
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
-import misterbander.sandboxtabletop.Room
 import misterbander.sandboxtabletop.SandboxTabletop
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.objectRotatedEventPool
@@ -19,7 +18,6 @@ import misterbander.sandboxtabletop.net.packets.ObjectMovedEvent
 import misterbander.sandboxtabletop.net.packets.ObjectRotatedEvent
 
 class Rotatable(
-	private val room: Room,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable,
 	draggable: Draggable
@@ -159,14 +157,15 @@ class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				val objectMovedEvent = room.clientListener.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
+				val client = game.client ?: return
+				val objectMovedEvent = client.removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
 					?: objectMovedEventPool.obtain()!!
 				objectMovedEvent.apply {
 					id = lockable.id
 					x = newX
 					y = newY
 					moverUsername = game.user.username
-					room.clientListener.outgoingPacketBuffer += this
+					client.outgoingPacketBuffer += this
 				}
 			}
 		})
@@ -180,13 +179,14 @@ class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		val objectRotatedEvent = room.clientListener.removeFromOutgoingPacketBuffer<ObjectRotatedEvent> { it.id == lockable.id }
+		val client = game.client ?: return
+		val objectRotatedEvent = client.removeFromOutgoingPacketBuffer<ObjectRotatedEvent> { it.id == lockable.id }
 			?: objectRotatedEventPool.obtain()!!
 		objectRotatedEvent.apply {
 			id = lockable.id
 			this.rotation = smoothMovable.rotationInterpolator.target
 			rotatorUsername = game.user.username
-			room.clientListener.outgoingPacketBuffer += this
+			client.outgoingPacketBuffer += this
 		}
 	}
 }

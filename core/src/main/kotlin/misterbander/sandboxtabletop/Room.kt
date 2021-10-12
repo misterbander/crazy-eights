@@ -12,23 +12,19 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
+import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
-import com.badlogic.gdx.utils.OrderedSet
-import com.badlogic.gdx.utils.Queue
-import com.badlogic.gdx.utils.Timer
 import com.esotericsoftware.kryonet.Connection
-import com.esotericsoftware.kryonet.Listener
 import ktx.actors.KtxInputListener
+import ktx.actors.along
 import ktx.actors.onChange
 import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
-import ktx.async.interval
-import ktx.collections.minusAssign
 import ktx.graphics.use
 import ktx.log.info
 import ktx.math.component1
@@ -41,6 +37,7 @@ import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
 import misterbander.sandboxtabletop.model.Chat
 import misterbander.sandboxtabletop.model.CursorPosition
+import misterbander.sandboxtabletop.net.BufferedListener
 import misterbander.sandboxtabletop.net.cursorPositionPool
 import misterbander.sandboxtabletop.net.objectMovedEventPool
 import misterbander.sandboxtabletop.net.objectRotatedEventPool
@@ -106,12 +103,27 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
+	private var cursorPosition = CursorPosition()
 	
 //	val hand: Hand = Hand(this)
 //	private val handRegion: TextureRegion = game.skin.getRegion("hand")
 	
 	// Networking
 	var clientListener = ClientListener()
+	var selfDisconnect = false
+	private val syncServerAction: RepeatAction = forever(
+		delay(1/40F, Actions.run {
+			val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
+			if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
+			{
+				cursorPosition.x = inputX
+				cursorPosition.y = inputY
+				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
+				game.client?.sendTCP(cursorPosition)
+			}
+			game.client?.flushOutgoingPacketBuffer()
+		}) along Actions.run { clientListener.processPackets() }
+	)
 	
 	init
 	{
@@ -174,12 +186,13 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		stage += gizmo2
 		
 //		stage.addActor(new Debug(viewport, game.getShapeDrawer()));
+		
+		stage += syncServerAction
 	}
 	
 	override fun show()
 	{
 		super.show()
-		
 		if (Gdx.app.type == Application.ApplicationType.Desktop)
 		{
 			val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
@@ -201,14 +214,7 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 			cursorBasePixmap.dispose()
 		}
 		
-		clientListener.startSyncServerTask()
-	}
-	
-	override fun render(delta: Float)
-	{
-		super.render(delta)
-		while (clientListener.incomingPacketBuffer.notEmpty())
-			clientListener.processPacket(clientListener.incomingPacketBuffer.removeFirst())
+		cursorPosition.username = game.user.username
 	}
 	
 	override fun clearScreen()
@@ -280,72 +286,23 @@ class Room(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		chatPopup.clearChildren()
 		chatHistory.clearChildren()
 		tabletop.reset()
-		
-		clientListener.stopSyncServerTask()
-		
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
-		game.stopNetwork()
 	}
 	
-	inner class ClientListener : Listener
+	inner class ClientListener : BufferedListener()
 	{
-		private var cursorPosition = CursorPosition()
-		val outgoingPacketBuffer = OrderedSet<Any>()
-		val incomingPacketBuffer = Queue<Any>()
-		
-		private var syncServerTask: Timer.Task? = null
-		private var tickDelay = 1/40F
-		var selfDisconnect = false
-		
-		fun startSyncServerTask()
-		{
-			cursorPosition.username = game.user.username
-			syncServerTask = interval(tickDelay, tickDelay) {
-				val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
-				if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
-				{
-					cursorPosition.x = inputX
-					cursorPosition.y = inputY
-					tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
-					game.client?.sendTCP(cursorPosition)
-				}
-				
-				outgoingPacketBuffer.forEach { event: Any ->
-					game.client?.sendTCP(event)
-					if (event is ObjectMovedEvent)
-						objectMovedEventPool.free(event)
-					else if (event is ObjectRotatedEvent)
-						objectRotatedEventPool.free(event)
-				}
-				outgoingPacketBuffer.clear()
-			}
-		}
-		
-		fun stopSyncServerTask()
-		{
-			syncServerTask?.cancel()
-			syncServerTask = null
-		}
-		
-		inline fun <reified T> removeFromOutgoingPacketBuffer(crossinline predicate: (T) -> Boolean): T?
-		{
-			val event = outgoingPacketBuffer.find { it is T && predicate(it) }
-			if (event != null)
-				outgoingPacketBuffer -= event
-			return event as T?
-		}
-		
 		override fun disconnected(connection: Connection)
 		{
 			val mainMenu = game.getScreen<MainMenu>()
 			if (!selfDisconnect)
+			{
 				mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
+				game.network.stop()
+			}
 			transition.start(targetScreen = mainMenu)
 		}
 		
-		override fun received(connection: Connection, `object`: Any) = incomingPacketBuffer.addLast(`object`)
-		
-		fun processPacket(packet: Any)
+		override fun processPacket(packet: Any)
 		{
 			val idToGObjectMap = tabletop.idToGObjectMap
 			when (packet)

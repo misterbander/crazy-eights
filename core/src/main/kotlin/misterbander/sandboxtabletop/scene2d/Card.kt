@@ -48,8 +48,8 @@ class Card(
 			super.unlock()
 		}
 	}
-	private val draggable = Draggable(room, smoothMovable, lockable)
-	private val rotatable = Rotatable(room, smoothMovable, lockable, draggable)
+	private val draggable = Draggable(smoothMovable, lockable)
+	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	private val highlightable = Highlightable(smoothMovable, lockable)
 	
 	init

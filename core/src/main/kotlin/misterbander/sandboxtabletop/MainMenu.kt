@@ -15,7 +15,6 @@ import ktx.actors.alpha
 import ktx.actors.onChange
 import ktx.actors.plusAssign
 import ktx.actors.then
-import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.plusAssign
 import ktx.graphics.use
 import ktx.log.info
@@ -28,7 +27,7 @@ import misterbander.sandboxtabletop.scene2d.dialogs.InfoDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.JoinRoomDialog
 import misterbander.sandboxtabletop.scene2d.dialogs.MessageDialog
 
-class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game)
+class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game), Listener
 {
 	private val logo = game.assetStorage[Textures.title].apply {
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
@@ -68,8 +67,6 @@ class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game)
 		}
 	}
 	private var activeTable: Table
-	
-	val asyncContext = newSingleThreadAsyncContext("MenuScreen-AsyncExecutor-Thread")
 	
 	init
 	{
@@ -130,7 +127,7 @@ class MainMenu(game: SandboxTabletop) : SandboxTabletopScreen(game)
 				}
 				is HandshakeReject -> Gdx.app.postRunnable {
 					info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
-					game.stopNetwork()
+					game.network.stop()
 					infoDialog.hide()
 					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 				}

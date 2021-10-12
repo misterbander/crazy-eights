@@ -5,7 +5,10 @@ import com.badlogic.gdx.utils.IntSet
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
-import ktx.async.schedule
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import ktx.async.KtxAsync
+import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.plusAssign
 import ktx.collections.set
 import ktx.log.info
@@ -29,15 +32,19 @@ import misterbander.sandboxtabletop.net.packets.ObjectUnlockEvent
 import misterbander.sandboxtabletop.net.packets.UserJoinEvent
 import misterbander.sandboxtabletop.net.packets.UserLeaveEvent
 
-class RoomServerListener(private val server: Server) : Listener
+class SandboxTabletopServer
 {
-	/** Contains ids of connections that have successfully performed a handshake. */
-	private val handshookConnections = IntSet()
-	
 	private var newId = 0
 		get() = field++
 	private val idToObjectMap = IntMap<ServerObject>()
 	private val state = TabletopState()
+	
+	private val asyncContext = newSingleThreadAsyncContext("SandboxTabletopServer-AsyncExecutor-Thread")
+	private val server = Server().apply {
+		kryo.registerClasses()
+		addListener(ServerListener())
+	}
+	@Volatile private var isStopped = false
 	
 	init
 	{
@@ -51,59 +58,78 @@ class RoomServerListener(private val server: Server) : Listener
 		state.serverObjects += serverObject
 	}
 	
-	override fun connected(connection: Connection) = connection.setName("Server-side client connection ${connection.id}")
-	
-	override fun disconnected(connection: Connection)
+	fun start(port: Int)
 	{
-		handshookConnections.remove(connection.id)
-		if (connection.arbitraryData is User)
+		server.start()
+		server.bind(port)
+	}
+	
+	@Suppress("BlockingMethodInNonBlockingContext")
+	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
+		if (!isStopped)
 		{
-			val user = connection.arbitraryData as User
-			state.users.remove(user.username)
-			state.serverObjects.forEach { serverObject: ServerObject ->
-				if (serverObject is ServerLockable && serverObject.lockHolder == user)
-					serverObject.lockHolder = null
-			}
-			server.sendToAllTCP(UserLeaveEvent(user))
-			info("Server | INFO") { "${user.username} left the game" }
+			server.stop()
+			server.dispose()
+			isStopped = true
 		}
 	}
 	
-	override fun received(connection: Connection, `object`: Any)
+	private inner class ServerListener : Listener
 	{
-		if (connection.id !in handshookConnections) // Connections must perform handshake before packets are processed
+		/** Contains ids of connections that have successfully performed a handshake. */
+		private val handshookConnections = IntSet()
+		
+		override fun connected(connection: Connection) = connection.setName("Server-side client connection ${connection.id}")
+		
+		override fun disconnected(connection: Connection)
 		{
-			if (`object` is Handshake)
+			handshookConnections.remove(connection.id)
+			if (connection.arbitraryData is User)
 			{
-				if (`object`.versionString != VERSION_STRING) // Version check
-				{
-					connection.sendTCP(HandshakeReject("Incorrect version! Your Sandbox Tabletop version is ${`object`.versionString}. Server version is $VERSION_STRING."))
-					return
+				val user = connection.arbitraryData as User
+				state.users.remove(user.username)
+				state.serverObjects.forEach { serverObject: ServerObject ->
+					if (serverObject is ServerLockable && serverObject.lockHolder == user)
+						serverObject.lockHolder = null
 				}
-				if (`object`.data?.size != 1) // Data integrity check
-				{
-					connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 1 argument but found ${`object`.data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
-					return
-				}
-				val username = `object`.data[0]
-				if (state.users[username] != null) // Check username collision
-				{
-					connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))
-					return
-				}
-				
-				// Handshake is successful
-				handshookConnections.add(connection.id)
-				connection.sendTCP(Handshake())
-				info("Server | INFO") { "Successful handshake from $connection" }
+				server.sendToAllTCP(UserLeaveEvent(user))
+				info("Server | INFO") { "${user.username} left the game" }
 			}
-			else
-				ktx.log.error("Server | ERROR") { "$connection attempted to send objects before handshake" }
-			return
 		}
 		
-		schedule(0.5F) // TODO remove simulated lag for debugging purposes
+		override fun received(connection: Connection, `object`: Any)
 		{
+			if (connection.id !in handshookConnections) // Connections must perform handshake before packets are processed
+			{
+				if (`object` is Handshake)
+				{
+					if (`object`.versionString != VERSION_STRING) // Version check
+					{
+						connection.sendTCP(HandshakeReject("Incorrect version! Your Sandbox Tabletop version is ${`object`.versionString}. Server version is $VERSION_STRING."))
+						return
+					}
+					if (`object`.data?.size != 1) // Data integrity check
+					{
+						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 1 argument but found ${`object`.data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
+						return
+					}
+					val username = `object`.data[0]
+					if (state.users[username] != null) // Check username collision
+					{
+						connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))
+						return
+					}
+					
+					// Handshake is successful
+					handshookConnections.add(connection.id)
+					connection.sendTCP(Handshake())
+					info("Server | INFO") { "Successful handshake from $connection" }
+				}
+				else
+					ktx.log.error("Server | ERROR") { "$connection attempted to send objects before handshake" }
+				return
+			}
+			
 			when (`object`)
 			{
 				is User -> // A new user tries to join

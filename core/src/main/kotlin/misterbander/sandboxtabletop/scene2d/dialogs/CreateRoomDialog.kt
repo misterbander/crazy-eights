@@ -1,9 +1,6 @@
 package misterbander.sandboxtabletop.scene2d.dialogs
 
-import com.esotericsoftware.kryonet.Client
-import com.esotericsoftware.kryonet.Server
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ktx.actors.onChange
 import ktx.async.KtxAsync
 import ktx.log.info
@@ -12,7 +9,6 @@ import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.sandboxtabletop.INFO_LABEL_STYLE_S
 import misterbander.sandboxtabletop.MainMenu
 import misterbander.sandboxtabletop.TEXT_BUTTON_STYLE
-import misterbander.sandboxtabletop.net.Network
 import misterbander.sandboxtabletop.net.packets.Handshake
 import java.net.BindException
 
@@ -40,20 +36,9 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
-							info("Network | INFO") { "Starting server on port $port..." }
-							game.stopNetworkJob?.await()
-							val server: Server
-							val client: Client
-							withContext(mainMenu.asyncContext) {
-								server = Server()
-								server.start()
-								server.bind(port)
-								client = Client()
-								client.addListener(mainMenu.ClientListener())
-								client.start()
-								client.connect("localhost", port)
-								game.network = Network(server, client)
-							}
+							game.network.createAndStartServer(port)
+							val client = game.network.createAndConnectClient("localhost", port)
+							client.addListener(mainMenu.ClientListener())
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
 							client.sendTCP(Handshake(data = arrayOf(game.user.username)))

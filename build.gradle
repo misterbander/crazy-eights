@@ -28,7 +28,7 @@ configure(subprojects - project(':android')) {
 
 subprojects {
 	version = '0.1'
-	ext.appName = 'SandboxTabletop'
+	ext.appName = 'CrazyEights'
 	repositories {
 		mavenLocal()
 		mavenCentral()
@@ -38,4 +38,4 @@ subprojects {
 	}
 }
 
-eclipse.project.name = 'SandboxTabletop' + '-parent'
+eclipse.project.name = 'CrazyEights' + '-parent'

@@ -30,7 +30,7 @@ android {
 		exclude 'META-INF/dependencies.txt'
 	}
 	defaultConfig {
-		applicationId 'misterbander.sandboxtabletop'
+		applicationId 'misterbander.crazyeights'
 		minSdkVersion 19
 		targetSdkVersion 30
 		versionCode 1
@@ -131,7 +131,7 @@ task run(type: Exec) {
 	}
 
 	def adb = path + "/platform-tools/adb"
-	commandLine "$adb", 'shell', 'am', 'start', '-n', 'misterbander.sandboxtabletop/misterbander.sandboxtabletop.AndroidLauncher'
+	commandLine "$adb", 'shell', 'am', 'start', '-n', 'misterbander.crazyeights/misterbander.crazyeights.AndroidLauncher'
 }
 
 eclipse.project.name = appName + "-android"

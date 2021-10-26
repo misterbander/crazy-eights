@@ -7,7 +7,7 @@ import misterbander.gframework.GScreen
  * [GScreen] components can be separated into different logical layers, such as a stage layer, a UI layer, a layer for
  * `Box2D` worlds, a layer for transitions etc. `GLayer` provides a convenient way of grouping components in a layer.
  *
- * Each `GLayer` will have their own update methods that is called in [GScreen.render], but is divided into three stages:
+ * Each `GLayer` has their own update methods that are called in [GScreen.render]. It is divided into three stages:
  * [update], [render] and [postRender]. All [GLayer]'s [update] methods will be called in batch, followed by [render],
  * and then [postRender].
  *

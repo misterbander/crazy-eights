@@ -1,6 +1,5 @@
 package misterbander.gframework
 
-import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
@@ -17,10 +16,11 @@ import space.earlygrey.shapedrawer.ShapeDrawer
 /**
  * Framework built on top of LibKTX.
  *
- * `GFramework` extends [KtxGame] and defines [PolygonSpriteBatch], [ShapeRenderer], [ShapeDrawer], and an [AssetManager].
+ * `GFramework` extends [KtxGame] and serves to be the main game class. It defines [PolygonSpriteBatch], [ShapeRenderer],
+ * [ShapeDrawer], and an [AssetStorage].
  *
  * To start, create a class that extends `GFramework` and override the [create] method. Load your resources with
- * [AssetManager], add some [GScreen]s and set your first screen.
+ * [AssetStorage], add some [GScreen]s and set your first screen.
  *
  * @author Mister_Bander
  */

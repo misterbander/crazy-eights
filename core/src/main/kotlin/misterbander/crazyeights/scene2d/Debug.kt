@@ -6,8 +6,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import ktx.actors.txt
-import ktx.collections.GdxArray
-import ktx.collections.plusAssign
+import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -29,7 +28,7 @@ class Debug(private val room: Room) : GObject<CrazyEights>(room)
 		if (!isVisible)
 			return
 		
-		val serverObjectList = game.server?.let { server -> server.state.serverObjects.map { "\n    $it" } } ?: emptyList()
+		val serverObjectList = game.server?.let { server -> server.state.serverObjects.map { "\n    $it" } } ?: GdxArray()
 		val serverObjectsDebug = "Server objects (${serverObjectList.size}):\n$serverObjectList"
 		
 		// View all objects locked by the user

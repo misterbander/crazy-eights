@@ -15,7 +15,7 @@ import ktx.actors.alpha
 import ktx.actors.onChange
 import ktx.actors.plusAssign
 import ktx.actors.then
-import ktx.collections.plusAssign
+import ktx.collections.*
 import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*

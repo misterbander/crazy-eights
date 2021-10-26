@@ -7,7 +7,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
-import ktx.collections.minusAssign
+import ktx.collections.*
 import misterbander.crazyeights.net.packets.ObjectMovedEvent
 import misterbander.crazyeights.net.packets.ObjectRotatedEvent
 

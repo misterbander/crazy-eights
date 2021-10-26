@@ -1,9 +1,7 @@
 package misterbander.gframework.util
 
 import com.badlogic.gdx.utils.IntIntMap
-import ktx.collections.defaultLoadFactor
-import ktx.collections.defaultMapSize
-import ktx.collections.set
+import ktx.collections.*
 
 /**
  * @param keysToValues will be added to the map.

@@ -19,7 +19,7 @@ import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.Serializer
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
-import ktx.collections.GdxSet
+import ktx.collections.*
 
 class GdxSetSerializer : Serializer<GdxSet<*>>()
 {

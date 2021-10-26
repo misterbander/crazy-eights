@@ -4,8 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.Actor
-import ktx.collections.GdxArray
-import ktx.collections.toGdxArray
+import ktx.collections.*
 
 /**
  * [Actor] that draws an animation. The animation is drawn with its bottom left corner at the position of this actor.

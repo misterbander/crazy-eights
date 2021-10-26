@@ -25,10 +25,7 @@ import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
-import ktx.collections.GdxArray
-import ktx.collections.gdxArrayOf
-import ktx.collections.plusAssign
-import ktx.collections.set
+import ktx.collections.*
 import ktx.graphics.use
 import ktx.log.info
 import ktx.math.component1

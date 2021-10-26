@@ -1,8 +1,6 @@
 package misterbander.crazyeights.model
 
-import ktx.collections.GdxArray
-import ktx.collections.minusAssign
-import ktx.collections.plusAssign
+import ktx.collections.*
 
 data class ServerCardGroup(
 	override val id: Int = -1,

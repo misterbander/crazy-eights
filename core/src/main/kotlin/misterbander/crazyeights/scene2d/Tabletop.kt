@@ -42,7 +42,8 @@ class Tabletop(private val room: Room)
 		myCursor?.toFront()
 		
 		// Add server objects
-		state.serverObjects.forEach { serverObject: ServerObject ->
+		for (serverObject: ServerObject in state.serverObjects)
+		{
 			when (serverObject)
 			{
 				is ServerCard ->
@@ -56,7 +57,8 @@ class Tabletop(private val room: Room)
 				{
 					val (id, x, y, rotation, serverCards, type, lockHolder) = serverObject
 					val cards = gdxArrayOf<Card>()
-					serverCards.forEach { serverCard: ServerCard ->
+					for (serverCard: ServerCard in serverCards)
+					{
 						val (cardId, _, _, _, rank, suit, isFaceUp) = serverCard
 						val card = Card(room, cardId, 0F, 0F, 0F, rank, suit, isFaceUp)
 						idToGObjectMap[cardId] = card
@@ -88,7 +90,8 @@ class Tabletop(private val room: Room)
 	{
 		users.remove(user.username)
 		userToCursorMap.remove(user.username)?.remove()
-		idToGObjectMap.values().forEach { gObject: GObject<CrazyEights> ->
+		for (gObject: GObject<CrazyEights> in idToGObjectMap.values())
+		{
 			val lockable = gObject.getModule<Lockable>()
 			if (lockable != null && lockable.isLockHolder)
 				lockable.unlock()

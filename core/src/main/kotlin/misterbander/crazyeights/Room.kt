@@ -245,8 +245,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	override fun resize(width: Int, height: Int)
 	{
 		super.resize(width, height)
-		chatPopup.children.forEach {
-			val chatLabelContainer = it as Container<Label>
+		for (actor: Actor in chatPopup.children)
+		{
+			val chatLabelContainer = actor as Container<Label>
 			val label = chatLabelContainer.actor!!
 			chatLabelContainer.width(label.style.font.chatTextWidth(label.text.toString()))
 			chatLabelContainer.invalidateHierarchy()
@@ -391,8 +392,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					if (changerUsername != game.user.username || newCardGroupId != -1)
 					{
 						val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
-						cardIds.forEach {
-							val card = idToGObjectMap[it] as Card
+						for (id in cardIds)
+						{
+							val card = idToGObjectMap[id] as Card
 							card.cardGroup?.minusAssign(card)
 							newCardGroup?.plusAssign(card)
 						}

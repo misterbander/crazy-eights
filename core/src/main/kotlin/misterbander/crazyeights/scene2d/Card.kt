@@ -179,9 +179,10 @@ class Card(
 		else if (gObject is CardGroup)
 		{
 			val cardIds = GdxIntArray().apply { add(id) }
-			gObject.children.forEach {
-				if (it is Card)
-					cardIds.add(it.id)
+			for (actor: Actor in gObject.children)
+			{
+				if (actor is Card)
+					cardIds.add(actor.id)
 			}
 			gObject.dismantle()
 			game.client?.apply {

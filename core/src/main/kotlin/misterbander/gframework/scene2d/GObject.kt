@@ -35,10 +35,11 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		modules.forEach {
-			it.value.update(delta)
+		for (module: GModule<*> in modules.values())
+		{
+			module.update(delta)
 			for (i in 0 until screen.fixedUpdateCount)
-				it.value.fixedUpdate()
+				module.fixedUpdate()
 		}
 		update(delta)
 		for (i in 0 until screen.fixedUpdateCount)
@@ -102,7 +103,7 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 		val removed = super.remove()
 		if (removed)
 		{
-			modules.forEach { it.value.onDestroy() }
+			modules.values().forEach { it.onDestroy() }
 			isAlive = false
 		}
 		return removed
@@ -113,7 +114,7 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 		super.setStage(stage)
 		if (!isAlive && isShown())
 		{
-			modules.forEach { it.value.onSpawn() }
+			modules.values().forEach { it.onSpawn() }
 			onSpawn()
 			isAlive = true
 		}

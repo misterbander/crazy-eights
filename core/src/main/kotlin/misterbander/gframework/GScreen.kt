@@ -15,6 +15,8 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.plusAssign
 import ktx.app.KtxScreen
 import ktx.collections.GdxSet
+import ktx.collections.component1
+import ktx.collections.component2
 import ktx.collections.set
 import misterbander.gframework.layer.GLayer
 import misterbander.gframework.layer.StageLayer
@@ -90,9 +92,8 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 		layers.forEach { it.update(delta) }
 		layers.forEach { it.render(delta) }
 		layers.forEach { it.postRender(delta) }
-		scheduledAddingGObjects.forEach {
-			val gObject: GObject<*> = it.key
-			val group: Group? = it.value
+		for ((gObject, group) in scheduledAddingGObjects)
+		{
 			if (group != null)
 				group += gObject
 			else

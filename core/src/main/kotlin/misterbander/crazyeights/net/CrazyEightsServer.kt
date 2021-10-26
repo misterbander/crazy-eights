@@ -138,7 +138,8 @@ class CrazyEightsServer
 			{
 				val user = connection.arbitraryData as User
 				state.users.remove(user.username)
-				state.serverObjects.forEach { serverObject: ServerObject ->
+				for (serverObject: ServerObject in state.serverObjects)
+				{
 					if (serverObject is ServerLockable && serverObject.lockHolder == user)
 						serverObject.lockHolder = null
 				}
@@ -249,9 +250,10 @@ class CrazyEightsServer
 					val (_, firstX, firstY, firstRotation) = cards[0]
 					val cardGroup = ServerCardGroup(newId, firstX, firstY, firstRotation, cards)
 					addServerObject(cardGroup, state.serverObjects.indexOf(cards[0], true))
-					cards.forEach {
-						it.x = 0F; it.y = 0F; it.rotation = 0F
-						state.serverObjects.removeValue(it, true)
+					for (card: ServerCard in cards)
+					{
+						card.x = 0F; card.y = 0F; card.rotation = 0F
+						state.serverObjects.removeValue(card, true)
 					}
 					
 					server.sendToAllTCP(`object`.copy(id = cardGroup.id))

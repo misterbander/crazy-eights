@@ -53,7 +53,8 @@ class CrazyEightsClient
 	
 	fun flushOutgoingPacketBuffer()
 	{
-		outgoingPacketBuffer.forEach { packet: Any ->
+		for (packet: Any in outgoingPacketBuffer)
+		{
 			sendTCP(packet)
 			if (packet is ObjectMovedEvent)
 				objectMovedEventPool.free(packet)

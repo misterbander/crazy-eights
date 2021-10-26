@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
+import com.badlogic.gdx.scenes.scene2d.Actor
 import ktx.actors.txt
 import ktx.collections.GdxArray
 import ktx.collections.plusAssign
@@ -33,9 +34,10 @@ class Debug(private val room: Room) : GObject<CrazyEights>(room)
 		
 		// View all objects locked by the user
 		lockedObjects.clear()
-		room.tabletop.cards.children.forEach {
-			if ((it as? GObject<*>)?.getModule<Lockable>()?.isLockHolder == true)
-				lockedObjects += it
+		for (actor: Actor in room.tabletop.cards.children)
+		{
+			if ((actor as? GObject<*>)?.getModule<Lockable>()?.isLockHolder == true)
+				lockedObjects += actor
 		}
 		val lockedObjectsDebug = "Locked objects (${lockedObjects.size}):\n$lockedObjects"
 		room.debugInfo.txt = "Scroll focus = ${room.stage.scrollFocus}\n$serverObjectsDebug\n$lockedObjectsDebug"

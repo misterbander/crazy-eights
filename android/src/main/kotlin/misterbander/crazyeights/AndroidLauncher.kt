@@ -48,8 +48,7 @@ class AndroidLauncher : AndroidApplication(), KeyboardHeightObserver
 	override fun onKeyboardHeightChanged(height: Int, orientation: Int)
 	{
 		val gScreen = crazyEights.shownScreen as? GScreen<*> ?: return
-		gScreen.keyboardHeightObservers.forEach {
-			it.onKeyboardHeightChanged(height, orientation)
-		}
+		for (observer: KeyboardHeightObserver in gScreen.keyboardHeightObservers)
+			observer.onKeyboardHeightChanged(height, orientation)
 	}
 }

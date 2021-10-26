@@ -7,7 +7,7 @@ package misterbander.gframework.util
  *
  * If the duration is longer than 1000 hours, then an infinity symbol is displayed instead.
  * @param durationSeconds duration in seconds
- * @param delimiter       delimiter string to separate the units, defaults to " : "
+ * @param delimiter delimiter string to separate the units, defaults to " : "
  * @return Duration string formatted to mm:ss or hh:mm:ss.
  */
 fun formatDuration(durationSeconds: Long, delimiter: String = " : "): String

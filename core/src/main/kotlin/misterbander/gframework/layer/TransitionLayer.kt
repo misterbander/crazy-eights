@@ -11,7 +11,7 @@ import misterbander.gframework.GScreen
  * This default implementation draws nothing. You can implement your own transitions by extending this class and
  * overriding [render] to draw the transitions.
  *
- * All touch down events to the parent's stage and uiStage will be cancelled when a transition is playing.
+ * All events to the parent's stage and uiStage will be cancelled when an out transition is playing.
  * @param screen the parent [GScreen]
  */
 open class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : GLayer

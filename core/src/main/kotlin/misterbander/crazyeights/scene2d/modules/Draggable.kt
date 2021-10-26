@@ -4,7 +4,7 @@ import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
-import ktx.collections.plusAssign
+import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
 import ktx.math.vec2

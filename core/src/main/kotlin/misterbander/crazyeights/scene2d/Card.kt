@@ -12,8 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
-import ktx.collections.GdxIntArray
-import ktx.collections.plusAssign
+import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*

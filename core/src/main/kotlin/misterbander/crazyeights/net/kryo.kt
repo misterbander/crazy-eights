@@ -3,7 +3,7 @@ package misterbander.crazyeights.net
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.utils.OrderedMap
 import com.esotericsoftware.kryo.Kryo
-import ktx.collections.GdxArray
+import ktx.collections.*
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.ServerCard

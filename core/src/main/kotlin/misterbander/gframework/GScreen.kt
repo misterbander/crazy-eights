@@ -14,10 +14,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.plusAssign
 import ktx.app.KtxScreen
-import ktx.collections.GdxSet
-import ktx.collections.component1
-import ktx.collections.component2
-import ktx.collections.set
+import ktx.collections.*
 import misterbander.gframework.layer.GLayer
 import misterbander.gframework.layer.StageLayer
 import misterbander.gframework.layer.TransitionLayer

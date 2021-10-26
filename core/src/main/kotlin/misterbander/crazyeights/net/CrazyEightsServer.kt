@@ -9,11 +9,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
-import ktx.collections.GdxArray
-import ktx.collections.gdxArrayOf
-import ktx.collections.isNotEmpty
-import ktx.collections.plusAssign
-import ktx.collections.set
+import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.VERSION_STRING

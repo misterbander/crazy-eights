@@ -4,8 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.OrderedMap
 import ktx.actors.isShown
-import ktx.collections.plusAssign
-import ktx.collections.set
+import ktx.collections.*
 import misterbander.gframework.GFramework
 import misterbander.gframework.GScreen
 import misterbander.gframework.scene2d.module.GModule

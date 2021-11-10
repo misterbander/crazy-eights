@@ -213,8 +213,8 @@ private fun simulateGame(
 		val currentPlayerName = agents[currentPlayer]
 		if (game.drawCount == 0 && verbose)
 			println(
-				"$currentPlayerName's (${game.currentPlayerHand.size}) turn! ${game.currentPlayerHand.map { card -> card.toFriendlyString() }}\n"
-					+ "Top card = ${game.topCard.toFriendlyString()}\n"
+				"$currentPlayerName's (${game.currentPlayerHand.size}) turn! ${game.currentPlayerHand.map { it.name }}\n"
+					+ "Top card = ${game.topCard.name}\n"
 					+ "Draw stack = ${game.drawStack.size}"
 			)
 		val move = currentPlayer.getMove(game)

@@ -9,7 +9,7 @@ class ManualAgent : Agent
 	override fun getMove(state: GameState): Move
 	{
 		val moves = state.moves
-		println("Your hand:       ${state.currentPlayerHand.map { card -> card.toFriendlyString() }}")
+		println("Your hand:       ${state.currentPlayerHand.map { it.name }}")
 		println("Available moves:")
 		moves.forEachIndexed { index, move -> println("\t$index: $move") }
 		if (state.declaredSuit != null)

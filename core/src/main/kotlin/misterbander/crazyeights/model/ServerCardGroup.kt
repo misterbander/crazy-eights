@@ -38,7 +38,10 @@ data class ServerCardGroup(
 		card.cardGroupId = -1
 	}
 	
-	override fun toString(): String = "ServerCardGroup(id=$id, x=$x, y=$y, rotation=$rotation, cards=(${cards.size}), type=$type, lockholder=$lockHolder)"
+	override fun toString(): String =
+		"ServerCardGroup(id=$id, x=$x, y=$y, rotation=$rotation, cards(${cards.size})=${
+			cards.joinToString(prefix = "[", postfix = "]", limit = 10) { it.name }
+		}, type=$type, lockholder=$lockHolder)"
 	
 	enum class Type
 	{

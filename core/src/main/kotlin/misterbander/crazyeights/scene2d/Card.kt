@@ -48,7 +48,8 @@ class Card(
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
 {
-	private val faceUpDrawable: Drawable = Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "cardjoker" else "card${suit}${rank}"]
+	private val faceUpDrawable: Drawable =
+		Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "cardjoker" else "card${suit.name.lowercase()}${if (rank == Rank.ACE || rank == Rank.JACK || rank == Rank.QUEEN || rank == Rank.KING) rank.name.lowercase() else rank}"]
 	private val faceDownDrawable: Drawable = Scene2DSkin.defaultSkin["cardbackred"]
 	private val cardImage = scene2d.image(if (isFaceUp) faceUpDrawable else faceDownDrawable) {
 		setPosition(0F, 0F, Align.center)
@@ -148,12 +149,23 @@ class Card(
 		if (cardGroup.children.size > 2)
 		{
 			cardGroup -= this@Card
-			game.client?.apply { outgoingPacketBuffer += CardGroupChangedEvent(intArrayOf(id), -1, game.user.username) }
+			game.client?.apply {
+				outgoingPacketBuffer += CardGroupChangedEvent(
+					intArrayOf(id),
+					-1,
+					game.user.username
+				)
+			}
 		}
 		else
 		{
 			cardGroup.dismantle()
-			game.client?.apply { outgoingPacketBuffer += CardGroupDismantledEvent(cardGroup.id, game.user.username) }
+			game.client?.apply {
+				outgoingPacketBuffer += CardGroupDismantledEvent(
+					cardGroup.id,
+					game.user.username
+				)
+			}
 		}
 	}
 	
@@ -169,12 +181,20 @@ class Card(
 		draggable.unrotatedDragPositionVec.rotateDeg(deltaRotation)
 	}
 	
-	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup
-
+	override fun canAccept(gObject: GObject<CrazyEights>): Boolean =
+		gObject is Card || gObject is CardGroup
+	
 	override fun accept(gObject: GObject<CrazyEights>)
 	{
 		if (gObject is Card)
-			game.client?.apply { outgoingPacketBuffer += CardGroupCreatedEvent(cardIds = intArrayOf(id, gObject.id)) }
+			game.client?.apply {
+				outgoingPacketBuffer += CardGroupCreatedEvent(
+					cardIds = intArrayOf(
+						id,
+						gObject.id
+					)
+				)
+			}
 		else if (gObject is CardGroup)
 		{
 			val cardIds = GdxIntArray().apply { add(id) }
@@ -191,7 +211,7 @@ class Card(
 		}
 	}
 	
-	override fun toString(): String = "Card(id=$id, rank=$rank, suit=$suit, parentId=${cardGroup?.id})"
+	override fun toString(): String = "Card($rank$suit, id=$id, parentId=${cardGroup?.id})"
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

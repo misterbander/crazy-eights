@@ -13,23 +13,19 @@ data class ServerCard(
 {
 	var cardGroupId: Int = -1
 	
-	fun toFriendlyString(): String = "${rank.toSymbol()}${suit.toSymbol()}"
+	val name: String = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
+	
+	override fun toString(): String = "ServerCard($name, id=$id, x=$x, y=$y, rotation=$rotation, isFaceUp=$isFaceUp, lockHolder=$lockHolder)"
 	
 	enum class Rank
 	{
 		NO_RANK, ACE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING;
 		
-		override fun toString(): String
+		override fun toString(): String = when (this)
 		{
-			if (this == NO_RANK)
-				return ""
-			return if (this == ACE || this == JACK || this == QUEEN || this == KING) super.toString().lowercase() else ordinal.toString()
-		}
-		
-		fun toSymbol(): String = when (this)
-		{
-			ACE, JACK, QUEEN, KING -> toString()[0].toString().uppercase()
-			else -> toString()
+			NO_RANK -> "?"
+			ACE, JACK, QUEEN, KING -> name[0].toString()
+			else -> ordinal.toString()
 		}
 	}
 	
@@ -37,15 +33,14 @@ data class ServerCard(
 	{
 		NO_SUIT, DIAMONDS, CLUBS, HEARTS, SPADES, JOKER;
 		
-		override fun toString(): String = super.toString().lowercase()
-		
-		fun toSymbol(): String = when (this)
+		override fun toString(): String = when (this)
 		{
+			NO_SUIT -> "?"
 			DIAMONDS -> "♢"
 			CLUBS -> "♣"
 			HEARTS -> "♡"
 			SPADES -> "♠"
-			else -> "?"
+			JOKER -> "JOKER"
 		}
 	}
 }

@@ -28,8 +28,9 @@ class Debug(private val room: Room) : GObject<CrazyEights>(room)
 		if (!isVisible)
 			return
 		
-		val serverObjectList = game.server?.let { server -> server.state.serverObjects.map { "\n    $it" } } ?: GdxArray()
-		val serverObjectsDebug = "Server objects (${serverObjectList.size}):\n$serverObjectList"
+		val serverObjects = game.server?.state?.serverObjects
+		val serverObjectsStr = serverObjects?.joinToString(separator = ",\n", prefix = "[\n", postfix = "\n]") { "    $it" } ?: ""
+		val serverObjectsDebug = "Server objects (${serverObjects?.size ?: 0}):\n$serverObjectsStr"
 		
 		// View all objects locked by the user
 		lockedObjects.clear()

@@ -10,12 +10,12 @@ sealed class Move
 
 data class PlayMove(val card: ServerCard) : Move()
 {
-	override fun toString(): String = "PLAY [${card.toFriendlyString()}]"
+	override fun toString(): String = "PLAY [${card.name}]"
 }
 
 data class ChangeSuitMove(val card: ServerCard, val declaredSuit: Suit) : Move()
 {
-	override fun toString(): String = "PLAY [${card.toFriendlyString()} -> ${declaredSuit.toSymbol()}]"
+	override fun toString(): String = "PLAY [${card.name} -> $declaredSuit]"
 }
 
 object DrawMove : Move()

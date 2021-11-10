@@ -24,4 +24,6 @@ dependencies {
 	api "io.github.libktx:ktx-scene2d:$ktxScene2DVersion"
 	api "io.github.libktx:ktx-style:$ktxStyleVersion"
 	api "space.earlygrey:shapedrawer:$shapeDrawerVersion"
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }

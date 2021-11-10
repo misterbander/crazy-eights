@@ -13,6 +13,8 @@ data class ServerCard(
 {
 	var cardGroupId: Int = -1
 	
+	fun toFriendlyString(): String = "${rank.toSymbol()}${suit.toSymbol()}"
+	
 	enum class Rank
 	{
 		NO_RANK, ACE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING;
@@ -23,6 +25,12 @@ data class ServerCard(
 				return ""
 			return if (this == ACE || this == JACK || this == QUEEN || this == KING) super.toString().lowercase() else ordinal.toString()
 		}
+		
+		fun toSymbol(): String = when (this)
+		{
+			ACE, JACK, QUEEN, KING -> toString()[0].toString().uppercase()
+			else -> toString()
+		}
 	}
 	
 	enum class Suit
@@ -30,5 +38,14 @@ data class ServerCard(
 		NO_SUIT, DIAMONDS, CLUBS, HEARTS, SPADES, JOKER;
 		
 		override fun toString(): String = super.toString().lowercase()
+		
+		fun toSymbol(): String = when (this)
+		{
+			DIAMONDS -> "♢"
+			CLUBS -> "♣"
+			HEARTS -> "♡"
+			SPADES -> "♠"
+			else -> "?"
+		}
 	}
 }

@@ -38,7 +38,8 @@ data class CardGroupChangedEvent(
 {
 	override fun equals(other: Any?): Boolean
 	{
-		if (this === other) return true
+		if (this === other)
+			return true
 		if (javaClass != other?.javaClass)
 			return false
 		
@@ -64,4 +65,4 @@ data class CardGroupChangedEvent(
 }
 
 @NoArg
-data class CardGroupDismantledEvent(val id: Int, val dismantlerUsername: String)
+data class CardGroupDismantledEvent(val id: Int)

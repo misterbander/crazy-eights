@@ -164,7 +164,6 @@ open class Rotatable(
 						id = lockable.id
 						x = newX
 						y = newY
-						moverUsername = game.user.username
 					}
 					outgoingPacketBuffer += objectMovedEvent
 				}
@@ -194,7 +193,6 @@ open class Rotatable(
 			objectRotatedEvent.apply {
 				id = lockable.id
 				this.rotation = smoothMovable.rotationInterpolator.target
-				rotatorUsername = game.user.username
 			}
 			outgoingPacketBuffer += objectRotatedEvent
 		}

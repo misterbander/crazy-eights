@@ -222,14 +222,14 @@ class CrazyEightsServer
 				{
 					val (id, x, y) = `object`
 					idToObjectMap[id].apply { this.x = x; this.y = y }
-					server.sendToAllTCP(`object`)
+					server.sendToAllExceptTCP(connection.id, `object`)
 					objectMovedEventPool.free(`object`)
 				}
 				is ObjectRotatedEvent ->
 				{
 					val (id, rotation) = `object`
 					idToObjectMap[id].rotation = rotation
-					server.sendToAllTCP(`object`)
+					server.sendToAllExceptTCP(connection.id, `object`)
 					objectRotatedEventPool.free(`object`)
 				}
 				is FlipCardEvent ->
@@ -269,7 +269,7 @@ class CrazyEightsServer
 						setServerCardGroup(card.id, -1)
 					}
 					state.serverObjects.removeValue(cardGroup, true)
-					server.sendToAllTCP(`object`)
+					server.sendToAllExceptTCP(connection.id, `object`)
 				}
 			}
 		}

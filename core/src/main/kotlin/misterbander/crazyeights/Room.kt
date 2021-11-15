@@ -352,16 +352,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is ObjectUnlockEvent -> idToGObjectMap[packet.id].getModule<Lockable>()?.unlock()
 				is ObjectMovedEvent ->
 				{
-					val (id, x, y, moverUsername) = packet
-					if (game.user.username != moverUsername)
-						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+					val (id, x, y) = packet
+					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
 					objectMovedEventPool.free(packet)
 				}
 				is ObjectRotatedEvent ->
 				{
-					val (id, rotation, rotatorUsername) = packet
-					if (game.user.username != rotatorUsername)
-						idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+					val (id, rotation) = packet
+					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
 					objectRotatedEventPool.free(packet)
 				}
 				is FlipCardEvent ->
@@ -397,12 +395,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 						}
 					}
 				}
-				is CardGroupDismantledEvent ->
-				{
-					val (id, dismantlerUsername) = packet
-					if (dismantlerUsername != game.user.username)
-						(idToGObjectMap[id] as CardGroup).dismantle()
-				}
+				is CardGroupDismantledEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
 			}
 		}
 	}

@@ -68,7 +68,6 @@ open class Draggable(
 						id = lockable.id
 						this.x = newX
 						this.y = newY
-						moverUsername = game.user.username
 					}
 					outgoingPacketBuffer += objectMovedEvent
 				}

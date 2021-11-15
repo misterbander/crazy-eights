@@ -1,3 +1,6 @@
 package misterbander.crazyeights.net.packets
 
-data class FlipCardEvent(val id: Int = -1)
+import misterbander.crazyeights.model.NoArg
+
+@NoArg
+data class FlipCardEvent(val id: Int)

@@ -27,3 +27,9 @@ dependencies {
 	testImplementation 'junit:junit:4.13.2'
 	testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
+
+apply plugin: 'kotlin-noarg'
+
+noArg {
+	annotation("misterbander.crazyeights.model.NoArg")
+}

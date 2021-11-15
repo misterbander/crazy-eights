@@ -1,5 +1,7 @@
 package misterbander.crazyeights.net.packets
 
+import misterbander.crazyeights.model.NoArg
+
 data class CardGroupCreatedEvent(val id: Int = -1, val cardIds: IntArray = intArrayOf())
 {
 	override fun equals(other: Any?): Boolean
@@ -27,10 +29,11 @@ data class CardGroupCreatedEvent(val id: Int = -1, val cardIds: IntArray = intAr
 	}
 }
 
+@NoArg
 data class CardGroupChangedEvent(
-	val cardIds: IntArray = intArrayOf(),
-	val newCardGroupId: Int = -1,
-	val changerUsername: String = ""
+	val cardIds: IntArray,
+	val newCardGroupId: Int,
+	val changerUsername: String
 )
 {
 	override fun equals(other: Any?): Boolean
@@ -60,4 +63,5 @@ data class CardGroupChangedEvent(
 	}
 }
 
-data class CardGroupDismantledEvent(val id: Int = -1, val dismantlerUsername: String = "")
+@NoArg
+data class CardGroupDismantledEvent(val id: Int, val dismantlerUsername: String)

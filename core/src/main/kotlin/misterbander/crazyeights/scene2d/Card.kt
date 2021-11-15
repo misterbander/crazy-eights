@@ -150,21 +150,14 @@ class Card(
 		{
 			cardGroup -= this@Card
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupChangedEvent(
-					intArrayOf(id),
-					-1,
-					game.user.username
-				)
+				outgoingPacketBuffer += CardGroupChangedEvent(intArrayOf(id), -1, game.user.username)
 			}
 		}
 		else
 		{
 			cardGroup.dismantle()
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantledEvent(
-					cardGroup.id,
-					game.user.username
-				)
+				outgoingPacketBuffer += CardGroupDismantledEvent(cardGroup.id, game.user.username)
 			}
 		}
 	}
@@ -205,7 +198,7 @@ class Card(
 			}
 			gObject.dismantle()
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantledEvent(gObject.id)
+				outgoingPacketBuffer += CardGroupDismantledEvent(gObject.id, game.user.username)
 				outgoingPacketBuffer += CardGroupCreatedEvent(cardIds = cardIds.toArray())
 			}
 		}

@@ -1,7 +1,10 @@
 package misterbander.crazyeights.net.packets
 
+import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.User
 
-data class UserJoinEvent(val user: User = User())
+@NoArg
+data class UserJoinEvent(val user: User)
 
-data class UserLeaveEvent(val user: User = User())
+@NoArg
+data class UserLeaveEvent(val user: User)

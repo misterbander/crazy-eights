@@ -82,7 +82,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		onKey { character ->
 			if ((character == '\r' || character == '\n') && text.isNotEmpty())
 			{
-				game.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text", false))
+				game.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text"))
 				text = ""
 				uiStage.keyboardFocus = null
 				uiStage.scrollFocus = null

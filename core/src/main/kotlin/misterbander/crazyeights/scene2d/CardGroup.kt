@@ -103,7 +103,7 @@ class CardGroup(
 			}
 			gObject.dismantle()
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantledEvent(gObject.id)
+				outgoingPacketBuffer += CardGroupDismantledEvent(gObject.id, game.user.username)
 				outgoingPacketBuffer += CardGroupChangedEvent(cardIds.toArray(), id, game.user.username)
 			}
 		}

@@ -10,8 +10,8 @@ import ktx.math.component2
 import ktx.math.vec2
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.net.objectMovedEventPool
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
+import misterbander.crazyeights.net.objectMoveEventPool
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.scene2d.DragTarget
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
@@ -62,14 +62,14 @@ open class Draggable(
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				game.client?.apply {
-					val objectMovedEvent = removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
-						?: objectMovedEventPool.obtain()!!
-					objectMovedEvent.apply {
+					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
+						?: objectMoveEventPool.obtain()!!
+					objectMoveEvent.apply {
 						id = lockable.id
 						this.x = newX
 						this.y = newY
 					}
-					outgoingPacketBuffer += objectMovedEvent
+					outgoingPacketBuffer += objectMoveEvent
 				}
 				
 				currentDragTarget?.highlightable?.forceHighlight = false

@@ -8,8 +8,8 @@ import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
-import misterbander.crazyeights.net.packets.ObjectRotatedEvent
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectRotateEvent
 
 class CrazyEightsClient
 {
@@ -56,10 +56,10 @@ class CrazyEightsClient
 		for (packet: Any in outgoingPacketBuffer)
 		{
 			sendTCP(packet)
-			if (packet is ObjectMovedEvent)
-				objectMovedEventPool.free(packet)
-			else if (packet is ObjectRotatedEvent)
-				objectRotatedEventPool.free(packet)
+			if (packet is ObjectMoveEvent)
+				objectMoveEventPool.free(packet)
+			else if (packet is ObjectRotateEvent)
+				objectRotateEventPool.free(packet)
 		}
 		outgoingPacketBuffer.clear()
 	}

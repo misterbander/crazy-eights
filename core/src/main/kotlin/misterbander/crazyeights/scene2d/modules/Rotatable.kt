@@ -9,10 +9,10 @@ import ktx.math.component2
 import ktx.math.minusAssign
 import ktx.math.vec2
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.net.objectMovedEventPool
-import misterbander.crazyeights.net.objectRotatedEventPool
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
-import misterbander.crazyeights.net.packets.ObjectRotatedEvent
+import misterbander.crazyeights.net.objectMoveEventPool
+import misterbander.crazyeights.net.objectRotateEventPool
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
@@ -158,14 +158,14 @@ open class Rotatable(
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
 				game.client?.apply {
-					val objectMovedEvent = removeFromOutgoingPacketBuffer<ObjectMovedEvent> { it.id == lockable.id }
-						?: objectMovedEventPool.obtain()!!
-					objectMovedEvent.apply {
+					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
+						?: objectMoveEventPool.obtain()!!
+					objectMoveEvent.apply {
 						id = lockable.id
 						x = newX
 						y = newY
 					}
-					outgoingPacketBuffer += objectMovedEvent
+					outgoingPacketBuffer += objectMoveEvent
 				}
 			}
 		})
@@ -188,13 +188,13 @@ open class Rotatable(
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
 		game.client?.apply {
-			val objectRotatedEvent = removeFromOutgoingPacketBuffer<ObjectRotatedEvent> { it.id == lockable.id }
-				?: objectRotatedEventPool.obtain()!!
-			objectRotatedEvent.apply {
+			val objectRotateEvent = removeFromOutgoingPacketBuffer<ObjectRotateEvent> { it.id == lockable.id }
+				?: objectRotateEventPool.obtain()!!
+			objectRotateEvent.apply {
 				id = lockable.id
 				this.rotation = smoothMovable.rotationInterpolator.target
 			}
-			outgoingPacketBuffer += objectRotatedEvent
+			outgoingPacketBuffer += objectRotateEvent
 		}
 	}
 }

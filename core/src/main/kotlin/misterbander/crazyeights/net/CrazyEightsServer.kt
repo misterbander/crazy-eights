@@ -23,18 +23,18 @@ import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.packets.CardGroupChangedEvent
-import misterbander.crazyeights.net.packets.CardGroupCreatedEvent
-import misterbander.crazyeights.net.packets.CardGroupDismantledEvent
-import misterbander.crazyeights.net.packets.FlipCardEvent
+import misterbander.crazyeights.net.packets.CardFlipEvent
+import misterbander.crazyeights.net.packets.CardGroupChangeEvent
+import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
 import misterbander.crazyeights.net.packets.ObjectLockEvent
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
-import misterbander.crazyeights.net.packets.ObjectRotatedEvent
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
-import misterbander.crazyeights.net.packets.UserJoinEvent
-import misterbander.crazyeights.net.packets.UserLeaveEvent
+import misterbander.crazyeights.net.packets.UserJoinedEvent
+import misterbander.crazyeights.net.packets.UserLeftEvent
 
 class CrazyEightsServer
 {
@@ -139,7 +139,7 @@ class CrazyEightsServer
 					if (serverObject is ServerLockable && serverObject.lockHolder == user)
 						serverObject.lockHolder = null
 				}
-				server.sendToAllTCP(UserLeaveEvent(user))
+				server.sendToAllTCP(UserLeftEvent(user))
 				info("Server | INFO") { "${user.username} left the game" }
 			}
 		}
@@ -184,7 +184,7 @@ class CrazyEightsServer
 					connection.arbitraryData = `object`
 					state.users[`object`.username] = `object`
 					connection.sendTCP(state)
-					server.sendToAllTCP(UserJoinEvent(`object`))
+					server.sendToAllTCP(UserJoinedEvent(`object`))
 					info("Server | INFO") { "${`object`.username} joined the game" }
 				}
 				is Chat -> server.sendToAllTCP(`object`)
@@ -218,27 +218,27 @@ class CrazyEightsServer
 						server.sendToAllTCP(`object`)
 					}
 				}
-				is ObjectMovedEvent ->
+				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = `object`
 					idToObjectMap[id].apply { this.x = x; this.y = y }
 					server.sendToAllExceptTCP(connection.id, `object`)
-					objectMovedEventPool.free(`object`)
+					objectMoveEventPool.free(`object`)
 				}
-				is ObjectRotatedEvent ->
+				is ObjectRotateEvent ->
 				{
 					val (id, rotation) = `object`
 					idToObjectMap[id].rotation = rotation
 					server.sendToAllExceptTCP(connection.id, `object`)
-					objectRotatedEventPool.free(`object`)
+					objectRotateEventPool.free(`object`)
 				}
-				is FlipCardEvent ->
+				is CardFlipEvent ->
 				{
 					val card = idToObjectMap[`object`.id] as ServerCard
 					card.isFaceUp = !card.isFaceUp
 					server.sendToAllTCP(`object`)
 				}
-				is CardGroupCreatedEvent ->
+				is CardGroupCreateEvent ->
 				{
 					val cards = GdxArray<ServerCard>()
 					`object`.cardIds.forEach { cards += idToObjectMap[it] as ServerCard }
@@ -254,13 +254,13 @@ class CrazyEightsServer
 					
 					server.sendToAllTCP(`object`.copy(id = cardGroup.id))
 				}
-				is CardGroupChangedEvent ->
+				is CardGroupChangeEvent ->
 				{
 					val (cardIds, newCardGroupId) = `object`
 					cardIds.forEach { setServerCardGroup(it, newCardGroupId) }
 					server.sendToAllTCP(`object`)
 				}
-				is CardGroupDismantledEvent ->
+				is CardGroupDismantleEvent ->
 				{
 					val cardGroup = idToObjectMap[`object`.id] as ServerCardGroup
 					while (cardGroup.cards.isNotEmpty())

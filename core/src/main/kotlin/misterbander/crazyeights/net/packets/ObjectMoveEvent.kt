@@ -2,14 +2,16 @@ package misterbander.crazyeights.net.packets
 
 import misterbander.crazyeights.net.KryoPoolable
 
-data class ObjectRotatedEvent(
+data class ObjectMoveEvent(
 	var id: Int = -1,
-	var rotation: Float = 0F,
+	var x: Float = 0F,
+	var y: Float = 0F
 ) : KryoPoolable
 {
 	override fun reset()
 	{
 		id = -1
-		rotation = 0F
+		x = 0F
+		y = 0F
 	}
 }

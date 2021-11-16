@@ -2,7 +2,7 @@ package misterbander.crazyeights.net.packets
 
 import misterbander.crazyeights.model.NoArg
 
-data class CardGroupCreatedEvent(val id: Int = -1, val cardIds: IntArray = intArrayOf())
+data class CardGroupCreateEvent(val id: Int = -1, val cardIds: IntArray = intArrayOf())
 {
 	override fun equals(other: Any?): Boolean
 	{
@@ -11,7 +11,7 @@ data class CardGroupCreatedEvent(val id: Int = -1, val cardIds: IntArray = intAr
 		if (javaClass != other?.javaClass)
 			return false
 		
-		other as CardGroupCreatedEvent
+		other as CardGroupCreateEvent
 		
 		if (id != other.id)
 			return false
@@ -30,7 +30,7 @@ data class CardGroupCreatedEvent(val id: Int = -1, val cardIds: IntArray = intAr
 }
 
 @NoArg
-data class CardGroupChangedEvent(
+data class CardGroupChangeEvent(
 	val cardIds: IntArray,
 	val newCardGroupId: Int,
 	val changerUsername: String
@@ -43,7 +43,7 @@ data class CardGroupChangedEvent(
 		if (javaClass != other?.javaClass)
 			return false
 		
-		other as CardGroupChangedEvent
+		other as CardGroupChangeEvent
 		
 		if (!cardIds.contentEquals(other.cardIds))
 			return false
@@ -65,4 +65,4 @@ data class CardGroupChangedEvent(
 }
 
 @NoArg
-data class CardGroupDismantledEvent(val id: Int)
+data class CardGroupDismantleEvent(val id: Int)

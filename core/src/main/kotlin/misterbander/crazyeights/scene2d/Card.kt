@@ -96,7 +96,7 @@ class Card(
 	val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
-			get() = cardGroup == null || !UIUtils.shift()
+			get() = cardGroup == null || !cardGroup!!.lockable.justLongPressed && !UIUtils.shift()
 		
 		override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)
 		{

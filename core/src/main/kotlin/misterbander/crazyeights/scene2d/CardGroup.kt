@@ -9,8 +9,8 @@ import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.packets.CardGroupChangedEvent
-import misterbander.crazyeights.net.packets.CardGroupDismantledEvent
+import misterbander.crazyeights.net.packets.CardGroupChangeEvent
+import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -92,7 +92,7 @@ class CardGroup(
 	override fun accept(gObject: GObject<CrazyEights>)
 	{
 		if (gObject is Card)
-			game.client?.apply { outgoingPacketBuffer += CardGroupChangedEvent(intArrayOf(gObject.id), id, game.user.username) }
+			game.client?.apply { outgoingPacketBuffer += CardGroupChangeEvent(intArrayOf(gObject.id), id, game.user.username) }
 		else if (gObject is CardGroup)
 		{
 			val cardIds = GdxIntArray()
@@ -103,8 +103,8 @@ class CardGroup(
 			}
 			gObject.dismantle()
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantledEvent(gObject.id)
-				outgoingPacketBuffer += CardGroupChangedEvent(cardIds.toArray(), id, game.user.username)
+				outgoingPacketBuffer += CardGroupDismantleEvent(gObject.id)
+				outgoingPacketBuffer += CardGroupChangeEvent(cardIds.toArray(), id, game.user.username)
 			}
 		}
 	}

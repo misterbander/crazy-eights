@@ -4,7 +4,7 @@ import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.User
 
 @NoArg
-data class UserJoinEvent(val user: User)
+data class UserJoinedEvent(val user: User)
 
 @NoArg
-data class UserLeaveEvent(val user: User)
+data class UserLeftEvent(val user: User)

@@ -12,18 +12,18 @@ import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.packets.CardGroupChangedEvent
-import misterbander.crazyeights.net.packets.CardGroupCreatedEvent
-import misterbander.crazyeights.net.packets.CardGroupDismantledEvent
-import misterbander.crazyeights.net.packets.FlipCardEvent
+import misterbander.crazyeights.net.packets.CardFlipEvent
+import misterbander.crazyeights.net.packets.CardGroupChangeEvent
+import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
 import misterbander.crazyeights.net.packets.ObjectLockEvent
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
-import misterbander.crazyeights.net.packets.ObjectRotatedEvent
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
-import misterbander.crazyeights.net.packets.UserJoinEvent
-import misterbander.crazyeights.net.packets.UserLeaveEvent
+import misterbander.crazyeights.net.packets.UserJoinedEvent
+import misterbander.crazyeights.net.packets.UserLeftEvent
 
 fun Kryo.registerClasses()
 {
@@ -37,8 +37,8 @@ fun Kryo.registerClasses()
 	register(User::class.java)
 	register(Color::class.java)
 	register(Chat::class.java)
-	register(UserJoinEvent::class.java)
-	register(UserLeaveEvent::class.java)
+	register(UserJoinedEvent::class.java)
+	register(UserLeftEvent::class.java)
 	register(TabletopState::class.java)
 	register(CursorPosition::class.java).setInstantiator { cursorPositionPool.obtain() }
 	register(ServerCard::class.java)
@@ -48,10 +48,10 @@ fun Kryo.registerClasses()
 	register(ServerCardGroup.Type::class.java)
 	register(ObjectLockEvent::class.java)
 	register(ObjectUnlockEvent::class.java)
-	register(ObjectMovedEvent::class.java).setInstantiator { objectMovedEventPool.obtain() }
-	register(ObjectRotatedEvent::class.java).setInstantiator { objectRotatedEventPool.obtain() }
-	register(FlipCardEvent::class.java)
-	register(CardGroupCreatedEvent::class.java)
-	register(CardGroupChangedEvent::class.java)
-	register(CardGroupDismantledEvent::class.java)
+	register(ObjectMoveEvent::class.java).setInstantiator { objectMoveEventPool.obtain() }
+	register(ObjectRotateEvent::class.java).setInstantiator { objectRotateEventPool.obtain() }
+	register(CardFlipEvent::class.java)
+	register(CardGroupCreateEvent::class.java)
+	register(CardGroupChangeEvent::class.java)
+	register(CardGroupDismantleEvent::class.java)
 }

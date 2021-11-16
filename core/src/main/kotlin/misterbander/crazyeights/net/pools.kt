@@ -3,8 +3,8 @@ package misterbander.crazyeights.net
 import com.esotericsoftware.kryo.util.Pool
 import ktx.log.debug
 import misterbander.crazyeights.model.CursorPosition
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
-import misterbander.crazyeights.net.packets.ObjectRotatedEvent
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectRotateEvent
 
 typealias KryoPool<T> = Pool<T>
 
@@ -24,5 +24,5 @@ inline fun <reified Type> kryoPool(crossinline provider: () -> Type): KryoPool<T
 	}
 
 val cursorPositionPool = kryoPool { CursorPosition() }
-val objectMovedEventPool = kryoPool { ObjectMovedEvent() }
-val objectRotatedEventPool = kryoPool { ObjectRotatedEvent() }
+val objectMoveEventPool = kryoPool { ObjectMoveEvent() }
+val objectRotateEventPool = kryoPool { ObjectRotateEvent() }

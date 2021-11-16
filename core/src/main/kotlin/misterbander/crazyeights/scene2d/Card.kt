@@ -22,10 +22,10 @@ import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.packets.CardGroupChangedEvent
-import misterbander.crazyeights.net.packets.CardGroupCreatedEvent
-import misterbander.crazyeights.net.packets.CardGroupDismantledEvent
-import misterbander.crazyeights.net.packets.FlipCardEvent
+import misterbander.crazyeights.net.packets.CardFlipEvent
+import misterbander.crazyeights.net.packets.CardGroupChangeEvent
+import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.scene2d.modules.Draggable
@@ -88,7 +88,7 @@ class Card(
 		override fun unlock()
 		{
 			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
-				game.client?.sendTCP(FlipCardEvent(id))
+				game.client?.sendTCP(CardFlipEvent(id))
 			cardGroup?.arrange()
 			super.unlock()
 		}
@@ -150,14 +150,14 @@ class Card(
 		{
 			cardGroup -= this@Card
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupChangedEvent(intArrayOf(id), -1, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(intArrayOf(id), -1, game.user.username)
 			}
 		}
 		else
 		{
 			cardGroup.dismantle()
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantledEvent(cardGroup.id)
+				outgoingPacketBuffer += CardGroupDismantleEvent(cardGroup.id)
 			}
 		}
 	}
@@ -181,7 +181,7 @@ class Card(
 	{
 		if (gObject is Card)
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupCreatedEvent(
+				outgoingPacketBuffer += CardGroupCreateEvent(
 					cardIds = intArrayOf(
 						id,
 						gObject.id
@@ -198,8 +198,8 @@ class Card(
 			}
 			gObject.dismantle()
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantledEvent(gObject.id)
-				outgoingPacketBuffer += CardGroupCreatedEvent(cardIds = cardIds.toArray())
+				outgoingPacketBuffer += CardGroupDismantleEvent(gObject.id)
+				outgoingPacketBuffer += CardGroupCreateEvent(cardIds = cardIds.toArray())
 			}
 		}
 	}

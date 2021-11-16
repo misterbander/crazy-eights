@@ -36,18 +36,18 @@ import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.net.BufferedListener
 import misterbander.crazyeights.net.cursorPositionPool
-import misterbander.crazyeights.net.objectMovedEventPool
-import misterbander.crazyeights.net.objectRotatedEventPool
-import misterbander.crazyeights.net.packets.CardGroupChangedEvent
-import misterbander.crazyeights.net.packets.CardGroupCreatedEvent
-import misterbander.crazyeights.net.packets.CardGroupDismantledEvent
-import misterbander.crazyeights.net.packets.FlipCardEvent
+import misterbander.crazyeights.net.objectMoveEventPool
+import misterbander.crazyeights.net.objectRotateEventPool
+import misterbander.crazyeights.net.packets.CardFlipEvent
+import misterbander.crazyeights.net.packets.CardGroupChangeEvent
+import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
-import misterbander.crazyeights.net.packets.ObjectMovedEvent
-import misterbander.crazyeights.net.packets.ObjectRotatedEvent
+import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
-import misterbander.crazyeights.net.packets.UserJoinEvent
-import misterbander.crazyeights.net.packets.UserLeaveEvent
+import misterbander.crazyeights.net.packets.UserJoinedEvent
+import misterbander.crazyeights.net.packets.UserLeftEvent
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
@@ -317,14 +317,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			val idToGObjectMap = tabletop.idToGObjectMap
 			when (packet)
 			{
-				is UserJoinEvent ->
+				is UserJoinedEvent ->
 				{
 					val user = packet.user
 					if (user != game.user)
 						tabletop += user
 					chat("${user.username} joined the game", Color.YELLOW)
 				}
-				is UserLeaveEvent ->
+				is UserLeftEvent ->
 				{
 					val user = packet.user
 					tabletop -= user
@@ -350,24 +350,24 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
 				}
 				is ObjectUnlockEvent -> idToGObjectMap[packet.id].getModule<Lockable>()?.unlock()
-				is ObjectMovedEvent ->
+				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = packet
 					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
-					objectMovedEventPool.free(packet)
+					objectMoveEventPool.free(packet)
 				}
-				is ObjectRotatedEvent ->
+				is ObjectRotateEvent ->
 				{
 					val (id, rotation) = packet
 					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
-					objectRotatedEventPool.free(packet)
+					objectRotateEventPool.free(packet)
 				}
-				is FlipCardEvent ->
+				is CardFlipEvent ->
 				{
 					val card = idToGObjectMap[packet.id] as Card
 					card.isFaceUp = !card.isFaceUp
 				}
-				is CardGroupCreatedEvent ->
+				is CardGroupCreateEvent ->
 				{
 					val (id, cardIds) = packet
 					val cards = GdxArray<Card>()
@@ -381,7 +381,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					cards.forEach { cardGroup += it }
 					idToGObjectMap[id] = cardGroup
 				}
-				is CardGroupChangedEvent ->
+				is CardGroupChangeEvent ->
 				{
 					val (cardIds, newCardGroupId, changerUsername) = packet
 					if (changerUsername != game.user.username || newCardGroupId != -1)
@@ -395,7 +395,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 						}
 					}
 				}
-				is CardGroupDismantledEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
+				is CardGroupDismantleEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
 			}
 		}
 	}

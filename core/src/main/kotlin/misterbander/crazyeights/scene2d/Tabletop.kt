@@ -90,7 +90,7 @@ class Tabletop(private val room: Room)
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values())
 		{
 			val lockable = gObject.getModule<Lockable>()
-			if (lockable != null && lockable.isLockHolder)
+			if (lockable != null && lockable.lockHolder == user)
 				lockable.unlock()
 		}
 	}

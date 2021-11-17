@@ -19,6 +19,7 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
+import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.TabletopState
@@ -26,6 +27,7 @@ import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
@@ -41,8 +43,7 @@ import misterbander.crazyeights.net.packets.UserLeftEvent
 
 class CrazyEightsServer
 {
-	private var newId = 0
-		get() = field++
+	private var maxId = 0
 	private val idToObjectMap = IntMap<ServerObject>()
 	val state = TabletopState()
 	
@@ -55,24 +56,32 @@ class CrazyEightsServer
 	
 	init
 	{
-		addServerObject(ServerCard(newId, x = 30F, y = 40F, rotation = 0F, rank = Rank.FIVE, suit = Suit.HEARTS, isFaceUp = true))
-		addServerObject(ServerCard(newId, x = 900F, y = 400F, rotation = 30F, rank = Rank.TWO, suit = Suit.SPADES, isFaceUp = true))
+		addServerObject(ServerCard(newId(), x = 30F, y = 40F, rotation = 0F, rank = Rank.FIVE, suit = Suit.HEARTS, isFaceUp = true))
+		addServerObject(ServerCard(newId(), x = 900F, y = 400F, rotation = 30F, rank = Rank.TWO, suit = Suit.SPADES, isFaceUp = true))
 		addServerObject(ServerCardGroup(
-			newId, x = 640F, y = 360F, rotation = 0F, cards = gdxArrayOf(
-				ServerCard(newId, suit = Suit.JOKER),
-				ServerCard(newId, rank = Rank.KING, suit = Suit.CLUBS),
-				ServerCard(newId, rank = Rank.QUEEN, suit = Suit.CLUBS),
-				ServerCard(newId, rank = Rank.JACK, suit = Suit.CLUBS),
-				ServerCard(newId, rank = Rank.NINE, suit = Suit.CLUBS),
-				ServerCard(newId, rank = Rank.EIGHT, suit = Suit.CLUBS),
-				ServerCard(newId, rank = Rank.FIVE, suit = Suit.CLUBS),
-				ServerCard(newId, rank = Rank.ACE, suit = Suit.CLUBS)
+			newId(), x = 640F, y = 360F, rotation = 0F, cards = gdxArrayOf(
+				ServerCard(newId(), suit = Suit.JOKER),
+				ServerCard(newId(), rank = Rank.KING, suit = Suit.CLUBS),
+				ServerCard(newId(), rank = Rank.QUEEN, suit = Suit.CLUBS),
+				ServerCard(newId(), rank = Rank.JACK, suit = Suit.CLUBS),
+				ServerCard(newId(), rank = Rank.NINE, suit = Suit.CLUBS),
+				ServerCard(newId(), rank = Rank.EIGHT, suit = Suit.CLUBS),
+				ServerCard(newId(), rank = Rank.FIVE, suit = Suit.CLUBS),
+				ServerCard(newId(), rank = Rank.ACE, suit = Suit.CLUBS)
 			)
 		))
 		addServerObject(ServerCardGroup(
-			newId, x = 800F, y = 400F, rotation = 15F, cards = gdxArrayOf(
-				ServerCard(newId, rank = Rank.KING, suit = Suit.HEARTS),
-				ServerCard(newId, rank = Rank.QUEEN, suit = Suit.HEARTS)
+			newId(), x = 800F, y = 400F, rotation = 15F, cards = gdxArrayOf(
+				ServerCard(newId(), rank = Rank.KING, suit = Suit.HEARTS),
+				ServerCard(newId(), rank = Rank.QUEEN, suit = Suit.HEARTS)
+			)
+		))
+		addServerObject(ServerCardHolder(
+			newId(), x = 800F, y = 100F, rotation = 15F, ServerCardGroup(
+				newId(), cards = gdxArrayOf(
+					ServerCard(newId(), rank = Rank.TWO, suit = Suit.DIAMONDS),
+					ServerCard(newId(), rank = Rank.THREE, suit = Suit.DIAMONDS)
+				)
 			)
 		))
 		
@@ -81,11 +90,18 @@ class CrazyEightsServer
 		debug("Server | DEBUG") { "Server objects = ${state.serverObjects.map { "\n\t$it" }}" }
 	}
 	
+	private fun newId(): Int = maxId++
+	
 	private fun addServerObject(serverObject: ServerObject, insertAtIndex: Int = -1)
 	{
 		idToObjectMap[serverObject.id] = serverObject
 		if (serverObject is ServerCardGroup)
 			serverObject.cards.forEach { idToObjectMap[it.id] = it }
+		else if (serverObject is ServerCardHolder)
+		{
+			idToObjectMap[serverObject.cardGroup.id] = serverObject.cardGroup
+			serverObject.cardGroup.cards.forEach { idToObjectMap[it.id] = it }
+		}
 		if (insertAtIndex != -1)
 			state.serverObjects.insert(insertAtIndex, serverObject)
 		else
@@ -179,6 +195,8 @@ class CrazyEightsServer
 					ktx.log.error("Server | ERROR") { "$connection attempted to send objects before handshake" }
 				return
 			}
+			
+			state.updateDebugStrings()
 			
 			when (`object`)
 			{
@@ -277,7 +295,7 @@ class CrazyEightsServer
 					`object`.cardIds.forEach { cards += idToObjectMap[it] as ServerCard }
 					
 					val (_, firstX, firstY, firstRotation) = cards[0]
-					val cardGroup = ServerCardGroup(newId, firstX, firstY, firstRotation, cards)
+					val cardGroup = ServerCardGroup(newId(), firstX, firstY, firstRotation, cards)
 					addServerObject(cardGroup, state.serverObjects.indexOf(cards[0], true))
 					for (card: ServerCard in cards)
 					{
@@ -292,6 +310,20 @@ class CrazyEightsServer
 					val (cardIds, newCardGroupId) = `object`
 					cardIds.forEach { setServerCardGroup(it, newCardGroupId) }
 					server.sendToAllTCP(`object`)
+				}
+				is CardGroupDetachEvent ->
+				{
+					val (cardHolderId, _, changerUsername) = `object`
+					val cardHolder = idToObjectMap[cardHolderId] as ServerCardHolder
+					val cardGroup = cardHolder.cardGroup
+					cardGroup.x = cardHolder.x
+					cardGroup.y = cardHolder.y
+					cardGroup.rotation = cardHolder.rotation
+					state.serverObjects += cardGroup
+					val replacementCardGroup = ServerCardGroup(newId())
+					idToObjectMap[replacementCardGroup.id] = replacementCardGroup
+					cardHolder.cardGroup = replacementCardGroup
+					server.sendToAllTCP(CardGroupDetachEvent(cardHolderId, cardHolder.cardGroup.id, changerUsername))
 				}
 				is CardGroupDismantleEvent ->
 				{

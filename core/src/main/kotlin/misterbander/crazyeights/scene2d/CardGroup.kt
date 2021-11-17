@@ -11,6 +11,7 @@ import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
+import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
@@ -31,6 +32,9 @@ class CardGroup(
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
 {
+	val cardHolder: CardHolder?
+		get() = parent as? CardHolder?
+	
 	// Modules
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
 	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
@@ -46,6 +50,8 @@ class CardGroup(
 	{
 		override val canDrag: Boolean
 			get() = UIUtils.shift() || lockable.justLongPressed
+		
+		override fun drag() = detachFromCardHolder()
 	}
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable = object : Highlightable(smoothMovable, lockable)
@@ -87,7 +93,19 @@ class CardGroup(
 	{
 		card.transformToGroupCoordinates(room.tabletop.cards)
 		highlightable.cancel()
+		cardHolder?.highlightable?.cancel()
 		room.tabletop.cards += card
+	}
+	
+	private fun detachFromCardHolder()
+	{
+		val cardHolder = cardHolder ?: return
+		transformToGroupCoordinates(room.tabletop.cards)
+		cardHolder.highlightable.cancel()
+		game.client?.apply {
+			outgoingPacketBuffer += CardGroupDetachEvent(cardHolder.id, changerUsername = game.user.username)
+		}
+		room.tabletop.cards += this
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup
@@ -117,7 +135,7 @@ class CardGroup(
 	{
 		if (type == ServerCardGroup.Type.STACK)
 		{
-			for (i in 1 until children.size)
+			for (i in 0 until children.size)
 			{
 				(children[i] as Card).smoothMovable.apply {
 					xInterpolator.smoothingFactor = 5F

@@ -65,4 +65,7 @@ data class CardGroupChangeEvent(
 }
 
 @NoArg
+data class CardGroupDetachEvent(val cardHolderId: Int, val replacementCardGroupId: Int = -1, val changerUsername: String)
+
+@NoArg
 data class CardGroupDismantleEvent(val id: Int)

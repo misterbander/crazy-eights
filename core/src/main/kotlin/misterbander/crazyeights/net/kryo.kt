@@ -10,11 +10,13 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
+import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
@@ -50,6 +52,7 @@ fun Kryo.registerClasses()
 	register(Suit::class.java)
 	register(ServerCardGroup::class.java)
 	register(ServerCardGroup.Type::class.java)
+	register(ServerCardHolder::class.java)
 	register(ObjectLockEvent::class.java)
 	register(ObjectUnlockEvent::class.java)
 	register(ObjectOwnEvent::class.java)
@@ -60,5 +63,6 @@ fun Kryo.registerClasses()
 	register(CardFlipEvent::class.java)
 	register(CardGroupCreateEvent::class.java)
 	register(CardGroupChangeEvent::class.java)
+	register(CardGroupDetachEvent::class.java)
 	register(CardGroupDismantleEvent::class.java)
 }

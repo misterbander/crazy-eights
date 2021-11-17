@@ -137,7 +137,7 @@ class Card(
 	private fun separateFromCardGroup()
 	{
 		val cardGroup = cardGroup ?: return
-		if (cardGroup.children.size > 2)
+		if (cardGroup.cardHolder != null || cardGroup.children.size > 2)
 		{
 			cardGroup -= this@Card
 			game.client?.apply {

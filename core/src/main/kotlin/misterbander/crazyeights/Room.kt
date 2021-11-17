@@ -41,6 +41,7 @@ import misterbander.crazyeights.net.objectRotateEventPool
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
+import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
@@ -53,6 +54,7 @@ import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
+import misterbander.crazyeights.scene2d.CardHolder
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
@@ -60,6 +62,7 @@ import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
+import misterbander.crazyeights.scene2d.transformToGroupCoordinates
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.tempVec
@@ -190,6 +193,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				return false
 			}
 		})
+		stage += tabletop.cardHolders
 		stage += tabletop.cards
 		stage += tabletop.hand
 		stage += tabletop.cursors
@@ -439,6 +443,25 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 							newCardGroup?.plusAssign(card)
 						}
 					}
+				}
+				is CardGroupDetachEvent ->
+				{
+					val (cardHolderId, replacementCardGroupId, changerUsername) = packet
+					val cardHolder = idToGObjectMap[cardHolderId] as CardHolder
+					if (changerUsername != game.user.username)
+					{
+						val cardGroup = cardHolder.cardGroup!!
+						cardGroup.transformToGroupCoordinates(tabletop.cards)
+						tabletop.cards += cardGroup
+					}
+					val replacementCardGroup = CardGroup(
+						this@Room,
+						replacementCardGroupId,
+						0F, 0F, 0F,
+						GdxArray()
+					)
+					idToGObjectMap[replacementCardGroupId] = replacementCardGroup
+					cardHolder += replacementCardGroup
 				}
 				is CardGroupDismantleEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
 			}

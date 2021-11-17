@@ -12,6 +12,7 @@ import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
+import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
@@ -32,6 +33,7 @@ class Tabletop(private val room: Room)
 	val cursors = Group()
 	var myCursor: CrazyEightsCursor? = null // TODO Make responsive
 	val cards = Group()
+	val cardHolders = Group()
 	val hand = Hand(room, GdxArray())
 	val opponentHands = GdxMap<String, GdxArray<GObject<CrazyEights>>>()
 	
@@ -42,7 +44,14 @@ class Tabletop(private val room: Room)
 		myCursor?.toFront()
 		
 		// Add server objects
-		state.serverObjects.forEach { cards += it.toGObject() }
+		for (serverObject: ServerObject in state.serverObjects)
+		{
+			val gObject = serverObject.toGObject()
+			if (gObject is CardHolder)
+				cardHolders += gObject
+			else
+				cards += gObject
+		}
 		
 		// Add each hand
 		for ((ownerUsername, hand) in state.hands)
@@ -89,6 +98,25 @@ class Tabletop(private val room: Room)
 			idToGObjectMap[id] = cardGroup
 			cardGroup
 		}
+		is ServerCardHolder ->
+		{
+			val (id, x, y, rotation, serverCardGroup, lockHolder) = this
+			val (cardGroupId, _, _, _, serverCards, type) = serverCardGroup
+			val cards = GdxArray<Card>()
+			for (serverCard: ServerCard in serverCards)
+			{
+				val (cardId, _, _, _, rank, suit, isFaceUp) = serverCard
+				val card = Card(room, cardId, 0F, 0F, 0F, rank, suit, isFaceUp)
+				idToGObjectMap[cardId] = card
+				cards += card
+			}
+			val cardGroup = CardGroup(room, cardGroupId, 0F, 0F, 0F, cards, type)
+			idToGObjectMap[cardGroupId] = cardGroup
+			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder)
+			idToGObjectMap[id] = cardHolder
+			cardHolders += cardHolder
+			cardHolder
+		}
 		else -> throw NotImplementedError("No implementation for $this")
 	}
 	
@@ -118,7 +146,7 @@ class Tabletop(private val room: Room)
 		}
 	}
 	
-	fun hitDragTarget(x: Float, y: Float): DragTarget? = hitDragTarget(cards, x, y)
+	fun hitDragTarget(x: Float, y: Float): DragTarget? = hitDragTarget(cards, x, y) ?: hitDragTarget(cardHolders, x, y)
 	
 	private fun hitDragTarget(group: Group, x: Float, y: Float): DragTarget?
 	{
@@ -148,6 +176,7 @@ class Tabletop(private val room: Room)
 		cursors.clearChildren()
 		myCursor = null
 		cards.clearChildren()
+		cardHolders.clearChildren()
 		hand.reset()
 		opponentHands.clear()
 	}

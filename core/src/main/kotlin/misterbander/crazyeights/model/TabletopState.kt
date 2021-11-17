@@ -8,3 +8,17 @@ data class TabletopState(
 	val serverObjects: GdxArray<ServerObject> = GdxArray(),
 	val hands: GdxMap<String, GdxArray<ServerObject>> = GdxMap()
 )
+{
+	@Transient var serverObjectsDebugString: String = ""
+		private set
+	@Transient var handsDebugString: String = ""
+		private set
+	
+	fun updateDebugStrings()
+	{
+		val serverObjectsStr = serverObjects.joinToString(separator = ",\n", prefix = "[\n", postfix = "\n]") { "    $it" }
+		serverObjectsDebugString = "Server objects (${serverObjects.size}):\n$serverObjectsStr"
+		val handsStr = hands.joinToString(separator = "\n") { (key, value) -> "$key: ${value?.joinToString(separator = ",\n", prefix = "[\n", postfix = "\n]") { "    $it" }}" }
+		handsDebugString = "Hands:\n$handsStr"
+	}
+}

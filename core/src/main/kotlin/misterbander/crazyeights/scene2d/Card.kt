@@ -3,22 +3,17 @@ package misterbander.crazyeights.scene2d
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Batch
-import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
-import com.badlogic.gdx.scenes.scene2d.Group
-import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
 import ktx.collections.*
-import ktx.math.component1
-import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
+import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.User
@@ -31,13 +26,13 @@ import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.crazyeights.scene2d.modules.Lockable
+import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.crazyeights.scene2d.modules.Rotatable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
-import misterbander.gframework.util.tempVec
 
 class Card(
-	private val room: Room,
+	val room: Room,
 	val id: Int,
 	x: Float,
 	y: Float,
@@ -68,7 +63,7 @@ class Card(
 	val smoothMovable = SmoothMovable(this, x, y, rotation)
 	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
 	{
-		override fun longPress(actor: Actor, x: Float, y: Float): Boolean
+		override fun longPress(): Boolean
 		{
 			if (Gdx.app.type == Application.ApplicationType.Android
 				&& cardGroup != null && !draggable.justDragged && !rotatable.justRotated)
@@ -88,7 +83,15 @@ class Card(
 		override fun unlock()
 		{
 			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
-				game.client?.sendTCP(CardFlipEvent(id))
+			{
+				if (ownable.isOwned)
+				{
+					this@Card.isFaceUp = !this@Card.isFaceUp
+					room.tabletop.hand.sendUpdates()
+				}
+				else
+					game.client?.sendTCP(CardFlipEvent(id))
+			}
 			cardGroup?.arrange()
 			super.unlock()
 		}
@@ -98,31 +101,18 @@ class Card(
 		override val canDrag: Boolean
 			get() = cardGroup == null || !cardGroup!!.lockable.justLongPressed && !UIUtils.shift()
 		
-		override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)
-		{
-			if (cardGroup != null)
-				separateFromCardGroup()
-		}
+		override fun drag() = separateFromCardGroup()
 	}
 	val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
 	{
-		override fun pinch(
-			event: InputEvent,
-			initialPointer1: Vector2,
-			initialPointer2: Vector2,
-			pointer1: Vector2,
-			pointer2: Vector2
-		)
-		{
-			if (cardGroup != null)
-				separateFromCardGroup()
-		}
+		override fun pinch() = separateFromCardGroup()
 	}
 	override val highlightable = object : Highlightable(smoothMovable, lockable)
 	{
 		override val shouldExpand: Boolean
 			get() = super.shouldExpand && (cardGroup == null || !cardGroup!!.lockable.isLocked)
 	}
+	val ownable = Ownable(room, id, draggable)
 	
 	init
 	{
@@ -134,6 +124,7 @@ class Card(
 		this += draggable
 		this += rotatable
 		this += highlightable
+		this += ownable
 	}
 	
 	override fun hit(x: Float, y: Float, touchable: Boolean): Actor?
@@ -145,7 +136,7 @@ class Card(
 	
 	private fun separateFromCardGroup()
 	{
-		val cardGroup = cardGroup!!
+		val cardGroup = cardGroup ?: return
 		if (cardGroup.children.size > 2)
 		{
 			cardGroup -= this@Card
@@ -160,18 +151,6 @@ class Card(
 				outgoingPacketBuffer += CardGroupDismantleEvent(cardGroup.id)
 			}
 		}
-	}
-	
-	fun transformToGroupCoordinates(group: Group)
-	{
-		val (newX1, newY1) = localToActorCoordinates(group, tempVec.set(0F, 0F))
-		val (newX2, newY2) = localToActorCoordinates(group, tempVec.set(1F, 0F))
-		val rotation = smoothMovable.rotationInterpolator.target
-		val newRotation = MathUtils.atan2(newY2 - newY1, newX2 - newX1)*MathUtils.radDeg
-		val deltaRotation = newRotation - rotation
-		smoothMovable.setPositionAndTargetPosition(newX1, newY1)
-		smoothMovable.rotationInterpolator.set(newRotation)
-		draggable.unrotatedDragPositionVec.rotateDeg(deltaRotation)
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean =
@@ -205,6 +184,16 @@ class Card(
 	}
 	
 	override fun toString(): String = "Card($rank$suit, id=$id, parentId=${cardGroup?.id})"
+	
+	fun toServerCard(): ServerCard = ServerCard(
+		id,
+		smoothMovable.xInterpolator.target,
+		smoothMovable.yInterpolator.target,
+		smoothMovable.rotationInterpolator.target,
+		rank,
+		suit,
+		isFaceUp
+	)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

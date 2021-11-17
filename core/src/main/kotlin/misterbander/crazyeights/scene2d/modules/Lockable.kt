@@ -35,21 +35,31 @@ open class Lockable(
 			{
 				pointers++
 				if (canLock)
-					game.client?.sendTCP(ObjectLockEvent(id, game.user.username))
+				{
+					if (parent.getModule<Ownable>()?.isOwned == true)
+						lock(game.user)
+					else
+						game.client?.sendTCP(ObjectLockEvent(id, game.user.username))
+				}
 			}
 			
-			override fun longPress(actor: Actor, x: Float, y: Float): Boolean = this@Lockable.longPress(actor, x, y)
+			override fun longPress(actor: Actor, x: Float, y: Float): Boolean = this@Lockable.longPress()
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				pointers--
 				if (pointers == 0)
-					game.client?.sendTCP(ObjectUnlockEvent(id, game.user.username))
+				{
+					if (parent.getModule<Ownable>()?.isOwned == true)
+						unlock()
+					else
+						game.client?.sendTCP(ObjectUnlockEvent(id, game.user.username))
+				}
 			}
 		})
 	}
 	
-	open fun longPress(actor: Actor, x: Float, y: Float): Boolean = false
+	open fun longPress(): Boolean = false
 	
 	open val canLock: Boolean
 		get() = !isLocked && parent.getModule<Draggable>()?.canDrag ?: true
@@ -59,7 +69,8 @@ open class Lockable(
 		smoothMovable.xInterpolator.smoothingFactor = 2.5F
 		smoothMovable.yInterpolator.smoothingFactor = 2.5F
 		lockHolder = user
-		parent.toFront()
+		if (parent.getModule<Ownable>()?.isOwned != true)
+			parent.toFront()
 		if (isLockHolder)
 			parent.setScrollFocus()
 	}

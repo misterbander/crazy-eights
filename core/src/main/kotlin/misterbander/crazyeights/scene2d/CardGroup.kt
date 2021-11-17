@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils
+import ktx.actors.plusAssign
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
@@ -14,6 +15,7 @@ import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.crazyeights.scene2d.modules.Lockable
+import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.crazyeights.scene2d.modules.Rotatable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
@@ -51,6 +53,7 @@ class CardGroup(
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked
 	}
+	private val ownable = Ownable(room, id, draggable)
 	
 	init
 	{
@@ -63,6 +66,7 @@ class CardGroup(
 		this += draggable
 		this += rotatable
 		this += highlightable
+		this += ownable
 	}
 	
 	override fun hit(x: Float, y: Float, touchable: Boolean): Actor?
@@ -83,7 +87,7 @@ class CardGroup(
 	{
 		card.transformToGroupCoordinates(room.tabletop.cards)
 		highlightable.cancel()
-		room.tabletop.cards.addActor(card)
+		room.tabletop.cards += card
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup

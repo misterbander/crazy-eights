@@ -16,9 +16,9 @@ open class Highlightable(
 	var forceHighlight = false
 	
 	open val shouldHighlight: Boolean
-		get() = over || forceHighlight
+		get() = over || lockable.isLockHolder || forceHighlight
 	open val shouldExpand: Boolean
-		get() = !lockable.isLocked && clickListener.isPressed || lockable.isLocked
+		get() = clickListener.isPressed || lockable.isLocked
 	
 	init
 	{

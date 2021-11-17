@@ -16,6 +16,7 @@ import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Lockable
+import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 
@@ -31,6 +32,8 @@ class Tabletop(private val room: Room)
 	val cursors = Group()
 	var myCursor: CrazyEightsCursor? = null // TODO Make responsive
 	val cards = Group()
+	val hand = Hand(room, GdxArray())
+	val opponentHands = GdxMap<String, GdxArray<GObject<CrazyEights>>>()
 	
 	fun setState(state: TabletopState)
 	{
@@ -39,34 +42,54 @@ class Tabletop(private val room: Room)
 		myCursor?.toFront()
 		
 		// Add server objects
-		for (serverObject: ServerObject in state.serverObjects)
+		state.serverObjects.forEach { cards += it.toGObject() }
+		
+		// Add each hand
+		for ((ownerUsername, hand) in state.hands)
 		{
-			when (serverObject)
+			for (serverObject: ServerObject in hand!!)
 			{
-				is ServerCard ->
+				val gObject = serverObject.toGObject()
+				if (ownerUsername == game.user.username)
 				{
-					val (id, x, y, rotation, rank, suit, isFaceUp, lockHolder) = serverObject
-					val card = Card(room, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
-					idToGObjectMap[id] = card
-					cards += card
+					gObject.getModule<Ownable>()?.wasInHand = true
+					this.hand += gObject
 				}
-				is ServerCardGroup ->
+				else
 				{
-					val (id, x, y, rotation, serverCards, type, lockHolder) = serverObject
-					val cards = gdxArrayOf<Card>()
-					for (serverCard: ServerCard in serverCards)
-					{
-						val (cardId, _, _, _, rank, suit, isFaceUp) = serverCard
-						val card = Card(room, cardId, 0F, 0F, 0F, rank, suit, isFaceUp)
-						idToGObjectMap[cardId] = card
-						cards += card
-					}
-					val cardGroup = CardGroup(room, id, x, y, rotation, cards, type, lockHolder)
-					idToGObjectMap[id] = cardGroup
-					this.cards += cardGroup
+					gObject.isVisible = false
+					opponentHands.getOrPut(ownerUsername) { GdxArray() } += gObject
+					cards += gObject
 				}
 			}
 		}
+	}
+	
+	private fun ServerObject.toGObject(): GObject<CrazyEights> = when (this)
+	{
+		is ServerCard ->
+		{
+			val (id, x, y, rotation, rank, suit, isFaceUp, lockHolder) = this
+			val card = Card(room, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
+			idToGObjectMap[id] = card
+			card
+		}
+		is ServerCardGroup ->
+		{
+			val (id, x, y, rotation, serverCards, type, lockHolder) = this
+			val cards = gdxArrayOf<Card>()
+			for (serverCard: ServerCard in serverCards)
+			{
+				val (cardId, _, _, _, rank, suit, isFaceUp) = serverCard
+				val card = Card(room, cardId, 0F, 0F, 0F, rank, suit, isFaceUp)
+				idToGObjectMap[cardId] = card
+				cards += card
+			}
+			val cardGroup = CardGroup(room, id, x, y, rotation, cards, type, lockHolder)
+			idToGObjectMap[id] = cardGroup
+			cardGroup
+		}
+		else -> throw NotImplementedError("No implementation for $this")
 	}
 	
 	operator fun plusAssign(user: User)
@@ -110,7 +133,7 @@ class Tabletop(private val room: Room)
 			val child = childrenArray[i]
 			child.parentToLocalCoordinates(point.set(x, y))
 			val hit = child.hit(point.x, point.y, true)
-			if (hit is DragTarget && !hit.lockable.isLocked)
+			if (hit is DragTarget && hit.lockable?.isLocked != true)
 				return if (hit is Card && hit.cardGroup != null) hit.cardGroup else hit
 		}
 		return null
@@ -125,5 +148,7 @@ class Tabletop(private val room: Room)
 		cursors.clearChildren()
 		myCursor = null
 		cards.clearChildren()
+		hand.reset()
+		opponentHands.clear()
 	}
 }

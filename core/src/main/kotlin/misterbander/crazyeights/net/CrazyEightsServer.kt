@@ -27,10 +27,13 @@ import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
+import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
@@ -53,7 +56,7 @@ class CrazyEightsServer
 	init
 	{
 		addServerObject(ServerCard(newId, x = 30F, y = 40F, rotation = 0F, rank = Rank.FIVE, suit = Suit.HEARTS, isFaceUp = true))
-		addServerObject(ServerCard(newId, x = 30F, y = 40F, rotation = 30F, rank = Rank.TWO, suit = Suit.SPADES, isFaceUp = true))
+		addServerObject(ServerCard(newId, x = 900F, y = 400F, rotation = 30F, rank = Rank.TWO, suit = Suit.SPADES, isFaceUp = true))
 		addServerObject(ServerCardGroup(
 			newId, x = 640F, y = 360F, rotation = 0F, cards = gdxArrayOf(
 				ServerCard(newId, suit = Suit.JOKER),
@@ -217,6 +220,36 @@ class CrazyEightsServer
 						toUnlock.lockHolder = null
 						server.sendToAllTCP(`object`)
 					}
+				}
+				is ObjectOwnEvent ->
+				{
+					val (id, ownerUsername) = `object`
+					val toOwn = idToObjectMap[id]!!
+					state.serverObjects -= toOwn
+					state.hands.getOrPut(ownerUsername) { GdxArray() } += toOwn
+					server.sendToAllExceptTCP(connection.id, `object`)
+				}
+				is ObjectDisownEvent ->
+				{
+					val (id, x, y, rotation, isFaceUp, disownerUsername) = `object`
+					val toDisown = idToObjectMap[id]!!
+					toDisown.x = x
+					toDisown.y = y
+					toDisown.rotation = rotation
+					if (toDisown is ServerLockable)
+						toDisown.lockHolder = state.users[disownerUsername]
+					if (toDisown is ServerCard)
+						toDisown.isFaceUp = isFaceUp
+					state.serverObjects += toDisown
+					state.hands[disownerUsername].removeValue(toDisown, true)
+					server.sendToAllExceptTCP(connection.id, `object`)
+				}
+				is HandUpdateEvent ->
+				{
+					val (hand, ownerUsername) = `object`
+					state.hands[ownerUsername] = hand
+					hand.forEach { idToObjectMap[it.id] = it }
+					server.sendToAllExceptTCP(connection.id, `object`)
 				}
 				is ObjectMoveEvent ->
 				{

@@ -5,5 +5,6 @@ import ktx.collections.*
 
 data class TabletopState(
 	val users: OrderedMap<String, User> = OrderedMap(),
-	val serverObjects: GdxArray<ServerObject> = GdxArray()
+	val serverObjects: GdxArray<ServerObject> = GdxArray(),
+	val hands: GdxMap<String, GdxArray<ServerObject>> = GdxMap()
 )

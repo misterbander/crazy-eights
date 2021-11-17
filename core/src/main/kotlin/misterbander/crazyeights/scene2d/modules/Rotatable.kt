@@ -128,7 +128,7 @@ open class Rotatable(
 			{
 				if (!lockable.isLockHolder || !isPinching)
 					return
-				this@Rotatable.pinch(event, initialPointer1, initialPointer2, pointer1, pointer2)
+				pinch()
 				
 				parent.localToParentCoordinates(pointer1Position.set(pointer1))
 				parent.localToParentCoordinates(pointer2Position.set(pointer2))
@@ -138,6 +138,7 @@ open class Rotatable(
 					localCenterOffsetY = (initialPointer1.y + initialPointer2.y)/2
 					justStartedPinching = false
 				}
+				parent.getModule<Ownable>()?.updateOwnership(localCenterOffsetX, localCenterOffsetY)
 				
 				// Calculate relative rotation angle
 				initialDistanceVec.set(initialPointer2) -= initialPointer1
@@ -157,7 +158,7 @@ open class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				game.client?.apply {
+				parent.getModule<Ownable>()?.hand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
 						?: objectMoveEventPool.obtain()!!
 					objectMoveEvent.apply {
@@ -171,13 +172,7 @@ open class Rotatable(
 		})
 	}
 	
-	open fun pinch(
-		event: InputEvent,
-		initialPointer1: Vector2,
-		initialPointer2: Vector2,
-		pointer1: Vector2,
-		pointer2: Vector2
-	) = Unit
+	open fun pinch() = Unit
 	
 	private fun setRotation(rotation: Float, isRelative: Boolean = false, isImmediate: Boolean = false)
 	{
@@ -187,7 +182,7 @@ open class Rotatable(
 		else
 			smoothMovable.rotationInterpolator.target = newRotation
 		justRotated = true
-		game.client?.apply {
+		parent.getModule<Ownable>()?.hand?.arrange() ?: game.client?.apply {
 			val objectRotateEvent = removeFromOutgoingPacketBuffer<ObjectRotateEvent> { it.id == lockable.id }
 				?: objectRotateEventPool.obtain()!!
 			objectRotateEvent.apply {

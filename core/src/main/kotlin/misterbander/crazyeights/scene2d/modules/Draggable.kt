@@ -50,8 +50,9 @@ open class Draggable(
 			{
 				if (!lockable.isLockHolder || parent.getModule<Rotatable>()?.isPinching == true || !justDragged)
 					return
-				
-				this@Draggable.drag(event, x, y, pointer)
+				drag()
+				val ownable = parent.getModule<Ownable>()
+				ownable?.updateOwnership(x, y)
 				
 				// To implement drag, we just need to move the object such that the mouse is always at
 				// (dragPositionVec.x, dragPositionVec.y) in local coordinates
@@ -61,7 +62,7 @@ open class Draggable(
 				dragPositionVec.rotateDeg(-parent.rotation)
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
-				game.client?.apply {
+				ownable?.hand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
 						?: objectMoveEventPool.obtain()!!
 					objectMoveEvent.apply {
@@ -71,11 +72,12 @@ open class Draggable(
 					}
 					outgoingPacketBuffer += objectMoveEvent
 				}
-				
 				currentDragTarget?.highlightable?.forceHighlight = false
 				currentDragTarget = null
 				val dragTarget = room.tabletop.hitDragTarget(event.stageX, event.stageY)
-				if (dragTarget?.canAccept(parent) == true)
+				if (ownable?.isOwned == true)
+					currentDragTarget = room.tabletop.hand
+				else if (dragTarget?.canAccept(parent) == true)
 				{
 					currentDragTarget = dragTarget
 					dragTarget.highlightable?.forceHighlight = true
@@ -89,11 +91,19 @@ open class Draggable(
 					highlightable?.forceHighlight = false
 				}
 				currentDragTarget = null
+				
+				parent.getModule<Ownable>()?.apply {
+					if (!isOwned && wasInHand)
+					{
+						wasInHand = false
+						room.tabletop.hand.sendUpdates()
+					}
+				}
 			}
 		})
 	}
 	
-	open fun drag(event: InputEvent, x: Float, y: Float, pointer: Int) = Unit
+	open fun drag() = Unit
 	
 	open val canDrag: Boolean
 		get() = true

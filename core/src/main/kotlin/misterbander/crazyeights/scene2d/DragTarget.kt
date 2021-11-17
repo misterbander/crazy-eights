@@ -7,7 +7,8 @@ import misterbander.gframework.scene2d.GObject
 
 interface DragTarget
 {
-	val lockable: Lockable
+	val lockable: Lockable?
+		get() = null
 	val highlightable: Highlightable?
 		get() = null
 	

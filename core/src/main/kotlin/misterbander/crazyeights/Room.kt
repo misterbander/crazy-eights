@@ -42,8 +42,11 @@ import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.packets.HandUpdateEvent
+import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
@@ -57,6 +60,7 @@ import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
@@ -111,9 +115,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private var cursorPosition = CursorPosition()
-	
-//	val hand: Hand = Hand(this)
-//	private val handRegion: TextureRegion = game.skin.getRegion("hand")
 	
 	// Networking
 	var clientListener = ClientListener()
@@ -190,9 +191,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			}
 		})
 		stage += tabletop.cards
+		stage += tabletop.hand
 		stage += tabletop.cursors
 		stage += gizmo1
-		stage += gizmo2
+		uiStage += gizmo2
 		stage += Debug(this)
 		
 		stage += syncServerAction
@@ -224,6 +226,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		
 		cursorPosition.username = game.user.username
 		selfDisconnect = false
+		tabletop.hand.arrange()
+	}
+	
+	override fun render(delta: Float)
+	{
+		super.render(delta)
+		if (transition.isRunning)
+			tabletop.hand.reposition()
 	}
 	
 	override fun clearScreen()
@@ -234,7 +244,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			game.shapeDrawer.filledRectangle(0F, 0F, viewport.worldWidth, viewport.worldHeight)
 			it.shader = null
 			it.color = Color.WHITE
-//			it.draw(handRegion, 0F, 0F, viewport.worldWidth, 96F) TODO hand region
 		}
 	}
 	
@@ -251,6 +260,8 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 		vignetteShader.bind()
 		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
+		
+		tabletop.hand.reposition(width, height)
 	}
 	
 	/**
@@ -350,6 +361,40 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
 				}
 				is ObjectUnlockEvent -> idToGObjectMap[packet.id].getModule<Lockable>()?.unlock()
+				is ObjectOwnEvent ->
+				{
+					val (id, ownerUsername) = packet
+					val toOwn = idToGObjectMap[id]!!
+					toOwn.getModule<Lockable>()?.unlock()
+					toOwn.isVisible = false
+					tabletop.opponentHands.getOrPut(ownerUsername) { GdxArray() } += toOwn
+				}
+				is ObjectDisownEvent ->
+				{
+					val (id, x, y, rotation, isFaceUp, disownerUsername) = packet
+					val toDisown = idToGObjectMap[id]!!
+					toDisown.isVisible = true
+					toDisown.getModule<SmoothMovable>()?.apply {
+						setPositionAndTargetPosition(x, y)
+						rotationInterpolator.set(rotation)
+					}
+					toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername])
+					if (toDisown is Card)
+						toDisown.isFaceUp = isFaceUp
+					tabletop.opponentHands[disownerUsername].removeValue(toDisown, true)
+				}
+				is HandUpdateEvent ->
+				{
+					val hand = tabletop.opponentHands[packet.ownerUsername]
+					for (gObject: GObject<CrazyEights> in hand)
+					{
+						if (gObject is CardGroup)
+						{
+							gObject.children.forEach { it.isVisible = false }
+							gObject.dismantle()
+						}
+					}
+				}
 				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = packet

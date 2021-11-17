@@ -17,7 +17,8 @@ import misterbander.gframework.GScreen
 open class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : GLayer
 {
 	/** Whether the transition is currently playing. Will be set to true when [start] is called. */
-	protected var isRunning = false
+	var isRunning = false
+		protected set
 	/**
 	 * True if the transition is being played right after switching to this screen. False if the transition is being
 	 * played right before switching to another screen.

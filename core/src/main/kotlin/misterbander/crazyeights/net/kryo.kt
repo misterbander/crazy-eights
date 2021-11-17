@@ -16,10 +16,13 @@ import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
+import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
+import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
@@ -31,6 +34,7 @@ fun Kryo.registerClasses()
 	register(Array<String>::class.java)
 	register(IntArray::class.java)
 	register(GdxArray::class.java, GdxArraySerializer())
+	register(GdxMap::class.java, GdxMapSerializer())
 	register(OrderedMap::class.java, OrderedMapSerializer())
 	register(Handshake::class.java)
 	register(HandshakeReject::class.java)
@@ -48,6 +52,9 @@ fun Kryo.registerClasses()
 	register(ServerCardGroup.Type::class.java)
 	register(ObjectLockEvent::class.java)
 	register(ObjectUnlockEvent::class.java)
+	register(ObjectOwnEvent::class.java)
+	register(ObjectDisownEvent::class.java)
+	register(HandUpdateEvent::class.java)
 	register(ObjectMoveEvent::class.java).setInstantiator { objectMoveEventPool.obtain() }
 	register(ObjectRotateEvent::class.java).setInstantiator { objectRotateEventPool.obtain() }
 	register(CardFlipEvent::class.java)

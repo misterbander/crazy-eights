@@ -169,7 +169,7 @@ class Card(
 			}
 		else if (gObject is CardGroup)
 		{
-			val cardIds = GdxIntArray().apply { add(id) }
+			val cardIds = gdxIntArrayOf(id)
 			for (actor: Actor in gObject.children)
 			{
 				if (actor is Card)

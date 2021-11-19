@@ -86,11 +86,11 @@ class Tabletop(private val room: Room)
 		is ServerCardGroup ->
 		{
 			val (id, x, y, rotation, serverCards, type, lockHolder) = this
-			val cards = gdxArrayOf<Card>()
+			val cards = GdxArray<Card>()
 			for (serverCard: ServerCard in serverCards)
 			{
-				val (cardId, _, _, _, rank, suit, isFaceUp) = serverCard
-				val card = Card(room, cardId, 0F, 0F, 0F, rank, suit, isFaceUp)
+				val (cardId, cardX, cardY, cardRotation, rank, suit, isFaceUp) = serverCard
+				val card = Card(room, cardId, cardX, cardY, cardRotation, rank, suit, isFaceUp)
 				idToGObjectMap[cardId] = card
 				cards += card
 			}

@@ -2,7 +2,12 @@ package misterbander.crazyeights.net.packets
 
 import misterbander.crazyeights.model.NoArg
 
-data class CardGroupCreateEvent(val id: Int = -1, val cardIds: IntArray = intArrayOf())
+@NoArg
+data class CardGroupCreateEvent(
+	val id: Int = -1,
+	val cardIds: IntArray,
+	val cardRotations: FloatArray
+)
 {
 	override fun equals(other: Any?): Boolean
 	{
@@ -17,6 +22,8 @@ data class CardGroupCreateEvent(val id: Int = -1, val cardIds: IntArray = intArr
 			return false
 		if (!cardIds.contentEquals(other.cardIds))
 			return false
+		if (!cardRotations.contentEquals(other.cardRotations))
+			return false
 		
 		return true
 	}
@@ -25,6 +32,7 @@ data class CardGroupCreateEvent(val id: Int = -1, val cardIds: IntArray = intArr
 	{
 		var result = id
 		result = 31*result + cardIds.contentHashCode()
+		result = 31*result + cardRotations.contentHashCode()
 		return result
 	}
 }
@@ -32,6 +40,7 @@ data class CardGroupCreateEvent(val id: Int = -1, val cardIds: IntArray = intArr
 @NoArg
 data class CardGroupChangeEvent(
 	val cardIds: IntArray,
+	val cardRotations: FloatArray,
 	val newCardGroupId: Int,
 	val changerUsername: String
 )
@@ -47,6 +56,8 @@ data class CardGroupChangeEvent(
 		
 		if (!cardIds.contentEquals(other.cardIds))
 			return false
+		if (!cardRotations.contentEquals(other.cardRotations))
+			return false
 		if (newCardGroupId != other.newCardGroupId)
 			return false
 		if (changerUsername != other.changerUsername)
@@ -58,6 +69,7 @@ data class CardGroupChangeEvent(
 	override fun hashCode(): Int
 	{
 		var result = cardIds.contentHashCode()
+		result = 31*result + cardRotations.contentHashCode()
 		result = 31*result + newCardGroupId
 		result = 31*result + changerUsername.hashCode()
 		return result

@@ -40,6 +40,7 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
+import kotlin.math.round
 
 class CrazyEightsServer
 {
@@ -114,19 +115,18 @@ class CrazyEightsServer
 		server.bind(port)
 	}
 	
-	private fun setServerCardGroup(id: Int, newCardGroupId: Int)
+	private fun ServerCard.setServerCardGroup(newCardGroupId: Int)
 	{
-		val card = idToObjectMap[id] as ServerCard
-		val cardGroup = if (card.cardGroupId != -1) idToObjectMap[card.cardGroupId] as ServerCardGroup else null
+		val cardGroup = if (cardGroupId != -1) idToObjectMap[cardGroupId] as ServerCardGroup else null
 		val newCardGroup = if (newCardGroupId != -1) idToObjectMap[newCardGroupId] as ServerCardGroup else null
-		cardGroup?.minusAssign(card)
+		cardGroup?.minusAssign(this)
 		if (newCardGroup != null)
 		{
-			newCardGroup += card
-			state.serverObjects.removeValue(card, true)
+			newCardGroup += this
+			state.serverObjects.removeValue(this, true)
 		}
 		else
-			state.serverObjects += card
+			state.serverObjects += this
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
@@ -291,15 +291,24 @@ class CrazyEightsServer
 				}
 				is CardGroupCreateEvent ->
 				{
+					val (_, cardIds, cardRotations) = `object`
 					val cards = GdxArray<ServerCard>()
-					`object`.cardIds.forEach { cards += idToObjectMap[it] as ServerCard }
+					for (i in cardIds.indices)
+					{
+						val card = idToObjectMap[cardIds[i]] as ServerCard
+						cards += card
+						card.rotation = cardRotations[i]
+					}
 					
 					val (_, firstX, firstY, firstRotation) = cards[0]
 					val cardGroup = ServerCardGroup(newId(), firstX, firstY, firstRotation, cards)
 					addServerObject(cardGroup, state.serverObjects.indexOf(cards[0], true))
-					for (card: ServerCard in cards)
+					for (i in 0 until cards.size)
 					{
-						card.x = 0F; card.y = 0F; card.rotation = 0F
+						val card: ServerCard = cards[i]
+						card.x = 0F; card.y = 0F
+						card.rotation = 180*round((card.rotation - firstRotation)/180)
+						cardRotations[i] = card.rotation
 						state.serverObjects.removeValue(card, true)
 					}
 					
@@ -307,8 +316,14 @@ class CrazyEightsServer
 				}
 				is CardGroupChangeEvent ->
 				{
-					val (cardIds, newCardGroupId) = `object`
-					cardIds.forEach { setServerCardGroup(it, newCardGroupId) }
+					val (cardIds, cardRotations, newCardGroupId) = `object`
+					for (i in cardIds.indices)
+					{
+						val card = idToObjectMap[cardIds[i]] as ServerCard
+						card.rotation = cardRotations[i]
+						card.setServerCardGroup(newCardGroupId)
+						cardRotations[i] = card.rotation
+					}
 					server.sendToAllTCP(`object`)
 				}
 				is CardGroupDetachEvent ->
@@ -330,8 +345,8 @@ class CrazyEightsServer
 					val cardGroup = idToObjectMap[`object`.id] as ServerCardGroup
 					while (cardGroup.cards.isNotEmpty())
 					{
-						val card = cardGroup.cards.removeIndex(0)
-						setServerCardGroup(card.id, -1)
+						val card: ServerCard = cardGroup.cards.removeIndex(0)
+						card.setServerCardGroup(-1)
 					}
 					state.serverObjects.removeValue(cardGroup, true)
 					server.sendToAllExceptTCP(connection.id, `object`)

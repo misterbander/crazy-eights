@@ -20,6 +20,7 @@ import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.crazyeights.scene2d.modules.Rotatable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
+import kotlin.math.round
 
 class CardGroup(
 	private val room: Room,
@@ -114,19 +115,30 @@ class CardGroup(
 	override fun accept(gObject: GObject<CrazyEights>)
 	{
 		if (gObject is Card)
-			game.client?.apply { outgoingPacketBuffer += CardGroupChangeEvent(intArrayOf(gObject.id), id, game.user.username) }
+			game.client?.apply {
+				outgoingPacketBuffer += CardGroupChangeEvent(
+					intArrayOf(gObject.id),
+					floatArrayOf(gObject.smoothMovable.rotationInterpolator.target),
+					id,
+					game.user.username
+				)
+			}
 		else if (gObject is CardGroup)
 		{
 			val cardIds = GdxIntArray()
+			val cardRotations = GdxFloatArray()
 			for (actor: Actor in gObject.children)
 			{
 				if (actor is Card)
+				{
 					cardIds.add(actor.id)
+					cardRotations.add(actor.smoothMovable.rotationInterpolator.target)
+				}
 			}
 			gObject.dismantle()
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupDismantleEvent(gObject.id)
-				outgoingPacketBuffer += CardGroupChangeEvent(cardIds.toArray(), id, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(cardIds.toArray(), cardRotations.toArray(), id, game.user.username)
 			}
 		}
 	}
@@ -141,10 +153,7 @@ class CardGroup(
 					xInterpolator.smoothingFactor = 5F
 					yInterpolator.smoothingFactor = 5F
 					setTargetPosition(-(i - 1).toFloat(), (i - 1).toFloat())
-					var oldTarget = rotationInterpolator.target.mod(360F)
-					if (oldTarget > 180F)
-						oldTarget -= 360F
-					rotationInterpolator.target = if (oldTarget in -90F..90F) 0F else 180F
+					rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
 				}
 			}
 		}

@@ -1,6 +1,7 @@
 package misterbander.crazyeights.model
 
 import ktx.collections.*
+import kotlin.math.round
 
 data class ServerCardGroup(
 	override val id: Int = -1,
@@ -25,7 +26,7 @@ data class ServerCardGroup(
 		cards += card
 		card.x = 0F
 		card.y = 0F
-		card.rotation = 0F
+		card.rotation = 180*round((card.rotation - rotation)/180)
 		card.cardGroupId = id
 	}
 	
@@ -34,7 +35,7 @@ data class ServerCardGroup(
 		cards -= card
 		card.x = x
 		card.y = y
-		card.rotation = rotation
+		card.rotation += rotation
 		card.cardGroupId = -1
 	}
 	

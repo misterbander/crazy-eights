@@ -139,17 +139,22 @@ class Card(
 		val cardGroup = cardGroup ?: return
 		if (cardGroup.cardHolder != null || cardGroup.children.size > 2)
 		{
-			cardGroup -= this@Card
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupChangeEvent(intArrayOf(id), -1, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(
+					intArrayOf(id),
+					floatArrayOf(smoothMovable.rotationInterpolator.target),
+					-1,
+					game.user.username
+				)
 			}
+			cardGroup -= this@Card
 		}
 		else
 		{
-			cardGroup.dismantle()
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupDismantleEvent(cardGroup.id)
 			}
+			cardGroup.dismantle()
 		}
 	}
 	
@@ -161,24 +166,29 @@ class Card(
 		if (gObject is Card)
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupCreateEvent(
-					cardIds = intArrayOf(
-						id,
-						gObject.id
+					cardIds = intArrayOf(id, gObject.id),
+					cardRotations = floatArrayOf(
+						smoothMovable.rotationInterpolator.target,
+						gObject.smoothMovable.rotationInterpolator.target
 					)
 				)
 			}
 		else if (gObject is CardGroup)
 		{
 			val cardIds = gdxIntArrayOf(id)
+			val cardRotations = gdxFloatArrayOf(smoothMovable.rotationInterpolator.target)
 			for (actor: Actor in gObject.children)
 			{
 				if (actor is Card)
+				{
 					cardIds.add(actor.id)
+					cardRotations.add(actor.smoothMovable.rotationInterpolator.target)
+				}
 			}
 			gObject.dismantle()
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupDismantleEvent(gObject.id)
-				outgoingPacketBuffer += CardGroupCreateEvent(cardIds = cardIds.toArray())
+				outgoingPacketBuffer += CardGroupCreateEvent(cardIds = cardIds.toArray(), cardRotations = cardRotations.toArray())
 			}
 		}
 	}

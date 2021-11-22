@@ -138,7 +138,8 @@ open class Rotatable(
 					localCenterOffsetY = (initialPointer1.y + initialPointer2.y)/2
 					justStartedPinching = false
 				}
-				parent.getModule<Ownable>()?.updateOwnership(localCenterOffsetX, localCenterOffsetY)
+				val ownable = parent.getModule<Ownable>()
+				ownable?.updateOwnership(localCenterOffsetX, localCenterOffsetY)
 				
 				// Calculate relative rotation angle
 				initialDistanceVec.set(initialPointer2) -= initialPointer1
@@ -158,7 +159,7 @@ open class Rotatable(
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
-				parent.getModule<Ownable>()?.hand?.arrange() ?: game.client?.apply {
+				ownable?.hand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
 						?: objectMoveEventPool.obtain()!!
 					objectMoveEvent.apply {
@@ -168,6 +169,8 @@ open class Rotatable(
 					}
 					outgoingPacketBuffer += objectMoveEvent
 				}
+				
+				draggable.updateDragTarget(newX, newY)
 			}
 		})
 	}

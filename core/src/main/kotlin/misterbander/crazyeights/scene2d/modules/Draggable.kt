@@ -25,13 +25,12 @@ open class Draggable(
 	val unrotatedDragPositionVec = vec2()
 	val dragPositionVec = vec2()
 	var justDragged = false
+	private var currentDragTarget: DragTarget? = null
 	
 	init
 	{
 		parent.addListener(object : DragListener()
 		{
-			private var currentDragTarget: DragTarget? = null
-			
 			init
 			{
 				if (Gdx.app.type == Application.ApplicationType.Desktop)
@@ -72,16 +71,8 @@ open class Draggable(
 					}
 					outgoingPacketBuffer += objectMoveEvent
 				}
-				currentDragTarget?.highlightable?.forceHighlight = false
-				currentDragTarget = null
-				val dragTarget = room.tabletop.hitDragTarget(event.stageX, event.stageY)
-				if (ownable?.isOwned == true)
-					currentDragTarget = room.tabletop.hand
-				else if (dragTarget?.canAccept(parent) == true)
-				{
-					currentDragTarget = dragTarget
-					dragTarget.highlightable?.forceHighlight = true
-				}
+				
+				updateDragTarget(event.stageX, event.stageY)
 			}
 			
 			override fun dragStop(event: InputEvent, x: Float, y: Float, pointer: Int)
@@ -107,6 +98,20 @@ open class Draggable(
 	
 	open val canDrag: Boolean
 		get() = true
+	
+	fun updateDragTarget(x: Float, y: Float)
+	{
+		currentDragTarget?.highlightable?.forceHighlight = false
+		currentDragTarget = null
+		val dragTarget = room.tabletop.hitDragTarget(x, y)
+		if (parent.getModule<Ownable>()?.isOwned == true)
+			currentDragTarget = room.tabletop.hand
+		else if (dragTarget?.canAccept(parent) == true)
+		{
+			currentDragTarget = dragTarget
+			dragTarget.highlightable?.forceHighlight = true
+		}
+	}
 	
 	fun cancel()
 	{

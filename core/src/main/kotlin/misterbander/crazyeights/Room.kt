@@ -418,31 +418,37 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				}
 				is CardGroupCreateEvent ->
 				{
-					val (id, cardIds) = packet
-					val cards = GdxArray<Card>()
-					cardIds.forEach { cards += idToGObjectMap[it] as Card }
-					
-					val firstX = cards[0].smoothMovable.xInterpolator.target
-					val firstY = cards[0].smoothMovable.yInterpolator.target
-					val firstRotation = cards[0].smoothMovable.rotationInterpolator.target
-					val cardGroup = CardGroup(this@Room, id, firstX, firstY, firstRotation, GdxArray())
-					tabletop.cards.addActorAfter(cards[0], cardGroup)
-					cards.forEach { cardGroup += it }
+					val (id, serverCards) = packet
+					val cards = serverCards.map { idToGObjectMap[it.id] as Card }
+					val firstX = cards.first().smoothMovable.xInterpolator.target
+					val firstY = cards.first().smoothMovable.yInterpolator.target
+					val firstRotation = cards.first().smoothMovable.rotationInterpolator.target
+					val cardGroup = CardGroup(this@Room, id, firstX, firstY, firstRotation)
+					tabletop.cards.addActorAfter(cards.first(), cardGroup)
+					cards.forEachIndexed { index, card ->
+						val (_, x, y, rotation) = serverCards[index]
+						cardGroup += card
+						card.smoothMovable.setTargetPosition(x, y)
+						card.smoothMovable.rotationInterpolator.target = rotation
+					}
+					cardGroup.arrange()
 					idToGObjectMap[id] = cardGroup
 				}
 				is CardGroupChangeEvent ->
 				{
-					val (cardIds, cardRotations, newCardGroupId, changerUsername) = packet
+					val (cards, newCardGroupId, changerUsername) = packet
 					if (changerUsername != game.user.username || newCardGroupId != -1)
 					{
 						val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
-						for (i in cardIds.indices)
+						for ((id, x, y, rotation) in cards)
 						{
-							val card = idToGObjectMap[cardIds[i]] as Card
+							val card = idToGObjectMap[id] as Card
 							card.cardGroup?.minusAssign(card)
 							newCardGroup?.plusAssign(card)
-							card.smoothMovable.rotationInterpolator.target = cardRotations[i]
+							card.smoothMovable.setTargetPosition(x, y)
+							card.smoothMovable.rotationInterpolator.target = rotation
 						}
+						newCardGroup?.arrange()
 					}
 				}
 				is CardGroupDetachEvent ->
@@ -458,8 +464,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val replacementCardGroup = CardGroup(
 						this@Room,
 						replacementCardGroupId,
-						0F, 0F, 0F,
-						GdxArray()
+						0F, 0F, 0F
 					)
 					idToGObjectMap[replacementCardGroupId] = replacementCardGroup
 					cardHolder += replacementCardGroup

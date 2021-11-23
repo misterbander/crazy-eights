@@ -9,9 +9,9 @@ data class TabletopState(
 	val hands: GdxMap<String, GdxArray<ServerObject>> = GdxMap()
 )
 {
-	@Transient var serverObjectsDebugString: String = ""
+	@Volatile @Transient var serverObjectsDebugString: String = ""
 		private set
-	@Transient var handsDebugString: String = ""
+	@Volatile @Transient var handsDebugString: String = ""
 		private set
 	
 	fun updateDebugStrings()

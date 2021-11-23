@@ -28,7 +28,7 @@ class CardGroup(
 	x: Float,
 	y: Float,
 	rotation: Float,
-	cards: GdxArray<Card>,
+	cards: GdxArray<Card> = GdxArray(),
 	val type: ServerCardGroup.Type = ServerCardGroup.Type.STACK,
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
@@ -87,7 +87,6 @@ class CardGroup(
 	{
 		card.transformToGroupCoordinates(this)
 		addActor(card)
-		arrange()
 	}
 	
 	operator fun minusAssign(card: Card)
@@ -116,29 +115,20 @@ class CardGroup(
 	{
 		if (gObject is Card)
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupChangeEvent(
-					intArrayOf(gObject.id),
-					floatArrayOf(gObject.smoothMovable.rotationInterpolator.target),
-					id,
-					game.user.username
-				)
+				outgoingPacketBuffer += CardGroupChangeEvent(gdxArrayOf(gObject.toServerCard()), id, game.user.username)
 			}
 		else if (gObject is CardGroup)
 		{
-			val cardIds = GdxIntArray()
-			val cardRotations = GdxFloatArray()
+			val cards = GdxArray<Card>()
 			for (actor: Actor in gObject.children)
 			{
 				if (actor is Card)
-				{
-					cardIds.add(actor.id)
-					cardRotations.add(actor.smoothMovable.rotationInterpolator.target)
-				}
+					cards += actor
 			}
 			gObject.dismantle()
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupDismantleEvent(gObject.id)
-				outgoingPacketBuffer += CardGroupChangeEvent(cardIds.toArray(), cardRotations.toArray(), id, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(cards.map { it.toServerCard() }, id, game.user.username)
 			}
 		}
 	}
@@ -147,12 +137,11 @@ class CardGroup(
 	{
 		if (type == ServerCardGroup.Type.STACK)
 		{
-			for (i in 0 until children.size)
-			{
-				(children[i] as Card).smoothMovable.apply {
+			children.forEachIndexed { index, actor ->
+				(actor as Card).smoothMovable.apply {
 					xInterpolator.smoothingFactor = 5F
 					yInterpolator.smoothingFactor = 5F
-					setTargetPosition(-(i - 1).toFloat(), (i - 1).toFloat())
+					setTargetPosition(-index.toFloat(), index.toFloat())
 					rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
 				}
 			}

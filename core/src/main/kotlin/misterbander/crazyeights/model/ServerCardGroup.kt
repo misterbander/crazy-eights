@@ -19,24 +19,37 @@ data class ServerCardGroup(
 	init
 	{
 		cards.forEach { it.cardGroupId = id }
+		arrange()
 	}
 	
 	operator fun plusAssign(card: ServerCard)
 	{
 		cards += card
-		card.x = 0F
-		card.y = 0F
-		card.rotation = 180*round((card.rotation - rotation)/180)
+		card.x -= x
+		card.y -= y
+		card.rotation -= rotation
 		card.cardGroupId = id
 	}
 	
 	operator fun minusAssign(card: ServerCard)
 	{
 		cards -= card
-		card.x = x
-		card.y = y
+		card.x += x
+		card.y += y
 		card.rotation += rotation
 		card.cardGroupId = -1
+	}
+	
+	fun arrange()
+	{
+		if (type == Type.STACK)
+		{
+			cards.forEachIndexed { index, serverCard ->
+				serverCard.x = -index.toFloat()
+				serverCard.y = index.toFloat()
+				serverCard.rotation = 180*round(serverCard.rotation/180)
+			}
+		}
 	}
 	
 	override fun toString(): String =

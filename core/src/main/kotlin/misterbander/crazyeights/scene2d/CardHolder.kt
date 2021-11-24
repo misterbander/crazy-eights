@@ -31,6 +31,7 @@ class CardHolder(
 	private val holderOverDrawable: Drawable = Scene2DSkin.defaultSkin["cardholderover"]
 	private val holderImage = scene2d.image(holderDrawable) { setPosition(0F, 0F, Align.center) }
 	
+	val defaultType = cardGroup.type
 	val cardGroup: CardGroup?
 		get() = if (children.size > 1) children[1] as CardGroup else null
 	

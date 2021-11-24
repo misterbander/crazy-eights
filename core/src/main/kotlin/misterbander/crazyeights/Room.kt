@@ -34,6 +34,7 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
+import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.BufferedListener
 import misterbander.crazyeights.net.cursorPositionPool
 import misterbander.crazyeights.net.objectMoveEventPool
@@ -402,7 +403,13 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = packet
-					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { setTargetPosition(x, y) }
+					val toMove = idToGObjectMap[id]!!
+					toMove.getModule<SmoothMovable>()?.setTargetPosition(x, y)
+					if (toMove is CardGroup && toMove.type == ServerCardGroup.Type.PILE)
+					{
+						toMove.type = ServerCardGroup.Type.STACK
+						toMove.arrange()
+					}
 					objectMoveEventPool.free(packet)
 				}
 				is ObjectRotateEvent ->
@@ -464,7 +471,8 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val replacementCardGroup = CardGroup(
 						this@Room,
 						replacementCardGroupId,
-						0F, 0F, 0F
+						0F, 0F, 0F,
+						type = cardHolder.defaultType
 					)
 					idToGObjectMap[replacementCardGroupId] = replacementCardGroup
 					cardHolder += replacementCardGroup

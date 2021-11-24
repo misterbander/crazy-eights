@@ -9,8 +9,15 @@ data class ServerCardHolder(
 	override var lockHolder: User? = null
 ) : ServerObject, ServerLockable
 {
+	val defaultType = cardGroup.type
+	
 	override val canLock: Boolean
 		get() = cardGroup.cards.isEmpty
+	
+	init
+	{
+		cardGroup.cardHolder = this
+	}
 	
 	override fun toString(): String = "ServerCardHolder(id=$id, x=$x, y=$y, rotation=$rotation,\n        cardGroup=$cardGroup, lockholder=$lockHolder)"
 }

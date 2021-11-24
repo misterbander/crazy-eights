@@ -217,8 +217,16 @@ class CrazyEightsServer
 					{
 						debug("Server | DEBUG") { "${toUnlock.lockHolder?.username} unlocks $toUnlock" }
 						toUnlock.lockHolder = null
-						if (toUnlock is ServerCard && toUnlock.cardGroupId != -1)
-							(idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup).arrange()
+						if (toUnlock is ServerCard)
+						{
+							if (toUnlock.cardGroupId != -1)
+								(idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup).arrange()
+						}
+						else if (toUnlock is ServerCardGroup)
+						{
+							if (toUnlock.cardHolder != null)
+								toUnlock.rotation = 0F
+						}
 						server.sendToAllTCP(`object`)
 					}
 				}

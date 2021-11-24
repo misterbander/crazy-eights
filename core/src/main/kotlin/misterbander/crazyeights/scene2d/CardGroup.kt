@@ -46,6 +46,13 @@ class CardGroup(
 			if (isLockHolder)
 				Gdx.input.vibrate(100)
 		}
+		
+		override fun unlock()
+		{
+			if (cardHolder != null)
+				smoothMovable.rotationInterpolator.target = 0F
+			super.unlock()
+		}
 	}
 	val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{

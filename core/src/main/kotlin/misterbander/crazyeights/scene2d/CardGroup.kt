@@ -29,7 +29,7 @@ class CardGroup(
 	y: Float,
 	rotation: Float,
 	cards: GdxArray<Card> = GdxArray(),
-	val type: ServerCardGroup.Type = ServerCardGroup.Type.STACK,
+	var type: ServerCardGroup.Type = ServerCardGroup.Type.STACK,
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
 {
@@ -52,7 +52,15 @@ class CardGroup(
 		override val canDrag: Boolean
 			get() = UIUtils.shift() || lockable.justLongPressed
 		
-		override fun drag() = detachFromCardHolder()
+		override fun drag()
+		{
+			detachFromCardHolder()
+			if (type == ServerCardGroup.Type.PILE)
+			{
+				type = ServerCardGroup.Type.STACK
+				arrange()
+			}
+		}
 	}
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable = object : Highlightable(smoothMovable, lockable)
@@ -143,6 +151,16 @@ class CardGroup(
 					yInterpolator.smoothingFactor = 5F
 					setTargetPosition(-index.toFloat(), index.toFloat())
 					rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
+				}
+			}
+		}
+		else if (type == ServerCardGroup.Type.PILE)
+		{
+			for (actor: Actor in children)
+			{
+				(actor as Card).smoothMovable.apply {
+					xInterpolator.smoothingFactor = 5F
+					yInterpolator.smoothingFactor = 5F
 				}
 			}
 		}

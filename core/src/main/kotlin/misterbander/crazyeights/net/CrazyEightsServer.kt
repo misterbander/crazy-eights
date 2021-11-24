@@ -56,34 +56,19 @@ class CrazyEightsServer
 	
 	init
 	{
-		addServerObject(ServerCard(newId(), x = 30F, y = 40F, rotation = 0F, rank = Rank.FIVE, suit = Suit.HEARTS, isFaceUp = true))
-		addServerObject(ServerCard(newId(), x = 900F, y = 400F, rotation = 30F, rank = Rank.TWO, suit = Suit.SPADES, isFaceUp = true))
-		addServerObject(ServerCardGroup(
-			newId(), x = 640F, y = 360F, rotation = 0F, cards = gdxArrayOf(
-				ServerCard(newId(), suit = Suit.JOKER),
-				ServerCard(newId(), rank = Rank.KING, suit = Suit.CLUBS),
-				ServerCard(newId(), rank = Rank.QUEEN, suit = Suit.CLUBS),
-				ServerCard(newId(), rank = Rank.JACK, suit = Suit.CLUBS),
-				ServerCard(newId(), rank = Rank.NINE, suit = Suit.CLUBS),
-				ServerCard(newId(), rank = Rank.EIGHT, suit = Suit.CLUBS),
-				ServerCard(newId(), rank = Rank.FIVE, suit = Suit.CLUBS),
-				ServerCard(newId(), rank = Rank.ACE, suit = Suit.CLUBS)
-			)
-		))
-		addServerObject(ServerCardGroup(
-			newId(), x = 800F, y = 400F, rotation = 15F, cards = gdxArrayOf(
-				ServerCard(newId(), rank = Rank.KING, suit = Suit.HEARTS),
-				ServerCard(newId(), rank = Rank.QUEEN, suit = Suit.HEARTS)
-			)
-		))
-		addServerObject(ServerCardHolder(
-			newId(), x = 800F, y = 100F, rotation = 15F, ServerCardGroup(
-				newId(), cards = gdxArrayOf(
-					ServerCard(newId(), rank = Rank.TWO, suit = Suit.DIAMONDS),
-					ServerCard(newId(), rank = Rank.THREE, suit = Suit.DIAMONDS)
-				)
-			)
-		))
+		val deck = GdxArray<ServerCard>()
+		for (suit in Suit.values())
+		{
+			if (suit == Suit.NO_SUIT || suit == Suit.JOKER)
+				continue
+			for (rank in Rank.values())
+			{
+				if (rank != Rank.NO_RANK)
+					deck += ServerCard(newId(), rank = rank, suit = suit)
+			}
+		}
+		addServerObject(ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck)))
+		addServerObject(ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE)))
 		
 		debug("Server | DEBUG") { "Initialized Room server" }
 		debug("Server | DEBUG") { "ID object map = ${idToObjectMap.map { "\n\t$it" }}" }
@@ -270,7 +255,11 @@ class CrazyEightsServer
 				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = `object`
-					idToObjectMap[id].apply { this.x = x; this.y = y }
+					val toMove = idToObjectMap[id]!!
+					toMove.x = x
+					toMove.y = y
+					if (toMove is ServerCardGroup && toMove.isLocked && toMove.type == ServerCardGroup.Type.PILE)
+						toMove.type = ServerCardGroup.Type.STACK
 					server.sendToAllExceptTCP(connection.id, `object`)
 					objectMoveEventPool.free(`object`)
 				}
@@ -327,10 +316,12 @@ class CrazyEightsServer
 					cardGroup.x = cardHolder.x
 					cardGroup.y = cardHolder.y
 					cardGroup.rotation = cardHolder.rotation
+					cardGroup.cardHolder = null
 					state.serverObjects += cardGroup
-					val replacementCardGroup = ServerCardGroup(newId())
+					val replacementCardGroup = ServerCardGroup(newId(), type = cardHolder.defaultType)
 					idToObjectMap[replacementCardGroup.id] = replacementCardGroup
 					cardHolder.cardGroup = replacementCardGroup
+					replacementCardGroup.cardHolder = cardHolder
 					server.sendToAllTCP(CardGroupDetachEvent(cardHolderId, cardHolder.cardGroup.id, changerUsername))
 				}
 				is CardGroupDismantleEvent ->

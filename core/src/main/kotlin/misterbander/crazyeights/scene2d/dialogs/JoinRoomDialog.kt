@@ -2,7 +2,6 @@ package misterbander.crazyeights.scene2d.dialogs
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import ktx.actors.isShown
 import ktx.actors.onChange
 import ktx.async.KtxAsync
 import ktx.log.info
@@ -42,6 +41,8 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 					mainMenu.click.play()
 					hide()
 					mainMenu.messageDialog.show("Join Room", "Joining room...", "Cancel") {
+						if (mainMenu.transition.isRunning)
+							return@show
 						info("JoinRoomDialog | INFO") { "Cancelling connection..." }
 						joinServerJob?.cancel()
 						game.network.stop()
@@ -60,8 +61,7 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 						}
 						catch (e: Exception)
 						{
-							mainMenu.infoDialog.hide()
-							if (e !is CancellationException && !isShown())
+							if (e !is CancellationException && joinServerJob?.isCancelled == false)
 							{
 								mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
 								game.network.stop()

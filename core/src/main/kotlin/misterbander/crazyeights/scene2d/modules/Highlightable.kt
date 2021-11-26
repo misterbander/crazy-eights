@@ -12,7 +12,8 @@ open class Highlightable(
 ) : GModule<CrazyEights>(smoothMovable.parent)
 {
 	private val clickListener: ClickListener
-	private var over = false
+	protected var over = false
+		private set
 	var forceHighlight = false
 	
 	open val shouldHighlight: Boolean

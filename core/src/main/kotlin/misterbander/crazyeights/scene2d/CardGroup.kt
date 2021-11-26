@@ -72,6 +72,9 @@ class CardGroup(
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable = object : Highlightable(smoothMovable, lockable)
 	{
+		override val shouldHighlight: Boolean
+			get() = over && UIUtils.shift() || lockable.isLockHolder || forceHighlight
+		
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked
 	}

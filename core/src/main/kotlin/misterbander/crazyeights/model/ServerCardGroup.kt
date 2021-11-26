@@ -2,6 +2,10 @@ package misterbander.crazyeights.model
 
 import com.badlogic.gdx.math.MathUtils
 import ktx.collections.*
+import ktx.math.component1
+import ktx.math.component2
+import misterbander.crazyeights.scene2d.getSpreadPositionForIndex
+import misterbander.crazyeights.scene2d.getSpreadRotationForIndex
 import kotlin.math.round
 
 data class ServerCardGroup(
@@ -9,6 +13,8 @@ data class ServerCardGroup(
 	override var x: Float = 0F,
 	override var y: Float = 0F,
 	override var rotation: Float = 0F,
+	var spreadSeparation: Float = 40F,
+	var spreadCurvature: Float = 0.07F,
 	val cards: GdxArray<ServerCard> = GdxArray(),
 	var type: Type = Type.STACK,
 	override var lockHolder: User? = null
@@ -28,13 +34,7 @@ data class ServerCardGroup(
 	operator fun plusAssign(card: ServerCard)
 	{
 		cards += card
-		if (type == Type.STACK)
-		{
-			card.x -= x
-			card.y -= y
-			card.rotation -= rotation
-		}
-		else if (type == Type.PILE)
+		if (type == Type.PILE)
 		{
 			if (cards.size == 1)
 			{
@@ -48,6 +48,12 @@ data class ServerCardGroup(
 				card.y = MathUtils.random(-10F, 10F)
 				card.rotation -= rotation + (cardHolder?.rotation ?: 0F) + MathUtils.random(-30F, 30F)
 			}
+		}
+		else
+		{
+			card.x -= x
+			card.y -= y
+			card.rotation -= rotation
 		}
 		card.cardGroupId = id
 	}
@@ -65,10 +71,20 @@ data class ServerCardGroup(
 	{
 		if (type == Type.STACK)
 		{
-			cards.forEachIndexed { index, serverCard ->
+			cards.forEachIndexed { index, serverCard: ServerCard ->
 				serverCard.x = -index.toFloat()
 				serverCard.y = index.toFloat()
 				serverCard.rotation = 180*round(serverCard.rotation/180)
+			}
+		}
+		else if (type == Type.SPREAD)
+		{
+			cards.forEachIndexed { index, serverCard: ServerCard ->
+				val (x, y) = getSpreadPositionForIndex(index, cards.size, spreadSeparation, spreadCurvature)
+				val rotation = getSpreadRotationForIndex(index, cards.size, spreadSeparation, spreadCurvature)
+				serverCard.x = x
+				serverCard.y = y
+				serverCard.rotation = rotation
 			}
 		}
 	}
@@ -80,6 +96,6 @@ data class ServerCardGroup(
 	
 	enum class Type
 	{
-		STACK, PILE, HAND
+		STACK, PILE, SPREAD
 	}
 }

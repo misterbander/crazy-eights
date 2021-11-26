@@ -41,7 +41,7 @@ class Card(
 	private val suit: Suit = Suit.NO_SUIT,
 	isFaceUp: Boolean = false,
 	lockHolder: User? = null
-) : GObject<CrazyEights>(room), DragTarget
+) : Groupable<CardGroup>(room), DragTarget
 {
 	private val faceUpDrawable: Drawable =
 		Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "cardjoker" else "card${suit.name.lowercase()}${if (rank == Rank.ACE || rank == Rank.JACK || rank == Rank.QUEEN || rank == Rank.KING) rank.name.lowercase() else rank}"]
@@ -60,13 +60,13 @@ class Card(
 		}
 	
 	// Modules
-	val smoothMovable = SmoothMovable(this, x, y, rotation)
+	override val smoothMovable = SmoothMovable(this, x, y, rotation)
 	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
 	{
 		override fun longPress(): Boolean
 		{
 			if (Gdx.app.type == Application.ApplicationType.Android
-				&& cardGroup != null && !draggable.justDragged && !rotatable.justRotated)
+				&& cardGroup != null && !cardGroup!!.ownable.isOwned && !draggable.justDragged && !rotatable.justRotated)
 			{
 				justLongPressed = true
 				cardGroup!!.lockable.justLongPressed = true
@@ -82,28 +82,28 @@ class Card(
 		
 		override fun unlock()
 		{
+			val isLockHolder = isLockHolder
 			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
 			{
 				if (ownable.isOwned)
-				{
 					this@Card.isFaceUp = !this@Card.isFaceUp
-					room.tabletop.hand.sendUpdates()
-				}
 				else
 					game.client?.sendTCP(CardFlipEvent(id))
 			}
-			cardGroup?.arrange()
 			super.unlock()
+			cardGroup?.arrange()
+			if (isLockHolder && ownable.isOwned)
+				room.tabletop.hand.sendUpdates()
 		}
 	}
-	val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
+	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
 			get() = cardGroup == null || !cardGroup!!.lockable.justLongPressed && !UIUtils.shift()
 		
 		override fun drag() = separateFromCardGroup()
 	}
-	val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
+	override val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
 	{
 		override fun pinch() = separateFromCardGroup()
 	}
@@ -137,7 +137,9 @@ class Card(
 	private fun separateFromCardGroup()
 	{
 		val cardGroup = cardGroup ?: return
-		if (cardGroup.cardHolder != null || cardGroup.children.size > 2)
+		if (cardGroup.ownable.hand != null)
+			return
+		if (cardGroup.cardHolder != null || cardGroup.cards.size > 2)
 		{
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupChangeEvent(gdxArrayOf(toServerCard()), -1, game.user.username)
@@ -165,7 +167,7 @@ class Card(
 		else if (gObject is CardGroup)
 		{
 			val cards = gdxArrayOf(this)
-			for (actor: Actor in gObject.children)
+			for (actor: Groupable<CardGroup> in gObject.cards)
 			{
 				if (actor is Card)
 					cards += actor

@@ -34,9 +34,10 @@ class Tabletop(private val room: Room)
 	var myCursor: CrazyEightsCursor? = null // TODO Make responsive
 	val cards = Group()
 	val cardHolders = Group()
-	val hand = Hand(room, GdxArray())
-	val opponentHands = GdxMap<String, GdxArray<GObject<CrazyEights>>>()
+	val hand = Hand(room)
+	val opponentHands = GdxMap<String, GdxArray<Groupable<CardGroup>>>()
 	
+	@Suppress("UNCHECKED_CAST")
 	fun setState(state: TabletopState)
 	{
 		// Add users and cursors
@@ -62,12 +63,12 @@ class Tabletop(private val room: Room)
 				if (ownerUsername == game.user.username)
 				{
 					gObject.getModule<Ownable>()?.wasInHand = true
-					this.hand += gObject
+					this.hand += gObject as Groupable<CardGroup>
 				}
 				else
 				{
 					gObject.isVisible = false
-					opponentHands.getOrPut(ownerUsername) { GdxArray() } += gObject
+					opponentHands.getOrPut(ownerUsername) { GdxArray() } += gObject as Groupable<CardGroup>
 					cards += gObject
 				}
 			}
@@ -85,30 +86,37 @@ class Tabletop(private val room: Room)
 		}
 		is ServerCardGroup ->
 		{
-			val (id, x, y, rotation, serverCards, type, lockHolder) = this
-			val cards = GdxArray<Card>()
+			val (id, x, y, rotation, spreadSeparation, spreadCurvature, serverCards, type, lockHolder) = this
+			val cards = GdxArray<Groupable<CardGroup>>()
 			for ((cardId, cardX, cardY, cardRotation, rank, suit, isFaceUp) in serverCards)
 			{
 				val card = Card(room, cardId, cardX, cardY, cardRotation, rank, suit, isFaceUp)
 				idToGObjectMap[cardId] = card
 				cards += card
 			}
-			val cardGroup = CardGroup(room, id, x, y, rotation, cards, type, lockHolder)
+			val cardGroup = CardGroup(room, id, x, y, rotation, spreadSeparation, spreadCurvature, cards, type, lockHolder)
 			idToGObjectMap[id] = cardGroup
 			cardGroup
 		}
 		is ServerCardHolder ->
 		{
 			val (id, x, y, rotation, serverCardGroup, lockHolder) = this
-			val (cardGroupId, _, _, _, serverCards, type) = serverCardGroup
-			val cards = GdxArray<Card>()
+			val (cardGroupId, _, _, _, spreadSeparation, spreadCurvature, serverCards, type) = serverCardGroup
+			val cards = GdxArray<Groupable<CardGroup>>()
 			for ((cardId, cardX, cardY, cardRotation, rank, suit, isFaceUp) in serverCards)
 			{
 				val card = Card(room, cardId, cardX, cardY, cardRotation, rank, suit, isFaceUp)
 				idToGObjectMap[cardId] = card
 				cards += card
 			}
-			val cardGroup = CardGroup(room, cardGroupId, 0F, 0F, 0F, cards, type)
+			val cardGroup = CardGroup(
+				room,
+				cardGroupId,
+				spreadSeparation = spreadSeparation,
+				spreadCurvature = spreadCurvature,
+				cards = cards,
+				type = type
+			)
 			idToGObjectMap[cardGroupId] = cardGroup
 			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder)
 			idToGObjectMap[id] = cardHolder
@@ -153,7 +161,7 @@ class Tabletop(private val room: Room)
 		if (!group.isVisible)
 			return null
 		val point = tempVec
-		val childrenArray = group.children.items
+		val childrenArray = group.children
 		for (i in group.children.size - 1 downTo 0)
 		{
 			val child = childrenArray[i]

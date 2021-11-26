@@ -59,6 +59,7 @@ import misterbander.crazyeights.scene2d.CardHolder
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
+import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -234,13 +235,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		tabletop.hand.arrange()
 	}
 	
-	override fun render(delta: Float)
-	{
-		super.render(delta)
-		if (transition.isRunning)
-			tabletop.hand.reposition()
-	}
-	
 	override fun clearScreen()
 	{
 		game.batch.use {
@@ -265,8 +259,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 		vignetteShader.bind()
 		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
-		
-		tabletop.hand.reposition(width, height)
 	}
 	
 	/**
@@ -328,6 +320,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			transition.start(targetScreen = mainMenu)
 		}
 		
+		@Suppress("UNCHECKED_CAST")
 		override fun processPacket(packet: Any)
 		{
 			val idToGObjectMap = tabletop.idToGObjectMap
@@ -369,7 +362,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is ObjectOwnEvent ->
 				{
 					val (id, ownerUsername) = packet
-					val toOwn = idToGObjectMap[id]!!
+					val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
 					toOwn.getModule<Lockable>()?.unlock()
 					toOwn.isVisible = false
 					tabletop.opponentHands.getOrPut(ownerUsername) { GdxArray() } += toOwn
@@ -377,7 +370,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is ObjectDisownEvent ->
 				{
 					val (id, x, y, rotation, isFaceUp, disownerUsername) = packet
-					val toDisown = idToGObjectMap[id]!!
+					val toDisown = idToGObjectMap[id] as Groupable<CardGroup>
 					toDisown.isVisible = true
 					toDisown.getModule<SmoothMovable>()?.apply {
 						setPositionAndTargetPosition(x, y)

@@ -25,6 +25,9 @@ class CrazyEightsClient
 	fun connect(hostAddress: String, port: Int)
 	{
 		client.start()
+		// Temporary workaround to avoid crashing the application by catching the annoying
+		// java.nio.channels.ClosedSelectorException caused when closing the server
+		client.updateThread.setUncaughtExceptionHandler { _, e: Throwable -> e.printStackTrace() }
 		client.connect(hostAddress, port)
 	}
 	
@@ -32,9 +35,9 @@ class CrazyEightsClient
 	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
 		if (!isStopped)
 		{
+			isStopped = true
 			client.stop()
 			client.dispose()
-			isStopped = true
 		}
 	}
 	

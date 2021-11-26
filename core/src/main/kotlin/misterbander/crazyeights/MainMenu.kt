@@ -23,7 +23,6 @@ import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
 import misterbander.crazyeights.scene2d.dialogs.CreateRoomDialog
-import misterbander.crazyeights.scene2d.dialogs.InfoDialog
 import misterbander.crazyeights.scene2d.dialogs.JoinRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.MessageDialog
 
@@ -36,7 +35,6 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	private val createRoomDialog = CreateRoomDialog(this)
 	private val joinRoomDialog = JoinRoomDialog(this)
 	val messageDialog = MessageDialog(this)
-	val infoDialog = InfoDialog(this)
 	
 	private val mainTable: Table by lazy {
 		scene2d.table {
@@ -128,7 +126,6 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 				is HandshakeReject -> Gdx.app.postRunnable {
 					info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
 					game.network.stop()
-					infoDialog.hide()
 					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 				}
 				is TabletopState -> Gdx.app.postRunnable {
@@ -137,7 +134,6 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 					room.clientListener = room.ClientListener()
 					room.chat("${game.user.username} joined the game", Color.YELLOW)
 					messageDialog.actionlessHide()
-					infoDialog.hide()
 					game.client!!.removeListener(this)
 					game.client!!.addListener(room.clientListener)
 					transition.start(targetScreen = room)

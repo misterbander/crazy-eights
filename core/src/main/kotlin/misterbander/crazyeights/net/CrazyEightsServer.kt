@@ -71,8 +71,6 @@ class CrazyEightsServer
 		addServerObject(ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE)))
 		
 		debug("Server | DEBUG") { "Initialized Room server" }
-		debug("Server | DEBUG") { "ID object map = ${idToObjectMap.map { "\n\t$it" }}" }
-		debug("Server | DEBUG") { "Server objects = ${state.serverObjects.map { "\n\t$it" }}" }
 	}
 	
 	private fun newId(): Int = maxId++

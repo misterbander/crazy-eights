@@ -40,14 +40,14 @@ class CardHolder(
 	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
 	{
 		override val canLock: Boolean
-			get() = super.canLock && this@CardHolder.cardGroup?.children?.isEmpty != false
+			get() = super.canLock && this@CardHolder.cardGroup?.cards?.isEmpty != false
 	}
 	private val draggable = Draggable(room, smoothMovable, lockable)
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable: Highlightable = object : Highlightable(smoothMovable, lockable)
 	{
 		override val shouldHighlight: Boolean
-			get() = super.shouldHighlight && this@CardHolder.cardGroup?.children?.isEmpty != false
+			get() = super.shouldHighlight && this@CardHolder.cardGroup?.cards?.isEmpty != false
 		
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked
@@ -69,7 +69,7 @@ class CardHolder(
 	override fun hit(x: Float, y: Float, touchable: Boolean): Actor?
 	{
 		if (super.hit(x, y, touchable) != null)
-			return if (cardGroup?.children?.isEmpty != false) this else cardGroup!!.hit(x, y, touchable)
+			return if (cardGroup?.cards?.isEmpty != false) this else cardGroup!!.hit(x, y, touchable)
 		return null
 	}
 	

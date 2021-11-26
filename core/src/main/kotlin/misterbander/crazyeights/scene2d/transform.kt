@@ -1,6 +1,7 @@
 package misterbander.crazyeights.scene2d
 
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Group
 import ktx.math.component1
 import ktx.math.component2
@@ -21,3 +22,12 @@ fun GObject<*>.transformToGroupCoordinates(group: Group)
 	smoothMovable.rotationInterpolator.set(newRotation)
 	getModule<Draggable>()!!.unrotatedDragPositionVec.rotateDeg(newRotation - rotation)
 }
+
+fun getSpreadPositionForIndex(index: Int, spreadCardCount: Int, separation: Float, curvature: Float): Vector2
+{
+	val offsetFactor = -(spreadCardCount - 1)/2F + index
+	return tempVec.set(offsetFactor*separation, -offsetFactor*offsetFactor*curvature)
+}
+
+fun getSpreadRotationForIndex(index: Int, spreadCardCount: Int, separation: Float, curvature: Float): Float =
+	-getSpreadPositionForIndex(index, spreadCardCount, separation, curvature).x/25

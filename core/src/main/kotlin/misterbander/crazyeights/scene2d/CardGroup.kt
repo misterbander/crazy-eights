@@ -6,6 +6,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils
 import ktx.actors.plusAssign
 import ktx.collections.*
+import ktx.math.component1
+import ktx.math.component2
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
@@ -24,20 +26,24 @@ import kotlin.math.round
 
 class CardGroup(
 	private val room: Room,
-	val id: Int,
-	x: Float,
-	y: Float,
-	rotation: Float,
-	cards: GdxArray<Card> = GdxArray(),
+	val id: Int = -1,
+	x: Float = 0F,
+	y: Float = 0F,
+	rotation: Float = 0F,
+	var spreadSeparation: Float = 40F,
+	var spreadCurvature: Float = 0.07F,
+	val cards: GdxArray<Groupable<CardGroup>> = GdxArray(),
 	var type: ServerCardGroup.Type = ServerCardGroup.Type.STACK,
 	lockHolder: User? = null
-) : GObject<CrazyEights>(room), DragTarget
+) : Groupable<CardGroup>(room), DragTarget
 {
 	val cardHolder: CardHolder?
-		get() = parent as? CardHolder?
+		get() = parent as? CardHolder
+	private val ghosts = GdxMap<Groupable<CardGroup>, CardGhost>()
+	private val comparator = Comparator<Groupable<CardGroup>> { o1, o2 -> if (o1.x == o2.x) 0 else if (o1.x > o2.x) 1 else -1 }
 	
 	// Modules
-	private val smoothMovable = SmoothMovable(this, x, y, rotation)
+	override val smoothMovable = SmoothMovable(this, x, y, rotation)
 	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
 	{
 		override fun lock(user: User)
@@ -54,10 +60,10 @@ class CardGroup(
 			super.unlock()
 		}
 	}
-	val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
+	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
-			get() = UIUtils.shift() || lockable.justLongPressed
+			get() = ownable.hand == null && (UIUtils.shift() || lockable.justLongPressed)
 		
 		override fun drag()
 		{
@@ -69,16 +75,16 @@ class CardGroup(
 			}
 		}
 	}
-	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
+	override val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable = object : Highlightable(smoothMovable, lockable)
 	{
 		override val shouldHighlight: Boolean
-			get() = over && UIUtils.shift() || lockable.isLockHolder || forceHighlight
+			get() = over && UIUtils.shift() && ownable.hand == null || lockable.isLockHolder || forceHighlight
 		
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked
 	}
-	private val ownable = Ownable(room, id, draggable)
+	val ownable = Ownable(room, id, draggable)
 	
 	init
 	{
@@ -94,25 +100,59 @@ class CardGroup(
 		this += ownable
 	}
 	
+	override fun update(delta: Float)
+	{
+		if (type != ServerCardGroup.Type.SPREAD)
+		{
+			ghosts.values().forEach { it.remove() }
+			ghosts.clear()
+			return
+		}
+		// Create ghosts when dragging cards
+		var needsArrange = false
+		for (groupable: Groupable<CardGroup> in cards)
+		{
+			if (groupable.draggable.justDragged || groupable.rotatable.justRotated || groupable.rotatable.isPinching)
+			{
+				if (groupable in ghosts)
+					continue
+				val ghost = CardGhost(groupable)
+				ghosts[groupable] = ghost
+				addActor(ghost)
+				needsArrange = true
+			}
+			else
+				ghosts.remove(groupable)?.remove()
+		}
+		if (needsArrange)
+			arrange(false)
+	}
+	
 	override fun hit(x: Float, y: Float, touchable: Boolean): Actor?
 	{
-		if (super.hit(x, y, touchable) != null)
-			return if (lockable.isLocked) this else children.peek()
+		val hit: Actor? = super.hit(x, y, touchable)
+		if (hit != null)
+			return if (lockable.isLocked) this else if (type == ServerCardGroup.Type.SPREAD) hit else cards.peek()
 		return null
 	}
 	
-	operator fun plusAssign(card: Card)
+	operator fun plusAssign(groupable: Groupable<CardGroup>) = insert(groupable, cards.size)
+	
+	fun insert(groupable: Groupable<CardGroup>, index: Int)
 	{
-		card.transformToGroupCoordinates(this)
-		addActor(card)
+		groupable.transformToGroupCoordinates(this)
+		cards.insert(index, groupable)
+		addActor(groupable)
 	}
 	
-	operator fun minusAssign(card: Card)
+	operator fun minusAssign(groupable: Groupable<CardGroup>)
 	{
-		card.transformToGroupCoordinates(room.tabletop.cards)
+		groupable.transformToGroupCoordinates(room.tabletop.cards)
 		highlightable.cancel()
 		cardHolder?.highlightable?.cancel()
-		room.tabletop.cards += card
+		cards -= groupable
+		room.tabletop.cards += groupable
+		ghosts.remove(groupable)?.remove()
 	}
 	
 	private fun detachFromCardHolder()
@@ -128,7 +168,6 @@ class CardGroup(
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup
 	
-	@Suppress("UNCHECKED_CAST")
 	override fun accept(gObject: GObject<CrazyEights>)
 	{
 		if (gObject is Card)
@@ -138,10 +177,10 @@ class CardGroup(
 		else if (gObject is CardGroup)
 		{
 			val cards = GdxArray<Card>()
-			for (actor: Actor in gObject.children)
+			for (groupable: Groupable<CardGroup> in gObject.cards)
 			{
-				if (actor is Card)
-					cards += actor
+				if (groupable is Card)
+					cards += groupable
 			}
 			gObject.dismantle()
 			game.client?.apply {
@@ -151,26 +190,59 @@ class CardGroup(
 		}
 	}
 	
-	fun arrange()
+	fun arrange(sort: Boolean = true)
 	{
-		if (type == ServerCardGroup.Type.STACK)
+		when (type)
 		{
-			children.forEachIndexed { index, actor ->
-				(actor as Card).smoothMovable.apply {
-					xInterpolator.smoothingFactor = 5F
-					yInterpolator.smoothingFactor = 5F
-					setTargetPosition(-index.toFloat(), index.toFloat())
-					rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
+			ServerCardGroup.Type.STACK ->
+			{
+				cards.forEachIndexed { index, groupable: Groupable<CardGroup> ->
+					groupable.smoothMovable.apply {
+						xInterpolator.smoothingFactor = 5F
+						yInterpolator.smoothingFactor = 5F
+						setTargetPosition(-index.toFloat(), index.toFloat())
+						rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
+					}
 				}
 			}
-		}
-		else if (type == ServerCardGroup.Type.PILE)
-		{
-			for (actor: Actor in children)
+			ServerCardGroup.Type.PILE ->
 			{
-				(actor as Card).smoothMovable.apply {
-					xInterpolator.smoothingFactor = 5F
-					yInterpolator.smoothingFactor = 5F
+				for (groupable: Groupable<CardGroup> in cards)
+				{
+					groupable.smoothMovable.apply {
+						xInterpolator.smoothingFactor = 5F
+						yInterpolator.smoothingFactor = 5F
+					}
+				}
+			}
+			ServerCardGroup.Type.SPREAD ->
+			{
+				if (sort)
+					cards.sort(comparator)
+				var ghostsEncountered = 0
+				cards.forEachIndexed { index, groupable: Groupable<CardGroup> ->
+					val (x, y) = getSpreadPositionForIndex(index, cards.size, spreadSeparation, spreadCurvature)
+					val rotation = getSpreadRotationForIndex(index, cards.size, spreadSeparation, spreadCurvature)
+					val ghost: CardGhost? = ghosts[groupable]
+					if (!groupable.lockable.isLocked)
+					{
+						groupable.smoothMovable.apply {
+							xInterpolator.smoothingFactor = 5F
+							yInterpolator.smoothingFactor = 5F
+							setTargetPosition(x, y)
+							rotationInterpolator.target = rotation
+						}
+					}
+					if (ghost == null)
+						groupable.zIndex = index + ghostsEncountered
+					else
+					{
+						groupable.zIndex = index + ghostsEncountered + 1
+						ghost.setPosition(x, y)
+						ghost.rotation = rotation
+						ghost.zIndex = index + ghostsEncountered
+						ghostsEncountered++
+					}
 				}
 			}
 		}
@@ -178,12 +250,19 @@ class CardGroup(
 	
 	fun dismantle()
 	{
-		while (children.isNotEmpty())
-			this -= children.first() as Card
+		while (cards.isNotEmpty())
+			this -= cards.first()
 		remove()
 	}
 	
-	override fun toString(): String = "CardGroup(id=$id, cards=${children.size})"
+	override fun clearChildren()
+	{
+		super.clearChildren()
+		cards.clear()
+		ghosts.clear()
+	}
+	
+	override fun toString(): String = "CardGroup(id=$id, cards=${cards.size})"
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

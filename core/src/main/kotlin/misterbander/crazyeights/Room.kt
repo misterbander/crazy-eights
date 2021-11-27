@@ -517,7 +517,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val replacementCardGroup = CardGroup(
 						this@Room,
 						replacementCardGroupId,
-						0F, 0F, 0F,
 						type = cardHolder.defaultType
 					)
 					idToGObjectMap[replacementCardGroupId] = replacementCardGroup

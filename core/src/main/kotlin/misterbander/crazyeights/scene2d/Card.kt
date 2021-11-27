@@ -39,7 +39,7 @@ class Card(
 	rotation: Float,
 	private val rank: Rank = Rank.NO_RANK,
 	private val suit: Suit = Suit.NO_SUIT,
-	isFaceUp: Boolean = false,
+	var isFaceUp: Boolean = false,
 	lockHolder: User? = null
 ) : Groupable<CardGroup>(room), DragTarget
 {
@@ -52,12 +52,6 @@ class Card(
 	
 	val cardGroup: CardGroup?
 		get() = parent as? CardGroup?
-	var isFaceUp: Boolean = isFaceUp
-		set(value)
-		{
-			field = value
-			cardImage.drawable = if (value) faceUpDrawable else faceDownDrawable
-		}
 	
 	// Modules
 	override val smoothMovable = SmoothMovable(this, x, y, rotation)
@@ -125,6 +119,14 @@ class Card(
 		this += rotatable
 		this += highlightable
 		this += ownable
+	}
+	
+	override fun update(delta: Float)
+	{
+		if (firstAscendant(OpponentHand::class.java) != null)
+			cardImage.drawable = faceDownDrawable
+		else
+			cardImage.drawable = if (isFaceUp) faceUpDrawable else faceDownDrawable
 	}
 	
 	override fun hit(x: Float, y: Float, touchable: Boolean): Actor?

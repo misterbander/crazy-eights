@@ -248,6 +248,17 @@ class CardGroup(
 		}
 	}
 	
+	fun flip(isFaceUp: Boolean)
+	{
+		for (groupable: Groupable<CardGroup> in cards)
+		{
+			if (groupable is Card)
+				groupable.isFaceUp = isFaceUp
+			else if (groupable is CardGroup)
+				flip(isFaceUp)
+		}
+	}
+	
 	fun dismantle()
 	{
 		while (cards.isNotEmpty())

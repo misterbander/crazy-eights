@@ -74,7 +74,16 @@ class CrazyEights : GFramework()
 				background.rightWidth = 16F
 				background.bottomHeight = 4F
 			}
-			label(PLAYER_NAMETAG_LABEL_STYLE) {
+			label(PLAYER_NAMETAG_LABEL_STYLE_S) {
+				font = jhengheiuis
+				fontColor = Color.WHITE
+				background = this@skin.newDrawable("chatbackground")
+				background.topHeight = 2F
+				background.leftWidth = 12F
+				background.rightWidth = 12F
+				background.bottomHeight = 2F
+			}
+			label(PLAYER_NAMETAG_LABEL_STYLE_XS) {
 				font = jhengheiuixs
 				fontColor = Color.WHITE
 				background = this@skin.newDrawable("chatbackground")

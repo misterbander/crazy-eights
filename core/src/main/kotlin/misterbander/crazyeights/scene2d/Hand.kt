@@ -19,6 +19,7 @@ class Hand(private val room: Room) : GObject<CrazyEights>(room), DragTarget
 	init
 	{
 		addActor(cardGroup)
+		room.addUprightGObject(this)
 	}
 	
 	override fun update(delta: Float)

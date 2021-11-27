@@ -126,7 +126,7 @@ class Tabletop(private val room: Room)
 				type = type
 			)
 			idToGObjectMap[cardGroupId] = cardGroup
-			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder)
+			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder = lockHolder)
 			idToGObjectMap[id] = cardHolder
 			cardHolders += cardHolder
 			cardHolder

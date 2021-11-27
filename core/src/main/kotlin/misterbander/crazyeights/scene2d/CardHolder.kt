@@ -9,6 +9,7 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
+import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
@@ -23,7 +24,8 @@ class CardHolder(
 	x: Float,
 	y: Float,
 	rotation: Float,
-	cardGroup: CardGroup,
+	cardGroup: CardGroup? = null,
+	val defaultType: ServerCardGroup.Type = cardGroup?.type ?: ServerCardGroup.Type.STACK,
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
 {
@@ -31,7 +33,6 @@ class CardHolder(
 	private val holderOverDrawable: Drawable = Scene2DSkin.defaultSkin["cardholderover"]
 	private val holderImage = scene2d.image(holderDrawable) { setPosition(0F, 0F, Align.center) }
 	
-	val defaultType = cardGroup.type
 	val cardGroup: CardGroup?
 		get() = if (children.size > 1) children[1] as CardGroup else null
 	
@@ -42,7 +43,11 @@ class CardHolder(
 		override val canLock: Boolean
 			get() = super.canLock && this@CardHolder.cardGroup?.cards?.isEmpty != false
 	}
-	private val draggable = Draggable(room, smoothMovable, lockable)
+	private val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
+	{
+		override val canDrag: Boolean
+			get() = this@CardHolder.cardGroup?.cards?.isEmpty != false
+	}
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable: Highlightable = object : Highlightable(smoothMovable, lockable)
 	{
@@ -56,7 +61,8 @@ class CardHolder(
 	init
 	{
 		this += holderImage
-		this += cardGroup
+		if (cardGroup != null)
+			this += cardGroup
 		
 		// Add modules
 		this += smoothMovable

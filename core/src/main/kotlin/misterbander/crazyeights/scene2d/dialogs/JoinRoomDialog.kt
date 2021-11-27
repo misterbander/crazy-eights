@@ -19,7 +19,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Room")
 {
 	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
-	private var joinServerJob: Job? = null
+	private var joinRoomJob: Job? = null
 	
 	init
 	{
@@ -44,24 +44,30 @@ class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Ro
 						if (mainMenu.transition.isRunning)
 							return@show
 						info("JoinRoomDialog | INFO") { "Cancelling connection..." }
-						joinServerJob?.cancel()
+						if (mainMenu.clientListener != null)
+						{
+							game.network.client?.removeListener(mainMenu.clientListener!!)
+							mainMenu.clientListener = null
+						}
+						joinRoomJob?.cancel()
 						game.network.stop()
 						show()
 					}
-					joinServerJob = KtxAsync.launch {
+					joinRoomJob = KtxAsync.launch {
 						val ip = ipTextField.text
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
 							val client = game.network.createAndConnectClient(ip, port)
-							client.addListener(mainMenu.ClientListener())
+							mainMenu.clientListener = mainMenu.ClientListener()
+							client.addListener(mainMenu.clientListener!!)
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
 							client.sendTCP(Handshake(data = arrayOf(game.user.username)))
 						}
 						catch (e: Exception)
 						{
-							if (e !is CancellationException && joinServerJob?.isCancelled == false)
+							if (e !is CancellationException && joinRoomJob?.isCancelled == false)
 							{
 								mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
 								game.network.stop()

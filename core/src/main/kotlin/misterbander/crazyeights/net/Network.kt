@@ -20,18 +20,17 @@ class Network
 	{
 		stopNetworkJob?.join()
 		info("Network | INFO") { "Starting server on port $port..." }
-		withContext(asyncContext) {
-			server = CrazyEightsServer().apply { start(port) }
-		}
+		// Create the server in a separate thread to avoid nasty lag spike
+		server = CrazyEightsServer()
+		withContext(asyncContext) { server!!.start(port) }
 		return server!!
 	}
 	
 	suspend fun createAndConnectClient(ip: String, port: Int): CrazyEightsClient
 	{
 		stopNetworkJob?.join()
-		withContext(asyncContext) {
-			client = CrazyEightsClient().apply { connect(ip, port) }
-		}
+		client = CrazyEightsClient()
+		withContext(asyncContext) { client!!.connect(ip, port) }
 		return client!!
 	}
 	

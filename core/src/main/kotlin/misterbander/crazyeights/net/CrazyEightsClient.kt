@@ -16,9 +16,11 @@ class CrazyEightsClient
 	val outgoingPacketBuffer = OrderedSet<Any>()
 	
 	private val asyncContext = newSingleThreadAsyncContext("CrazyEightsClient-AsyncExecutor-Thread")
-	private val client = Client().apply {
-		kryo.registerClasses()
-		setName("Client")
+	private val client by lazy {
+		Client().apply {
+			kryo.registerClasses()
+			setName("Client")
+		}
 	}
 	@Volatile private var isStopped = false
 	
@@ -43,7 +45,8 @@ class CrazyEightsClient
 	
 	fun sendTCP(`object`: Any)
 	{
-		client.sendTCP(`object`)
+		if (!isStopped)
+			client.sendTCP(`object`)
 	}
 	
 	inline fun <reified T> removeFromOutgoingPacketBuffer(crossinline predicate: (T) -> Boolean): T?

@@ -65,17 +65,12 @@ class CardGroup(
 		override val canDrag: Boolean
 			get() = ownable.hand == null && (UIUtils.shift() || lockable.justLongPressed)
 		
-		override fun drag()
-		{
-			detachFromCardHolder()
-			if (type == ServerCardGroup.Type.PILE)
-			{
-				type = ServerCardGroup.Type.STACK
-				arrange()
-			}
-		}
+		override fun drag() = detachFromCardHolder()
 	}
-	override val rotatable = Rotatable(smoothMovable, lockable, draggable)
+	override val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
+	{
+		override fun pinch() = detachFromCardHolder()
+	}
 	override val highlightable = object : Highlightable(smoothMovable, lockable)
 	{
 		override val shouldHighlight: Boolean
@@ -164,6 +159,12 @@ class CardGroup(
 			outgoingPacketBuffer += CardGroupDetachEvent(cardHolder.id, changerUsername = game.user.username)
 		}
 		room.tabletop.cards += this
+		
+		if (type == ServerCardGroup.Type.PILE)
+		{
+			type = ServerCardGroup.Type.STACK
+			arrange()
+		}
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup

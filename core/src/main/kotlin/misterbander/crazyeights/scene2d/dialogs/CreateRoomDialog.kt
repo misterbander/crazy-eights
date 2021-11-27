@@ -2,6 +2,7 @@ package misterbander.crazyeights.scene2d.dialogs
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ktx.actors.onChange
 import ktx.async.KtxAsync
@@ -17,7 +18,7 @@ import java.net.BindException
 @Suppress("BlockingMethodInNonBlockingContext")
 class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Create Room")
 {
-	private var createServerJob: Job? = null
+	private var createRoomJob: Job? = null
 	
 	init
 	{
@@ -38,16 +39,23 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 					mainMenu.messageDialog.show("Create Room", "Creating room...", "Cancel") {
 						if (mainMenu.transition.isRunning)
 							return@show
-						info("JoinRoomDialog | INFO") { "Cancelling creation..." }
-						createServerJob?.cancel()
+						info("JoinRoomDialog | INFO") { "Cancelling room creation..." }
+						if (mainMenu.clientListener != null)
+						{
+							game.network.client?.removeListener(mainMenu.clientListener!!)
+							mainMenu.clientListener = null
+						}
+						createRoomJob?.cancel()
 						game.network.stop()
 						show()
 					}
-					createServerJob = KtxAsync.launch {
+					createRoomJob = KtxAsync.launch {
 						val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
 						try
 						{
 							game.network.createAndStartServer(port)
+							if (!isActive)
+								throw CancellationException()
 							val client = game.network.createAndConnectClient("localhost", port)
 							client.addListener(mainMenu.ClientListener())
 							// Perform handshake by doing checking version and username availability
@@ -56,12 +64,13 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 						}
 						catch (e: Exception)
 						{
-							if (e !is CancellationException && createServerJob?.isCancelled == false)
+							if (e !is CancellationException && createRoomJob?.isCancelled == false)
 							{
 								if (e is BindException)
 									mainMenu.messageDialog.show("Error", "Port address $port is already in use.", "OK", this@CreateRoomDialog::show)
 								else
 									mainMenu.messageDialog.show("Error", e.toString(), "OK", this@CreateRoomDialog::show)
+								game.network.stop()
 							}
 						}
 					}

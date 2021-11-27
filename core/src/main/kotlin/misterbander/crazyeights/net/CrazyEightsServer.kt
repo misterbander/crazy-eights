@@ -6,6 +6,7 @@ import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
@@ -48,10 +49,13 @@ class CrazyEightsServer
 	val state = TabletopState()
 	
 	private val asyncContext = newSingleThreadAsyncContext("CrazyEightsServer-AsyncExecutor-Thread")
-	private val server = Server().apply {
-		kryo.registerClasses()
-		addListener(ServerListener())
+	private val server by lazy {
+		Server().apply {
+			kryo.registerClasses()
+			addListener(ServerListener())
+		}
 	}
+	private val startServerJob = Job()
 	@Volatile private var isStopped = false
 	
 	init
@@ -93,8 +97,15 @@ class CrazyEightsServer
 	
 	fun start(port: Int)
 	{
-		server.start()
-		server.bind(port)
+		try
+		{
+			server.start()
+			server.bind(port)
+		}
+		finally
+		{
+			startServerJob.complete()
+		}
 	}
 	
 	private fun ServerCard.setServerCardGroup(newCardGroup: ServerCardGroup?)
@@ -114,9 +125,10 @@ class CrazyEightsServer
 	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
 		if (!isStopped)
 		{
+			startServerJob.join()
+			isStopped = true
 			server.stop()
 			server.dispose()
-			isStopped = true
 		}
 	}
 	
@@ -129,6 +141,8 @@ class CrazyEightsServer
 		
 		override fun disconnected(connection: Connection)
 		{
+			if (isStopped)
+				return
 			handshookConnections.remove(connection.id)
 			if (connection.arbitraryData is User)
 			{
@@ -146,21 +160,24 @@ class CrazyEightsServer
 		
 		override fun received(connection: Connection, `object`: Any)
 		{
+			if (isStopped)
+				return
 			if (connection.id !in handshookConnections) // Connections must perform handshake before packets are processed
 			{
 				if (`object` is Handshake)
 				{
-					if (`object`.versionString != VERSION_STRING) // Version check
+					val (versionString, data) = `object`
+					if (versionString != VERSION_STRING) // Version check
 					{
-						connection.sendTCP(HandshakeReject("Incorrect version! Your Crazy Eights version is ${`object`.versionString}. Server version is $VERSION_STRING."))
+						connection.sendTCP(HandshakeReject("Incorrect version! Your Crazy Eights version is $versionString. Server version is $VERSION_STRING."))
 						return
 					}
-					if (`object`.data?.size != 1) // Data integrity check
+					if (data?.size != 1) // Data integrity check
 					{
-						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 1 argument but found ${`object`.data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
+						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 1 argument but found ${data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
 						return
 					}
-					val username = `object`.data[0]
+					val username = data[0]
 					if (state.users[username] != null) // Check username collision
 					{
 						connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))

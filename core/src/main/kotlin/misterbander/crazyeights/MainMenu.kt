@@ -66,6 +66,8 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	}
 	private var activeTable: Table
 	
+	var clientListener: ClientListener? = null
+	
 	init
 	{
 		uiStage += scene2d.table {

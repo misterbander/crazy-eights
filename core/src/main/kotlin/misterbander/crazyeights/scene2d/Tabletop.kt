@@ -2,6 +2,7 @@ package misterbander.crazyeights.scene2d
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.utils.IntMap
@@ -29,13 +30,14 @@ class Tabletop(private val room: Room)
 	val users = OrderedMap<String, User>()
 	val idToGObjectMap = IntMap<GObject<CrazyEights>>()
 	val userToCursorMap = GdxMap<String, CrazyEightsCursor>()
+	val userToOpponentHandMap = GdxMap<String, OpponentHand>()
 	
 	val cursors = Group()
 	var myCursor: CrazyEightsCursor? = null // TODO Make responsive
 	val cards = Group()
 	val cardHolders = Group()
+	val opponentHands = Group()
 	val hand = Hand(room)
-	val opponentHands = GdxMap<String, GdxArray<Groupable<CardGroup>>>()
 	
 	@Suppress("UNCHECKED_CAST")
 	fun setState(state: TabletopState)
@@ -57,22 +59,28 @@ class Tabletop(private val room: Room)
 		// Add each hand
 		for ((ownerUsername, hand) in state.hands)
 		{
-			for (serverObject: ServerObject in hand!!)
+			if (ownerUsername == game.user.username)
 			{
-				val gObject = serverObject.toGObject()
-				if (ownerUsername == game.user.username)
+				for (serverObject: ServerObject in hand!!)
 				{
+					val gObject = serverObject.toGObject()
 					gObject.getModule<Ownable>()?.wasInHand = true
 					this.hand += gObject as Groupable<CardGroup>
 				}
-				else
+			}
+			else
+			{
+				val opponentHand = userToOpponentHandMap[ownerUsername]!!
+				for (serverObject: ServerObject in hand!!)
 				{
-					gObject.isVisible = false
-					opponentHands.getOrPut(ownerUsername) { GdxArray() } += gObject as Groupable<CardGroup>
-					cards += gObject
+					val gObject = serverObject.toGObject()
+					opponentHand += gObject as Groupable<CardGroup>
 				}
+				opponentHand.arrange()
 			}
 		}
+		
+		arrangePlayers()
 	}
 	
 	private fun ServerObject.toGObject(): GObject<CrazyEights> = when (this)
@@ -131,8 +139,12 @@ class Tabletop(private val room: Room)
 		users[user.username] = user
 		val cursor = CrazyEightsCursor(room, user, user == game.user)
 		userToCursorMap[user.username] = cursor
+		room.addUprightGObject(cursor)
 		if (user != game.user)
+		{
 			cursors += cursor
+			opponentHands += userToOpponentHandMap.getOrPut(user.username) { OpponentHand(room, user = user) }
+		}
 		else if (Gdx.app.type != Application.ApplicationType.Desktop)
 		{
 			cursors += cursor
@@ -144,12 +156,27 @@ class Tabletop(private val room: Room)
 	{
 		users.remove(user.username)
 		userToCursorMap.remove(user.username)?.remove()
+		userToOpponentHandMap[user.username].remove()
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values())
 		{
 			val lockable = gObject.getModule<Lockable>()
 			if (lockable != null && lockable.lockHolder == user)
 				lockable.unlock()
 		}
+	}
+	
+	fun arrangePlayers()
+	{
+		users.orderedKeys().forEachIndexed { index, username ->
+			val opponentHand = userToOpponentHandMap[username] ?: return@forEachIndexed
+			val radius = 432F
+			val directionToPlayer = -90 - 360F*index/users.size
+			opponentHand.realX = 640 + radius*MathUtils.cosDeg(directionToPlayer)
+			opponentHand.realY = 360 + radius*MathUtils.sinDeg(directionToPlayer)
+			opponentHand.rotation = directionToPlayer + 90
+		}
+		val myIndex = users.orderedKeys().indexOf(game.user.username)
+		room.cameraAngleInterpolator.target = 360F*myIndex/users.size
 	}
 	
 	fun hitDragTarget(x: Float, y: Float): DragTarget? = hitDragTarget(cards, x, y) ?: hitDragTarget(cardHolders, x, y)
@@ -175,15 +202,16 @@ class Tabletop(private val room: Room)
 	
 	fun reset()
 	{
-		idToGObjectMap.clear()
-		
 		users.clear()
+		idToGObjectMap.clear()
 		userToCursorMap.clear()
-		cursors.clearChildren()
+		userToOpponentHandMap.clear()
 		myCursor = null
+		
+		hand.reset()
+		cursors.clearChildren()
 		cards.clearChildren()
 		cardHolders.clearChildren()
-		hand.reset()
-		opponentHands.clear()
+		opponentHands.clearChildren()
 	}
 }

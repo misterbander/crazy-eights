@@ -9,7 +9,7 @@ import ktx.actors.plusAssign
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.PLAYER_NAMETAG_LABEL_STYLE
+import misterbander.crazyeights.PLAYER_NAMETAG_LABEL_STYLE_XS
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
@@ -37,28 +37,29 @@ class CrazyEightsCursor(
 		setPositionAndTargetPosition(room.uiViewport.minWorldWidth/2, room.uiViewport.minWorldHeight/2)
 		if (!noLabel)
 		{
-			this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE).apply {
+			this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE_XS) {
 				pack()
 				setPosition(this@CrazyEightsCursor.width/2 - 3F, 0F, Align.topLeft)
 			}
 		}
+		setOrigin(3F, height)
 		
 		// Add modules
 		this += smoothMovable
 	}
 	
-	fun setTargetPosition(x: Float, y: Float) = smoothMovable.setTargetPosition(x - 3, y - height)
+	fun setTargetPosition(x: Float, y: Float) = smoothMovable.setTargetPosition(x - originX, y - originY)
 	
 	fun setPositionAndTargetPosition(x: Float, y: Float) =
-		smoothMovable.setPositionAndTargetPosition(x - 3, y - height)
+		smoothMovable.setPositionAndTargetPosition(x - originX, y - originY)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{
 		batch.apply {
 			color = Color.WHITE
-			draw(border, x, y)
+			draw(border, x, y, originX, originY, width, height, scaleX, scaleY, rotation)
 			color = this@CrazyEightsCursor.color
-			draw(base, x, y)
+			draw(base, x, y, originX, originY, width, height, scaleX, scaleY, rotation)
 			color = Color.WHITE
 		}
 		super.draw(batch, parentAlpha)

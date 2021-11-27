@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Cursor
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
@@ -16,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.KtxInputListener
 import ktx.actors.along
@@ -65,8 +67,10 @@ import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.crazyeights.scene2d.transformToGroupCoordinates
+import misterbander.gframework.layer.StageLayer
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.gTextField
+import misterbander.gframework.util.SmoothAngleInterpolator
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
@@ -77,6 +81,48 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// Shaders
 	val brightenShader = game.assetStorage[Shaders.brighten]
 	private val vignetteShader = game.assetStorage[Shaders.vignette]
+	
+	// Camera and layers
+	val cameraAngleInterpolator = object : SmoothAngleInterpolator(0F)
+	{
+		override var value: Float = 0F
+		private var prevCameraAngle = 0F
+		
+		override fun lerp(delta: Float)
+		{
+			super.lerp(delta)
+			(camera as OrthographicCamera).rotate(-prevCameraAngle + value)
+			prevCameraAngle = value
+			
+			for (actor: Actor in uprightActors)
+			{
+				val uprightAngle = -value + originalRotationMap[actor, 0F]
+				if (actor is GObject<*> && actor.hasModule<SmoothMovable>())
+					actor.getModule<SmoothMovable>()!!.rotationInterpolator.set(uprightAngle)
+				else
+					actor.rotation = uprightAngle
+			}
+		}
+	}
+	
+	override val mainLayer by lazy {
+		object : StageLayer(game, camera, viewport, false)
+		{
+			override fun postRender(delta: Float)
+			{
+				// TODO add proper ui for cam adjustments
+				val dAngle = 45*delta
+				if (Gdx.input.isKeyPressed(Input.Keys.LEFT_BRACKET))
+					cameraAngleInterpolator.target += dAngle
+				if (Gdx.input.isKeyPressed(Input.Keys.RIGHT_BRACKET))
+					cameraAngleInterpolator.target -= dAngle
+				
+				cameraAngleInterpolator.lerp(delta)
+				camera.update()
+				super.postRender(delta)
+			}
+		}
+	}
 	
 	// UI
 	private val gameMenuDialog = GameMenuDialog(this)
@@ -116,6 +162,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
 	val gizmo1 = Gizmo(game.shapeDrawer, Color.GREEN) // TODO ###### remove debug
 	val gizmo2 = Gizmo(game.shapeDrawer, Color.CYAN)
+	
+	private val uprightActors = GdxSet<Actor>()
+	private val originalRotationMap = ObjectFloatMap<Actor>()
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
@@ -196,6 +245,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			}
 		})
 		stage += tabletop.cardHolders
+		stage += tabletop.opponentHands
 		stage += tabletop.cards
 		stage += tabletop.hand
 		stage += tabletop.cursors
@@ -261,6 +311,12 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
 	}
 	
+	fun addUprightGObject(actor: Actor)
+	{
+		uprightActors += actor
+		originalRotationMap.put(actor, actor.rotation)
+	}
+	
 	/**
 	 * Appends a chat message to the chat history, and adds a chat label that disappears after 5 seconds.
 	 * @param message the message
@@ -301,6 +357,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	
 	override fun hide()
 	{
+		// Reset camera
+		cameraAngleInterpolator.set(0F)
+		
+		// Reset room state
 		chatPopup.clearChildren()
 		chatHistory.clearChildren()
 		tabletop.reset()
@@ -332,12 +392,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					if (user != game.user)
 						tabletop += user
 					chat("${user.username} joined the game", Color.YELLOW)
+					tabletop.arrangePlayers()
 				}
 				is UserLeftEvent ->
 				{
 					val user = packet.user
 					tabletop -= user
 					chat("${user.username} left the game", Color.YELLOW)
+					tabletop.arrangePlayers()
 				}
 				is Chat ->
 				{
@@ -363,36 +425,27 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				{
 					val (id, ownerUsername) = packet
 					val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
+					val hand = tabletop.userToOpponentHandMap[ownerUsername]!!
 					toOwn.getModule<Lockable>()?.unlock()
-					toOwn.isVisible = false
-					tabletop.opponentHands.getOrPut(ownerUsername) { GdxArray() } += toOwn
+					hand += toOwn
+					hand.arrange()
 				}
 				is ObjectDisownEvent ->
 				{
 					val (id, x, y, rotation, isFaceUp, disownerUsername) = packet
 					val toDisown = idToGObjectMap[id] as Groupable<CardGroup>
-					toDisown.isVisible = true
+					val hand = tabletop.userToOpponentHandMap[disownerUsername]!!
+					hand -= toDisown
+					hand.arrange()
 					toDisown.getModule<SmoothMovable>()?.apply {
-						setPositionAndTargetPosition(x, y)
-						rotationInterpolator.set(rotation)
+						setTargetPosition(x, y)
+						rotationInterpolator.target = rotation
 					}
 					toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername])
 					if (toDisown is Card)
 						toDisown.isFaceUp = isFaceUp
-					tabletop.opponentHands[disownerUsername].removeValue(toDisown, true)
 				}
-				is HandUpdateEvent ->
-				{
-					val hand = tabletop.opponentHands[packet.ownerUsername]
-					for (gObject: GObject<CrazyEights> in hand)
-					{
-						if (gObject is CardGroup)
-						{
-							gObject.children.forEach { it.isVisible = false }
-							gObject.dismantle()
-						}
-					}
-				}
+				is HandUpdateEvent -> tabletop.userToOpponentHandMap[packet.ownerUsername]!!.flatten()
 				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = packet
@@ -425,7 +478,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val firstRotation = cards.first().smoothMovable.rotationInterpolator.target
 					val cardGroup = CardGroup(this@Room, id, firstX, firstY, firstRotation)
 					tabletop.cards.addActorAfter(cards.first(), cardGroup)
-					cards.forEachIndexed { index, card ->
+					cards.forEachIndexed { index, card: Card ->
 						val (_, x, y, rotation) = serverCards[index]
 						cardGroup += card
 						card.smoothMovable.setTargetPosition(x, y)

@@ -4,6 +4,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import misterbander.crazyeights.CrazyEights
+import misterbander.crazyeights.scene2d.CardGroup
+import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.gframework.scene2d.module.GModule
 
 open class Highlightable(
@@ -48,6 +50,11 @@ open class Highlightable(
 	
 	override fun update(delta: Float)
 	{
-		smoothMovable.scaleInterpolator.target = if (shouldExpand) 1.05F else 1F
+		smoothMovable.scaleInterpolator.target = if (parent is CardGroup && parent.parent is OpponentHand)
+			0.7F
+		else if (shouldExpand)
+			1.05F
+		else
+			1F
 	}
 }

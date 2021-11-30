@@ -1,13 +1,12 @@
 package misterbander.crazyeights.scene2d
 
-import com.badlogic.gdx.Application
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils
 import com.badlogic.gdx.utils.Align
 import ktx.actors.plusAssign
+import ktx.app.Platform
 import ktx.collections.*
 import ktx.scene2d.*
 import ktx.style.*
@@ -59,7 +58,7 @@ class Card(
 	{
 		override fun longPress(): Boolean
 		{
-			if (Gdx.app.type == Application.ApplicationType.Android
+			if (Platform.isMobile
 				&& cardGroup != null && !cardGroup!!.ownable.isOwned && !draggable.justDragged && !rotatable.justRotated)
 			{
 				justLongPressed = true

@@ -1,9 +1,8 @@
 package misterbander.crazyeights.scene2d.modules
 
-import com.badlogic.gdx.Application
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
+import ktx.app.Platform
 import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
@@ -33,7 +32,7 @@ open class Draggable(
 		{
 			init
 			{
-				if (Gdx.app.type == Application.ApplicationType.Desktop)
+				if (Platform.isDesktop)
 					tapSquareSize = 8F
 			}
 			

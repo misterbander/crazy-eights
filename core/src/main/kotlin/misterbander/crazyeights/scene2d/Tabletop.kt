@@ -1,13 +1,12 @@
 package misterbander.crazyeights.scene2d
 
-import com.badlogic.gdx.Application
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.OrderedMap
 import ktx.actors.plusAssign
+import ktx.app.Platform
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
@@ -145,7 +144,7 @@ class Tabletop(private val room: Room)
 			cursors += cursor
 			opponentHands += userToOpponentHandMap.getOrPut(user.username) { OpponentHand(room, user = user) }
 		}
-		else if (Gdx.app.type != Application.ApplicationType.Desktop)
+		else if (Platform.isMobile)
 		{
 			cursors += cursor
 			myCursor = cursor

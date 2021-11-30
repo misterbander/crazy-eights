@@ -1,6 +1,5 @@
 package misterbander.crazyeights
 
-import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
@@ -27,6 +26,7 @@ import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.app.Platform
 import ktx.collections.*
 import ktx.graphics.use
 import ktx.log.info
@@ -131,7 +131,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		onChange { click.play(); gameMenuDialog.show() }
 	}
 	private val chatTextField = scene2d.gTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
-		messageText = if (Gdx.app.type == Application.ApplicationType.Android) "Tap here to chat..." else "Press T to chat..."
+		messageText = if (Platform.isMobile) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
 		setFocusTraversal(false)
 		onKey { character ->
@@ -259,7 +259,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	override fun show()
 	{
 		super.show()
-		if (Gdx.app.type == Application.ApplicationType.Desktop)
+		if (Platform.isDesktop)
 		{
 			val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
 			val cursorBorderPixmap = cursorBorder.toPixmap()

@@ -52,6 +52,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
@@ -64,6 +65,7 @@ import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
+import misterbander.crazyeights.scene2d.dialogs.UserDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.crazyeights.scene2d.transformToGroupCoordinates
@@ -119,6 +121,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	
 	// UI
 	private val gameMenuDialog = GameMenuDialog(this)
+	val userDialog = UserDialog(this)
 	
 	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
 		onChange { click.play(); gameMenuDialog.show() }
@@ -445,6 +448,17 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val user = packet.user
 					tabletop -= user
 					chat("${user.username} left the game", Color.YELLOW)
+					tabletop.arrangePlayers()
+					if (user == userDialog.user)
+						userDialog.hide()
+				}
+				is SwapSeatsEvent ->
+				{
+					val (user1, user2) = packet
+					val keys: GdxArray<String> = tabletop.users.orderedKeys()
+					val index1 = keys.indexOf(user1, false)
+					val index2 = keys.indexOf(user2, false)
+					keys.swap(index1, index2)
 					tabletop.arrangePlayers()
 				}
 				is Chat ->

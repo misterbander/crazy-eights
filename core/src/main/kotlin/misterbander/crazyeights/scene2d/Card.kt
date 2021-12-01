@@ -100,7 +100,7 @@ class Card(
 	{
 		override fun pinch() = separateFromCardGroup()
 	}
-	override val highlightable = object : Highlightable(smoothMovable, lockable)
+	override val highlightable = object : Highlightable(this)
 	{
 		override val shouldExpand: Boolean
 			get() = super.shouldExpand && (cardGroup == null || !cardGroup!!.lockable.isLocked)

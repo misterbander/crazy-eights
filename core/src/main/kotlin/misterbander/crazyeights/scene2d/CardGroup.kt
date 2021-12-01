@@ -72,7 +72,7 @@ class CardGroup(
 	{
 		override fun pinch() = detachFromCardHolder()
 	}
-	override val highlightable = object : Highlightable(smoothMovable, lockable)
+	override val highlightable = object : Highlightable(this)
 	{
 		override val shouldHighlight: Boolean
 			get() = over && UIUtils.shift() && ownable.hand == null || lockable.isLockHolder || forceHighlight

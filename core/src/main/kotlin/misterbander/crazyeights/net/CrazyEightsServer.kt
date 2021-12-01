@@ -39,6 +39,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
@@ -204,6 +205,16 @@ class CrazyEightsServer
 					connection.sendTCP(state)
 					server.sendToAllTCP(UserJoinedEvent(`object`))
 					info("Server | INFO") { "${`object`.username} joined the game" }
+				}
+				is SwapSeatsEvent ->
+				{
+					val (user1, user2) = `object`
+					val keys: GdxArray<String> = state.users.orderedKeys()
+					val index1 = keys.indexOf(user1, false)
+					val index2 = keys.indexOf(user2, false)
+					keys.swap(index1, index2)
+					server.sendToAllTCP(`object`)
+					info("Server | INFO") { "$user1 swapped seats with $user2" }
 				}
 				is Chat -> server.sendToAllTCP(`object`)
 				is CursorPosition ->

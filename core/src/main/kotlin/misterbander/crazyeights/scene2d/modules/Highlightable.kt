@@ -6,12 +6,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.OpponentHand
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
 
-open class Highlightable(
-	private val smoothMovable: SmoothMovable,
-	private val lockable: Lockable
-) : GModule<CrazyEights>(smoothMovable.parent)
+open class Highlightable(parent: GObject<CrazyEights>) : GModule<CrazyEights>(parent)
 {
 	private val clickListener: ClickListener
 	protected var over = false
@@ -19,9 +17,9 @@ open class Highlightable(
 	var forceHighlight = false
 	
 	open val shouldHighlight: Boolean
-		get() = over || lockable.isLockHolder || forceHighlight
+		get() = over || parent.getModule<Lockable>()?.isLockHolder == true || forceHighlight
 	open val shouldExpand: Boolean
-		get() = clickListener.isPressed || lockable.isLocked
+		get() = clickListener.isPressed || parent.getModule<Lockable>()?.isLocked == true
 	
 	init
 	{
@@ -50,7 +48,7 @@ open class Highlightable(
 	
 	override fun update(delta: Float)
 	{
-		smoothMovable.scaleInterpolator.target = if (parent is CardGroup && parent.parent is OpponentHand)
+		parent.getModule<SmoothMovable>()?.scaleInterpolator?.target = if (parent is CardGroup && parent.parent is OpponentHand)
 			0.7F
 		else if (shouldExpand)
 			1.05F

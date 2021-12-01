@@ -49,7 +49,7 @@ class CardHolder(
 			get() = this@CardHolder.cardGroup?.cards?.isEmpty != false
 	}
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
-	override val highlightable: Highlightable = object : Highlightable(smoothMovable, lockable)
+	override val highlightable: Highlightable = object : Highlightable(this)
 	{
 		override val shouldHighlight: Boolean
 			get() = super.shouldHighlight && this@CardHolder.cardGroup?.cards?.isEmpty != false

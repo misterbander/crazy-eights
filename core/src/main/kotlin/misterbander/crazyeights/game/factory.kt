@@ -73,6 +73,6 @@ fun createState(ruleset: Ruleset = Ruleset(), stateStr: String, agent1: Agent, a
 	hands[agent1] = cards[0].toGdxArray()
 	hands[agent2] = cards[1].toGdxArray()
 	val discardPile = cards[2].toGdxArray()
-	val drawStack = newDeck() - hands[agent1] - hands[agent2] - discardPile
+	val drawStack = newDeck() - hands[agent1]!! - hands[agent2]!! - discardPile
 	return GameState(ruleset, playerHands = hands, drawStack = drawStack, discardPile = discardPile)
 }

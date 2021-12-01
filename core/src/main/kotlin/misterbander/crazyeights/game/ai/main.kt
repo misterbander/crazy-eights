@@ -210,7 +210,7 @@ private fun simulateGame(
 	while (!game.isTerminal)
 	{
 		val currentPlayer = game.currentPlayer as Agent
-		val currentPlayerName = agents[currentPlayer]
+		val currentPlayerName = agents[currentPlayer]!!
 		if (game.drawCount == 0 && verbose)
 			println(
 				"$currentPlayerName's (${game.currentPlayerHand.size}) turn! ${game.currentPlayerHand.map { it.name }}\n"

@@ -155,7 +155,7 @@ class Tabletop(private val room: Room)
 	{
 		users.remove(user.username)
 		userToCursorMap.remove(user.username)?.remove()
-		userToOpponentHandMap[user.username].remove()
+		userToOpponentHandMap[user.username]!!.remove()
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values())
 		{
 			val lockable = gObject.getModule<Lockable>()

@@ -46,7 +46,7 @@ class PruningRLAgent : Agent
 				)
 			}
 		)
-		val maxValue = moves.maxOf { moveValueMap[it] }
+		val maxValue = moves.maxOf { moveValueMap[it]!! }
 		for ((move, value) in moveValueMap)
 		{
 			if (value == maxValue)
@@ -105,7 +105,7 @@ class PruningRLAgent : Agent
 			keyProvider = { it },
 			valueProvider = { getTransitionWeight(observation, it) }
 		)
-		mostProbableMoves.sortBy { moveWeightMap[it] }
+		mostProbableMoves.sortBy { moveWeightMap[it]!! }
 		if (mostProbableMoves.size > numberOfMoves)
 			mostProbableMoves.removeRange(numberOfMoves, mostProbableMoves.size - 1)
 		return mostProbableMoves
@@ -133,7 +133,7 @@ class PruningRLAgent : Agent
 	
 	private fun PruningRLAgentObservation.extractStateFeatures(): DoubleArray
 	{
-		val observerCardCount: Int = playerCardCounts[observer]
+		val observerCardCount = playerCardCounts[observer]!!
 		val opponentsCardCount = playerCardCounts.values().sumOf { it } - observerCardCount
 		val observerEightsCount = observerHand.count { it.rank == ServerCard.Rank.EIGHT }
 		val numberOfCardsWithSameRank = observerHand.count { it.rank == topCard.rank }

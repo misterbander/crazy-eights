@@ -418,9 +418,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is ObjectLockEvent -> // User attempts to lock an object
 				{
 					val (id, lockerUsername) = packet
-					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername])
+					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
 				}
-				is ObjectUnlockEvent -> idToGObjectMap[packet.id].getModule<Lockable>()?.unlock()
+				is ObjectUnlockEvent -> idToGObjectMap[packet.id]!!.getModule<Lockable>()?.unlock()
 				is ObjectOwnEvent ->
 				{
 					val (id, ownerUsername) = packet
@@ -441,7 +441,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 						setTargetPosition(x, y)
 						rotationInterpolator.target = rotation
 					}
-					toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername])
+					toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername]!!)
 					if (toDisown is Card)
 						toDisown.isFaceUp = isFaceUp
 				}

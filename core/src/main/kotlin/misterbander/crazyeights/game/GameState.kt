@@ -42,7 +42,7 @@ class GameState(
 	var currentPlayer: Player = currentPlayer
 		private set
 	val currentPlayerHand: GdxArray<ServerCard>
-		get() = playerHands[currentPlayer]
+		get() = playerHands[currentPlayer]!!
 	val nextPlayer: Player
 		get()
 		{
@@ -259,5 +259,5 @@ class GameState(
 			return false
 		}
 	
-	fun getResult(player: Player): Int = if (playerHands[player].isEmpty) 1 else 0
+	fun getResult(player: Player): Int = if (playerHands[player]!!.isEmpty) 1 else 0
 }

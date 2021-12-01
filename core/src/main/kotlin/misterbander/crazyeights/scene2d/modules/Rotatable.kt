@@ -1,5 +1,6 @@
 package misterbander.crazyeights.scene2d.modules
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import ktx.actors.KtxInputListener
@@ -100,20 +101,8 @@ open class Rotatable(
 					justStartedPinching = false
 					if (otherPointer != -1)
 					{
-						val otherX: Float
-						val otherY: Float
-						if (otherPointer == pointer1)
-						{
-							otherX = pointer1Position.x
-							otherY = pointer1Position.y
-						}
-						else
-						{
-							otherX = pointer2Position.x
-							otherY = pointer2Position.y
-						}
-						val (dragX, dragY) = parent.parentToLocalCoordinates(tempVec.set(otherX, otherY))
-						draggable.unrotatedDragPositionVec.set(dragX, dragY).rotateDeg(parent.rotation)
+						val (otherX, otherY) = parent.screenToLocalCoordinates(tempVec.set(Gdx.input.getX(otherPointer).toFloat(), Gdx.input.getY(otherPointer).toFloat()))
+						draggable.unrotatedDragPositionVec.set(otherX, otherY).rotateDeg(parent.rotation)
 					}
 				}
 			}
@@ -128,16 +117,16 @@ open class Rotatable(
 			{
 				if (!lockable.isLockHolder || !isPinching)
 					return
-				pinch()
-				
-				parent.localToParentCoordinates(pointer1Position.set(pointer1))
-				parent.localToParentCoordinates(pointer2Position.set(pointer2))
 				if (justStartedPinching)
 				{
 					localCenterOffsetX = (initialPointer1.x + initialPointer2.x)/2
 					localCenterOffsetY = (initialPointer1.y + initialPointer2.y)/2
 					justStartedPinching = false
 				}
+				
+				pinch()
+				parent.localToParentCoordinates(pointer1Position.set(pointer1))
+				parent.localToParentCoordinates(pointer2Position.set(pointer2))
 				val ownable = parent.getModule<Ownable>()
 				ownable?.updateOwnership(localCenterOffsetX, localCenterOffsetY)
 				

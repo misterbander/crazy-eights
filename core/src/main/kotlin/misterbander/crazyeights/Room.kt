@@ -250,7 +250,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.hand
 		stage += tabletop.cursors
 		stage += gizmo1
-		uiStage += gizmo2
+		stage += gizmo2
 		stage += Debug(this)
 		
 		stage += syncServerAction

@@ -94,7 +94,7 @@ class Card(
 		override val canDrag: Boolean
 			get() = cardGroup == null || !cardGroup!!.lockable.justLongPressed && !UIUtils.shift()
 		
-		override fun drag() = separateFromCardGroup()
+		override fun pan() = separateFromCardGroup()
 	}
 	override val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
 	{

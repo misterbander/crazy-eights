@@ -12,14 +12,13 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
-import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.KtxInputListener
-import ktx.actors.along
 import ktx.actors.onChange
 import ktx.actors.onKey
 import ktx.actors.onKeyboardFocus
@@ -53,6 +52,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
 import misterbander.crazyeights.scene2d.Card
@@ -94,14 +94,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			(camera as OrthographicCamera).rotate(-prevCameraAngle + value)
 			prevCameraAngle = value
 			
-			for (actor: Actor in uprightActors)
-			{
-				val uprightAngle = -value + originalRotationMap[actor, 0F]
-				if (actor is GObject<*> && actor.hasModule<SmoothMovable>())
-					actor.getModule<SmoothMovable>()!!.rotationInterpolator.set(uprightAngle)
-				else
-					actor.rotation = uprightAngle
-			}
+			uprightActors.forEach { it.makeUpright() }
 		}
 	}
 	
@@ -168,24 +161,12 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	
 	// Tabletop states
 	val tabletop = Tabletop(this)
-	private var cursorPosition = CursorPosition()
+	private val cursorPositions = IntMap<CursorPosition>()
 	
 	// Networking
 	var clientListener = ClientListener()
 	var selfDisconnect = false
-	private val syncServerAction: RepeatAction = forever(
-		delay(1/40F, Actions.run {
-			val (inputX, inputY) = stage.screenToStageCoordinates(tempVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
-			if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
-			{
-				cursorPosition.x = inputX
-				cursorPosition.y = inputY
-				tabletop.myCursor?.setTargetPosition(cursorPosition.x, cursorPosition.y)
-				game.client?.sendTCP(cursorPosition)
-			}
-			game.client?.flushOutgoingPacketBuffer()
-		}) along Actions.run { clientListener.processPackets() }
-	)
+	var timeSinceLastSync = 0F
 	
 	init
 	{
@@ -249,11 +230,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.cards
 		stage += tabletop.hand
 		stage += tabletop.cursors
+		stage += tabletop.myCursors
 		stage += gizmo1
 		stage += gizmo2
 		stage += Debug(this)
-		
-		stage += syncServerAction
 	}
 	
 	override fun show()
@@ -280,9 +260,65 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			cursorBasePixmap.dispose()
 		}
 		
-		cursorPosition.username = game.user.username
 		selfDisconnect = false
 		tabletop.hand.arrange()
+	}
+	
+	override fun render(delta: Float)
+	{
+		super.render(delta)
+		timeSinceLastSync += delta
+		val shouldSyncServer = if (timeSinceLastSync > 1/40F)
+		{
+			timeSinceLastSync = 0F
+			true
+		}
+		else
+			false
+		for (i in 0..19)
+		{
+			if (Gdx.input.isTouched(i) || Platform.isDesktop && i == 0)
+			{
+				val (inputX, inputY) = stage.screenToStageCoordinates(
+					tempVec.set(Gdx.input.getX(i).toFloat(), Gdx.input.getY(i).toFloat())
+				)
+				if (!Platform.isDesktop || i != 0)
+				{
+					val cursorsMap = tabletop.userToCursorsMap[game.user.username]!!
+					cursorsMap.getOrPut(i) {
+						val cursor = CrazyEightsCursor(this, game.user, true)
+						cursorsMap[i] = cursor
+						tabletop.cursors += cursor
+						addUprightGObject(cursor)
+						cursor
+					}.setPositionAndTargetPosition(inputX, inputY)
+				}
+				
+				if (shouldSyncServer)
+				{
+					val cursorPosition = cursorPositions.getOrPut(i) { CursorPosition() }
+					if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
+					{
+						cursorPosition.apply {
+							username = game.user.username
+							x = inputX
+							y = inputY
+							pointer = i
+						}
+						game.client?.sendTCP(cursorPosition)
+					}
+				}
+			}
+			else if (i in cursorPositions && cursorPositions.size > 1)
+			{
+				cursorPositions.remove(i)
+				tabletop.userToCursorsMap[game.user.username]!!.remove(i)?.remove()
+				game.client?.sendTCP(TouchUpEvent(game.user.username, i))
+			}
+		}
+		if (shouldSyncServer)
+			game.client?.flushOutgoingPacketBuffer()
+		clientListener.processPackets()
 	}
 	
 	override fun clearScreen()
@@ -315,6 +351,16 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	{
 		uprightActors += actor
 		originalRotationMap.put(actor, actor.rotation)
+		actor.makeUpright()
+	}
+	
+	private fun Actor.makeUpright()
+	{
+		val uprightAngle = -cameraAngleInterpolator.value + originalRotationMap[this, 0F]
+		if (this is GObject<*> && hasModule<SmoothMovable>())
+			getModule<SmoothMovable>()!!.rotationInterpolator.set(uprightAngle)
+		else
+			rotation = uprightAngle
 	}
 	
 	/**
@@ -409,11 +455,25 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				}
 				is CursorPosition ->
 				{
-					val (username, x, y) = packet
-					val cursor: CrazyEightsCursor? = tabletop.userToCursorMap[username]
-					if (cursor != tabletop.myCursor)
-						cursor?.setTargetPosition(x, y)
+					val (username, x, y, pointer) = packet
+					val cursorsMap = tabletop.userToCursorsMap[username]!!
+					cursorsMap[-1]?.remove()
+					if (pointer in cursorsMap)
+						cursorsMap[pointer]!!.setTargetPosition(x, y)
+					else
+					{
+						val cursor = CrazyEightsCursor(this@Room, tabletop.users[username]!!)
+						cursorsMap[pointer] = cursor
+						tabletop.cursors += cursor
+						addUprightGObject(cursor)
+						cursor.setPositionAndTargetPosition(x, y)
+					}
 					cursorPositionPool.free(packet)
+				}
+				is TouchUpEvent ->
+				{
+					val (username, pointer) = packet
+					tabletop.userToCursorsMap[username].remove(pointer)?.remove()
 				}
 				is ObjectLockEvent -> // User attempts to lock an object
 				{

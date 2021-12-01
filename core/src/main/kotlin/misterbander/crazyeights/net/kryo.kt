@@ -27,6 +27,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
 
@@ -48,6 +49,7 @@ fun Kryo.registerClasses()
 	register(UserLeftEvent::class.java)
 	register(TabletopState::class.java)
 	register(CursorPosition::class.java).setInstantiator { cursorPositionPool.obtain() }
+	register(TouchUpEvent::class.java)
 	register(ServerCard::class.java)
 	register(Rank::class.java)
 	register(Suit::class.java)

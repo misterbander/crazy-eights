@@ -39,6 +39,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
 
@@ -207,9 +208,10 @@ class CrazyEightsServer
 				is Chat -> server.sendToAllTCP(`object`)
 				is CursorPosition ->
 				{
-					server.sendToAllTCP(`object`)
+					server.sendToAllExceptTCP(connection.id, `object`)
 					cursorPositionPool.free(`object`)
 				}
+				is TouchUpEvent -> server.sendToAllExceptTCP(connection.id, `object`)
 				is ObjectLockEvent -> // User attempts to lock an object
 				{
 					val (id, lockerUsername) = `object`

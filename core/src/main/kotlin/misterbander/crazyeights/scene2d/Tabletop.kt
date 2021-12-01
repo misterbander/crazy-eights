@@ -28,11 +28,11 @@ class Tabletop(private val room: Room)
 	
 	val users = OrderedMap<String, User>()
 	val idToGObjectMap = IntMap<GObject<CrazyEights>>()
-	val userToCursorMap = GdxMap<String, CrazyEightsCursor>()
+	val userToCursorsMap = GdxMap<String, IntMap<CrazyEightsCursor>>()
 	val userToOpponentHandMap = GdxMap<String, OpponentHand>()
 	
 	val cursors = Group()
-	var myCursor: CrazyEightsCursor? = null // TODO Make responsive
+	val myCursors = Group()
 	val cards = Group()
 	val cardHolders = Group()
 	val opponentHands = Group()
@@ -43,7 +43,6 @@ class Tabletop(private val room: Room)
 	{
 		// Add users and cursors
 		state.users.forEach { this += it.value }
-		myCursor?.toFront()
 		
 		// Add server objects
 		for (serverObject: ServerObject in state.serverObjects)
@@ -137,7 +136,7 @@ class Tabletop(private val room: Room)
 	{
 		users[user.username] = user
 		val cursor = CrazyEightsCursor(room, user, user == game.user)
-		userToCursorMap[user.username] = cursor
+		userToCursorsMap[user.username] = IntMap<CrazyEightsCursor>().apply { this[-1] = cursor }
 		room.addUprightGObject(cursor)
 		if (user != game.user)
 		{
@@ -147,14 +146,14 @@ class Tabletop(private val room: Room)
 		else if (Platform.isMobile)
 		{
 			cursors += cursor
-			myCursor = cursor
+			userToCursorsMap[game.user.username]!![0] = cursor
 		}
 	}
 	
 	operator fun minusAssign(user: User)
 	{
 		users.remove(user.username)
-		userToCursorMap.remove(user.username)?.remove()
+		userToCursorsMap.remove(user.username)?.apply { values().forEach { it.remove() } }
 		userToOpponentHandMap[user.username]!!.remove()
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values())
 		{
@@ -203,9 +202,9 @@ class Tabletop(private val room: Room)
 	{
 		users.clear()
 		idToGObjectMap.clear()
-		userToCursorMap.clear()
+		userToCursorsMap.clear()
 		userToOpponentHandMap.clear()
-		myCursor = null
+		myCursors.clear()
 		
 		hand.reset()
 		cursors.clearChildren()

@@ -118,7 +118,7 @@ class PruningRLAgentObservation(
 	fun afterMove(move: Move): PruningRLAgentObservation
 	{
 		assert(move in moves) { "Illegal move! Trying $move but legal moves are $moves" }
-		val playerCardCounts = OrderedMap(this.playerCardCounts)
+		val playerCardCounts: OrderedMap<Player, Int> = OrderedMap(this.playerCardCounts)
 		return when (move)
 		{
 			is PlayMove ->

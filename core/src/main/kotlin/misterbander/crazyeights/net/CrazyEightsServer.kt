@@ -265,7 +265,7 @@ class CrazyEightsServer
 					if (toDisown is ServerCard)
 						toDisown.isFaceUp = isFaceUp
 					state.serverObjects += toDisown
-					state.hands[disownerUsername].removeValue(toDisown, true)
+					state.hands[disownerUsername]!!.removeValue(toDisown, true)
 					server.sendToAllExceptTCP(connection.id, `object`)
 				}
 				is HandUpdateEvent ->
@@ -289,7 +289,7 @@ class CrazyEightsServer
 				is ObjectRotateEvent ->
 				{
 					val (id, rotation) = `object`
-					idToObjectMap[id].rotation = rotation
+					idToObjectMap[id]!!.rotation = rotation
 					server.sendToAllExceptTCP(connection.id, `object`)
 					objectRotateEventPool.free(`object`)
 				}

@@ -66,7 +66,7 @@ class CardGroup(
 		override val canDrag: Boolean
 			get() = ownable.hand == null && (UIUtils.shift() || lockable.justLongPressed)
 		
-		override fun drag() = detachFromCardHolder()
+		override fun pan() = detachFromCardHolder()
 	}
 	override val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
 	{

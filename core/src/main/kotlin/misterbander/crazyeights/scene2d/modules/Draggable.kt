@@ -1,7 +1,6 @@
 package misterbander.crazyeights.scene2d.modules
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import ktx.app.Platform
 import ktx.collections.*
 import ktx.math.component1
@@ -12,6 +11,7 @@ import misterbander.crazyeights.Room
 import misterbander.crazyeights.net.objectMoveEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.scene2d.DragTarget
+import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 
@@ -28,27 +28,26 @@ open class Draggable(
 	
 	init
 	{
-		parent.addListener(object : DragListener()
+		parent.addListener(object : GActorGestureListener(
+			if (Platform.isDesktop) 8F else 20F, 0.4F, 1.1F, Int.MAX_VALUE.toFloat()
+		)
 		{
-			init
-			{
-				if (Platform.isDesktop)
-					tapSquareSize = 8F
-			}
+			private var justStartedDragging = false
 			
-			override fun dragStart(event: InputEvent, x: Float, y: Float, pointer: Int)
+			override fun pan(event: InputEvent, x: Float, y: Float, deltaX: Float, deltaY: Float)
 			{
-				// x, y are positions in local coords. We store the x and y in unrotatedDragPositionVec as if the
-				// parent is not rotated when the user starts dragging
-				unrotatedDragPositionVec.set(x, y).rotateDeg(parent.rotation)
-				justDragged = canDrag
-			}
-			
-			override fun drag(event: InputEvent, x: Float, y: Float, pointer: Int)
-			{
+				if (!justStartedDragging)
+				{
+					justStartedDragging = true
+					// x, y are positions in local coords. We store the x and y in unrotatedDragPositionVec as if the
+					// parent is not rotated when the user starts dragging
+					unrotatedDragPositionVec.set(x, y).rotateDeg(parent.rotation)
+					justDragged = canDrag
+				}
 				if (!lockable.isLockHolder || parent.getModule<Rotatable>()?.isPinching == true || !justDragged)
 					return
-				drag()
+				
+				pan()
 				val ownable = parent.getModule<Ownable>()
 				ownable?.updateOwnership(x, y)
 				
@@ -74,8 +73,10 @@ open class Draggable(
 				updateDragTarget(event.stageX, event.stageY)
 			}
 			
-			override fun dragStop(event: InputEvent, x: Float, y: Float, pointer: Int)
+			override fun panStop(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
+				justStartedDragging = false
+				
 				currentDragTarget?.apply {
 					accept(parent)
 					highlightable?.forceHighlight = false
@@ -93,7 +94,7 @@ open class Draggable(
 		})
 	}
 	
-	open fun drag() = Unit
+	open fun pan() = Unit
 	
 	open val canDrag: Boolean
 		get() = true

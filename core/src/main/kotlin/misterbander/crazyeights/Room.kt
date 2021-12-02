@@ -65,6 +65,7 @@ import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
+import misterbander.crazyeights.scene2d.dialogs.GameSettingsDialog
 import misterbander.crazyeights.scene2d.dialogs.UserDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
@@ -122,6 +123,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// UI
 	private val gameMenuDialog = GameMenuDialog(this)
 	val userDialog = UserDialog(this)
+	val gameSettingsDialog = GameSettingsDialog(this)
 	
 	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
 		onChange { click.play(); gameMenuDialog.show() }
@@ -203,9 +205,16 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					container(chatPopup).top().left()
 					actor(chatHistoryScrollPane)
 				}.inCell.left()
-			}.cell(pad = 16F, expandX = true, fillX = true, maxHeight = 312F)
+			}.cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
 			row()
 			actor(debugInfo).cell(colspan = 2, padLeft = 16F).inCell.left()
+			row()
+			imageButton(SETTINGS_BUTTON_STYLE) {
+				onChange {
+					click.play()
+					gameSettingsDialog.show()
+				}
+			}.cell(expand = true, colspan = 2, pad = 16F).inCell.bottom().right()
 		}
 		uiStage.addListener(object : KtxInputListener()
 		{
@@ -440,14 +449,16 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val user = packet.user
 					if (user != game.user)
 						tabletop += user
-					chat("${user.username} joined the game", Color.YELLOW)
+					if (!user.isAi)
+						chat("${user.username} joined the game", Color.YELLOW)
 					tabletop.arrangePlayers()
 				}
 				is UserLeftEvent ->
 				{
 					val user = packet.user
 					tabletop -= user
-					chat("${user.username} left the game", Color.YELLOW)
+					if (!user.isAi)
+						chat("${user.username} left the game", Color.YELLOW)
 					tabletop.arrangePlayers()
 					if (user == userDialog.user)
 						userDialog.hide()

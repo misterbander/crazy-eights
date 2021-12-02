@@ -432,14 +432,14 @@ cardspadesqueen
   index: -1
 chatbackground
   rotate: false
-  xy: 622, 600
+  xy: 658, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 closebutton
   rotate: false
-  xy: 522, 794
+  xy: 722, 18
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -460,7 +460,7 @@ closebuttondown
   index: -1
 closebuttonover
   rotate: false
-  xy: 486, 794
+  xy: 522, 794
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -474,7 +474,7 @@ colorcircle
   index: -1
 cursorbase
   rotate: false
-  xy: 394, 988
+  xy: 622, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -482,6 +482,20 @@ cursorbase
 cursorborder
   rotate: false
   xy: 358, 988
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+gearicon
+  rotate: false
+  xy: 486, 794
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+gearicondown
+  rotate: false
+  xy: 394, 988
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -527,14 +541,14 @@ huesliderknobover
   index: -1
 menuicon
   rotate: false
-  xy: 658, 600
+  xy: 1671, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 menuicondown
   rotate: false
-  xy: 722, 18
+  xy: 1382, 92
   size: 32, 32
   orig: 32, 32
   offset: 0, 0

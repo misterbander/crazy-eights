@@ -13,6 +13,8 @@ import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.packets.AiAddEvent
+import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
@@ -49,6 +51,8 @@ fun Kryo.registerClasses()
 	register(UserJoinedEvent::class.java)
 	register(UserLeftEvent::class.java)
 	register(SwapSeatsEvent::class.java)
+	register(AiAddEvent::class.java)
+	register(AiRemoveEvent::class.java)
 	register(TabletopState::class.java)
 	register(CursorPosition::class.java).setInstantiator { cursorPositionPool.obtain() }
 	register(TouchUpEvent::class.java)

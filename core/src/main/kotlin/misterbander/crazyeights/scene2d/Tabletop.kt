@@ -135,6 +135,11 @@ class Tabletop(private val room: Room)
 	operator fun plusAssign(user: User)
 	{
 		users[user.username] = user
+		if (user.isAi)
+		{
+			opponentHands += userToOpponentHandMap.getOrPut(user.username) { OpponentHand(room, user = user) }
+			return
+		}
 		val cursor = CrazyEightsCursor(room, user, user == game.user)
 		userToCursorsMap[user.username] = IntMap<CrazyEightsCursor>().apply { this[-1] = cursor }
 		room.addUprightGObject(cursor)
@@ -154,7 +159,7 @@ class Tabletop(private val room: Room)
 	{
 		users.remove(user.username)
 		userToCursorsMap.remove(user.username)?.apply { values().forEach { it.remove() } }
-		userToOpponentHandMap[user.username]!!.remove()
+		userToOpponentHandMap[user.username]?.remove()
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values())
 		{
 			val lockable = gObject.getModule<Lockable>()

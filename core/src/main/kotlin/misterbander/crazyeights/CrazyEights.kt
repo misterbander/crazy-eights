@@ -128,6 +128,10 @@ class CrazyEights : GFramework()
 				imageUp = this@skin["menuicon"]
 				imageDown = this@skin["menuicondown"]
 			}
+			imageButton(SETTINGS_BUTTON_STYLE, imageButtonStyleBase) {
+				imageUp = this@skin["gearicon"]
+				imageDown = this@skin["gearicondown"]
+			}
 			val gTextFieldStyleBase = "mbtextfieldstylebase"
 			gTextField(gTextFieldStyleBase) {
 				font = jhengheiuis

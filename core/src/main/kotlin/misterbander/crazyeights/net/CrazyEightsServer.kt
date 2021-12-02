@@ -1,5 +1,6 @@
 package misterbander.crazyeights.net
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.IntSet
 import com.esotericsoftware.kryonet.Connection
@@ -25,6 +26,8 @@ import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.packets.AiAddEvent
+import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
@@ -49,6 +52,8 @@ class CrazyEightsServer
 	private var maxId = 0
 	private val idToObjectMap = IntMap<ServerObject>()
 	val state = TabletopState()
+	private val aiNames = gdxArrayOf("Shark (AI)", "Queenpin (AI)", "Watson (AI)", "Ning (AI)")
+	private var aiCount = 0
 	
 	private val asyncContext = newSingleThreadAsyncContext("CrazyEightsServer-AsyncExecutor-Thread")
 	private val server by lazy {
@@ -215,6 +220,23 @@ class CrazyEightsServer
 					keys.swap(index1, index2)
 					server.sendToAllTCP(`object`)
 					info("Server | INFO") { "$user1 swapped seats with $user2" }
+				}
+				is AiAddEvent ->
+				{
+					aiCount++
+					val name = aiNames.random() ?: "AI $aiCount"
+					aiNames -= name
+					val ai = User(name, Color.LIGHT_GRAY, true)
+					state.users[ai.username] = ai
+					server.sendToAllTCP(UserJoinedEvent(ai))
+				}
+				is AiRemoveEvent ->
+				{
+					aiCount--
+					val ai = state.users.remove(`object`.username)
+					if (!`object`.username.startsWith("AI "))
+						aiNames += `object`.username
+					server.sendToAllTCP(UserLeftEvent(ai))
 				}
 				is Chat -> server.sendToAllTCP(`object`)
 				is CursorPosition ->

@@ -79,7 +79,9 @@ class Hand(private val room: Room) : GObject<CrazyEights>(room), DragTarget
 	
 	fun sendUpdates()
 	{
-		game.client?.sendTCP(HandUpdateEvent(cardGroup.cards.map { (it as Card).toServerCard() }, game.user.username))
+		game.client?.apply {
+			outgoingPacketBuffer += HandUpdateEvent(cardGroup.cards.map { (it as Card).toServerCard() }, game.user.username)
+		}
 	}
 	
 	fun reset() = cardGroup.clearChildren()

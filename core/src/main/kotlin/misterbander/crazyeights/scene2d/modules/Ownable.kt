@@ -34,7 +34,7 @@ class Ownable(
 		
 		if (isOwned)
 		{
-			if (uiStageY > 95 + room.tabletop.hand.offsetCenterY) // Should disown it from hand?
+			if (uiStageY > 98 + room.tabletop.hand.offsetCenterY) // Should disown it from hand?
 			{
 				val smoothMovable = parent.getModule<SmoothMovable>()!!
 				room.tabletop.hand -= parent as Groupable<CardGroup>
@@ -53,7 +53,7 @@ class Ownable(
 		}
 		else
 		{
-			if (uiStageY <= 95 + room.tabletop.hand.offsetCenterY) // Should own it in hand?
+			if (uiStageY <= 92 + room.tabletop.hand.offsetCenterY) // Should own it in hand?
 			{
 				room.tabletop.hand += parent as Groupable<CardGroup>
 				room.tabletop.hand.arrange()

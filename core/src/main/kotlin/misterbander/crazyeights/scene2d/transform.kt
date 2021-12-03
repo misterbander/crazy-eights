@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Group
 import ktx.math.component1
 import ktx.math.component2
 import misterbander.crazyeights.scene2d.modules.Draggable
+import misterbander.crazyeights.scene2d.modules.Rotatable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
@@ -28,6 +29,7 @@ fun GObject<*>.transformToGroupCoordinates(group: Group)
 		rotationInterpolator.target = newRotation + dRotation
 		rotationInterpolator.value = newRotation
 		getModule<Draggable>()!!.unrotatedDragPositionVec.rotateDeg(newRotation - rotation + dRotation)
+		getModule<Rotatable>()!!.initialRotation += newRotation - rotation + dRotation
 	}
 }
 

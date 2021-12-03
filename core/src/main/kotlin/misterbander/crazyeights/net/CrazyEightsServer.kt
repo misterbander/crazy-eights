@@ -201,6 +201,8 @@ class CrazyEightsServer
 				return
 			}
 			
+//			if (`object` !is FrameworkMessage.KeepAlive && `object` !is CursorPosition && `object` !is ObjectMoveEvent && `object` !is ObjectRotateEvent)
+//				println("Server $`object`")
 			when (`object`)
 			{
 				is User -> // A new user tries to join
@@ -284,7 +286,7 @@ class CrazyEightsServer
 				{
 					val (id, ownerUsername) = `object`
 					val toOwn = idToObjectMap[id]!!
-					state.serverObjects -= toOwn
+					state.serverObjects.removeValue(toOwn, true)
 					state.hands.getOrPut(ownerUsername) { GdxArray() } += toOwn
 					server.sendToAllExceptTCP(connection.id, `object`)
 				}

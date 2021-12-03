@@ -24,6 +24,7 @@ open class Rotatable(
 	draggable: Draggable
 ) : GModule<CrazyEights>(smoothMovable.parent)
 {
+	var initialRotation = 0F
 	var justRotated = false
 	var isPinching = false
 	
@@ -52,11 +53,9 @@ open class Rotatable(
 		parent.addListener(object : GActorGestureListener()
 		{
 			private var justStartedPinching = false
-			private var initialRotation = 0F
 			private val initialDistanceVec = vec2()
 			private val distanceVec = vec2()
-			private var localCenterOffsetX = 0F
-			private var localCenterOffsetY = 0F
+			private var localCenterOffsetVec = vec2()
 			private val centerOffsetVec = vec2()
 			private var pointer1 = -1
 			private var pointer2 = -1
@@ -65,7 +64,6 @@ open class Rotatable(
 			
 			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
-				initialRotation = parent.rotation
 				if (!isPinching)
 				{
 					// ActorGestureListener does not identify pointers that initially touched down
@@ -119,16 +117,15 @@ open class Rotatable(
 					return
 				if (justStartedPinching)
 				{
-					localCenterOffsetX = (initialPointer1.x + initialPointer2.x)/2
-					localCenterOffsetY = (initialPointer1.y + initialPointer2.y)/2
+					localCenterOffsetVec.set((initialPointer1.x + initialPointer2.x)/2, (initialPointer1.y + initialPointer2.y)/2)
 					justStartedPinching = false
+					initialRotation = parent.rotation
 				}
 				
 				pinch()
+				
 				parent.localToParentCoordinates(pointer1Position.set(pointer1))
 				parent.localToParentCoordinates(pointer2Position.set(pointer2))
-				val ownable = parent.getModule<Ownable>()
-				ownable?.updateOwnership(localCenterOffsetX, localCenterOffsetY)
 				
 				// Calculate relative rotation angle
 				initialDistanceVec.set(initialPointer2) -= initialPointer1
@@ -140,14 +137,14 @@ open class Rotatable(
 				// Calculate final center position in stage coordinates
 				val pointerCenterX = (pointer1.x + pointer2.x)/2
 				val pointerCenterY = (pointer1.y + pointer2.y)/2
-				centerOffsetVec.set(localCenterOffsetX, localCenterOffsetY).rotateDeg(dAngle)
-				val (newX, newY) = parent.localToParentCoordinates(
-					tempVec.set(pointerCenterX - centerOffsetVec.x, pointerCenterY - centerOffsetVec.y)
-				)
+				centerOffsetVec.set(localCenterOffsetVec).rotateDeg(dAngle)
+				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(pointerCenterX - centerOffsetVec.x, pointerCenterY - centerOffsetVec.y))
 				
 				// Apply final position and rotation
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
+				
+				val ownable = parent.getModule<Ownable>()
 				ownable?.hand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
 						?: objectMoveEventPool.obtain()!!
@@ -158,6 +155,7 @@ open class Rotatable(
 					}
 					outgoingPacketBuffer += objectMoveEvent
 				}
+				ownable?.updateOwnership(0F, 0F)
 				
 				draggable.updateDragTarget(newX, newY)
 			}

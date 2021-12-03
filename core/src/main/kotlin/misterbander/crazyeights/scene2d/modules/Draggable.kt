@@ -48,8 +48,6 @@ open class Draggable(
 					return
 				
 				pan()
-				val ownable = parent.getModule<Ownable>()
-				ownable?.updateOwnership(x, y)
 				
 				// To implement drag, we just need to move the object such that the mouse is always at
 				// (dragPositionVec.x, dragPositionVec.y) in local coordinates
@@ -59,6 +57,7 @@ open class Draggable(
 				dragPositionVec.rotateDeg(-parent.rotation)
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
+				val ownable = parent.getModule<Ownable>()
 				ownable?.hand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
 						?: objectMoveEventPool.obtain()!!
@@ -69,6 +68,7 @@ open class Draggable(
 					}
 					outgoingPacketBuffer += objectMoveEvent
 				}
+				ownable?.updateOwnership(x, y)
 				
 				updateDragTarget(event.stageX, event.stageY)
 			}

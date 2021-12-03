@@ -158,8 +158,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	}
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
 	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
-	val gizmo1 = Gizmo(game.shapeDrawer, Color.GREEN) // TODO ###### remove debug
-	val gizmo2 = Gizmo(game.shapeDrawer, Color.CYAN)
+	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED) // TODO ###### remove debug
+	val gizmo2 = Gizmo(game.shapeDrawer, Color.ORANGE)
+	val gizmo3 = Gizmo(game.shapeDrawer, Color.YELLOW)
+	val gizmo4 = Gizmo(game.shapeDrawer, Color.GREEN)
+	val gizmo5 = Gizmo(game.shapeDrawer, Color.CYAN)
 	
 	private val uprightActors = GdxSet<Actor>()
 	private val originalRotationMap = ObjectFloatMap<Actor>()
@@ -245,6 +248,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.myCursors
 		stage += gizmo1
 		stage += gizmo2
+		stage += gizmo3
+		stage += gizmo4
+		stage += gizmo5
 		stage += Debug(this)
 	}
 	

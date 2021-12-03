@@ -5,26 +5,16 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Cursor
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.actions.Actions
-import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
-import com.badlogic.gdx.scenes.scene2d.ui.Container
-import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.KtxInputListener
 import ktx.actors.onChange
-import ktx.actors.onKey
-import ktx.actors.onKeyboardFocus
-import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
-import ktx.actors.then
 import ktx.app.Platform
 import ktx.collections.*
 import ktx.graphics.use
@@ -59,6 +49,7 @@ import misterbander.crazyeights.net.packets.UserLeftEvent
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.CardHolder
+import misterbander.crazyeights.scene2d.ChatBox
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
@@ -72,12 +63,9 @@ import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.crazyeights.scene2d.transformToGroupCoordinates
 import misterbander.gframework.layer.StageLayer
 import misterbander.gframework.scene2d.GObject
-import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.SmoothAngleInterpolator
 import misterbander.gframework.util.tempVec
-import misterbander.gframework.util.textSize
 import misterbander.gframework.util.toPixmap
-import kotlin.math.min
 
 class Room(game: CrazyEights) : CrazyEightsScreen(game)
 {
@@ -125,38 +113,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	val userDialog = UserDialog(this)
 	val gameSettingsDialog = GameSettingsDialog(this)
 	
-	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
+	val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
 		onChange { click.play(); gameMenuDialog.show() }
 	}
-	private val chatTextField = scene2d.gTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
-		messageText = if (Platform.isMobile) "Tap here to chat..." else "Press T to chat..."
-		maxLength = 256
-		setFocusTraversal(false)
-		onKey { character ->
-			if ((character == '\r' || character == '\n') && text.isNotEmpty())
-			{
-				game.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text"))
-				text = ""
-				uiStage.keyboardFocus = null
-				uiStage.scrollFocus = null
-			}
-		}
-		onKeyboardFocus { focused ->
-			chatPopup.isVisible = !focused
-			chatHistoryScrollPane.isVisible = focused
-			uiStage.scrollFocus = if (focused) chatHistoryScrollPane else null
-			Gdx.input.setOnscreenKeyboardVisible(focused)
-		}
-	}
-	private val chatHistory = scene2d.verticalGroup {
-		grow()
-		onTouchDown { Gdx.input.setOnscreenKeyboardVisible(false) }
-	}
-	private val chatHistoryScrollPane = scene2d.scrollPane(SCROLL_PANE_STYLE) {
-		actor = chatHistory
-		isVisible = false
-	}
-	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
+	val chatBox = ChatBox(this)
+	
 	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
 	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED) // TODO ###### remove debug
 	val gizmo2 = Gizmo(game.shapeDrawer, Color.ORANGE)
@@ -200,15 +161,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			setFillParent(true)
 			top()
 			actor(menuButton).cell(pad = 16F).inCell.top()
-			table {
-				defaults().growX()
-				actor(chatTextField)
-				row()
-				stack {
-					container(chatPopup).top().left()
-					actor(chatHistoryScrollPane)
-				}.inCell.left()
-			}.cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
+			actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
 			row()
 			actor(debugInfo).cell(colspan = 2, padLeft = 16F).inCell.left()
 			row()
@@ -219,27 +172,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				}
 			}.cell(expand = true, colspan = 2, pad = 16F).inCell.bottom().right()
 		}
-		uiStage.addListener(object : KtxInputListener()
-		{
-			override fun keyDown(event: InputEvent, keycode: Int): Boolean
-			{
-				if (event.keyCode == Input.Keys.T && !chatTextField.hasKeyboardFocus())
-				{
-					Gdx.app.postRunnable {
-						uiStage.keyboardFocus = chatTextField
-						uiStage.scrollFocus = chatHistoryScrollPane
-					}
-					return true
-				}
-				else if (event.keyCode == Input.Keys.ESCAPE)
-				{
-					uiStage.keyboardFocus = null
-					uiStage.scrollFocus = null
-					return true
-				}
-				return false
-			}
-		})
+		
 		stage += tabletop.cardHolders
 		stage += tabletop.opponentHands
 		stage += tabletop.cards
@@ -350,17 +283,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 	}
 	
-	@Suppress("UNCHECKED_CAST")
 	override fun resize(width: Int, height: Int)
 	{
 		super.resize(width, height)
-		for (actor: Actor in chatPopup.children)
-		{
-			val chatLabelContainer = actor as Container<Label>
-			val label = chatLabelContainer.actor!!
-			chatLabelContainer.width(label.style.font.chatTextWidth(label.text.toString()))
-			chatLabelContainer.invalidateHierarchy()
-		}
+		chatBox.resize()
 		vignetteShader.bind()
 		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
 	}
@@ -381,52 +307,13 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			rotation = uprightAngle
 	}
 	
-	/**
-	 * Appends a chat message to the chat history, and adds a chat label that disappears after 5 seconds.
-	 * @param message the message
-	 * @param color   color of the chat message
-	 */
-	fun chat(message: String, color: Color? = null)
-	{
-		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE) {
-			wrap = true
-			if (color != null)
-				this.color = color.cpy()
-		}
-		chatPopup += scene2d.container(chatLabel) {
-			width(chatLabel.style.font.chatTextWidth(message))
-			this += delay(10F) then alpha(0F, 1F) then Actions.removeActor(this)
-		}
-		
-		if (chatPopup.children.size == 7) // Maximum 6 children
-		{
-			val firstChatPopup: Actor = chatPopup.removeActorAt(0, false)
-			firstChatPopup.clear()
-		}
-		
-		// Add to history
-		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE_S) {
-			wrap = true
-			if (color != null)
-				this.color = color.cpy()
-		}
-		chatHistory.pad(4F, 16F, 4F, 16F).space(8F)
-		chatHistory += chatHistoryLabel
-		chatHistoryScrollPane.layout()
-		chatHistoryScrollPane.scrollPercentY = 100F
-	}
-	
-	private fun BitmapFont.chatTextWidth(message: String): Float =
-		min(textSize(message).x + 32, uiViewport.worldWidth - menuButton.width - 64)
-	
 	override fun hide()
 	{
 		// Reset camera
 		cameraAngleInterpolator.set(0F)
 		
 		// Reset room state
-		chatPopup.clearChildren()
-		chatHistory.clearChildren()
+		chatBox.clearChats()
 		tabletop.reset()
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 	}
@@ -456,7 +343,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					if (user != game.user)
 						tabletop += user
 					if (!user.isAi)
-						chat("${user.username} joined the game", Color.YELLOW)
+						chatBox.chat("${user.username} joined the game", Color.YELLOW)
 					tabletop.arrangePlayers()
 				}
 				is UserLeftEvent ->
@@ -464,7 +351,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val user = packet.user
 					tabletop -= user
 					if (!user.isAi)
-						chat("${user.username} left the game", Color.YELLOW)
+						chatBox.chat("${user.username} left the game", Color.YELLOW)
 					tabletop.arrangePlayers()
 					if (user == userDialog.user)
 						userDialog.hide()
@@ -481,7 +368,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is Chat ->
 				{
 					val (_, message, isSystemMessage) = packet
-					chat(message, if (isSystemMessage) Color.YELLOW else null)
+					chatBox.chat(message, if (isSystemMessage) Color.YELLOW else null)
 					info("Client | CHAT") { message }
 				}
 				is CursorPosition ->

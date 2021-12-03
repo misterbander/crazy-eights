@@ -134,7 +134,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 					val room = game.getScreen<Room>()
 					room.tabletop.setState(`object`)
 					room.clientListener = room.ClientListener()
-					room.chat("${game.user.username} joined the game", Color.YELLOW)
+					room.chatBox.chat("${game.user.username} joined the game", Color.YELLOW)
 					messageDialog.actionlessHide()
 					game.client!!.removeListener(this)
 					game.client!!.addListener(room.clientListener)

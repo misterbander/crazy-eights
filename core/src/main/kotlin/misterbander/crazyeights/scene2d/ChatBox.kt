@@ -146,6 +146,7 @@ class ChatBox(private val room: Room) : Table()
 		chatHistory.pad(4F, 16F, 4F, 16F).space(8F)
 		chatHistory += chatHistoryLabel
 		chatHistoryScrollPane.validate()
+		chatHistoryScrollPane.validate()
 		chatHistoryScrollPane.scrollPercentY = 1F
 	}
 	

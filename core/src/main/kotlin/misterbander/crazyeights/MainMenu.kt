@@ -1,7 +1,6 @@
 package misterbander.crazyeights
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
@@ -133,11 +132,8 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 				is TabletopState -> Gdx.app.postRunnable {
 					val room = game.getScreen<Room>()
 					room.tabletop.setState(`object`)
-					room.clientListener = room.ClientListener()
-					room.chatBox.chat("${game.user.username} joined the game", Color.YELLOW)
 					messageDialog.actionlessHide()
 					game.client!!.removeListener(this)
-					game.client!!.addListener(room.clientListener)
 					transition.start(targetScreen = room)
 				}
 			}

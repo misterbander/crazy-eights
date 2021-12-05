@@ -14,7 +14,7 @@ import misterbander.gframework.util.tempVec
 class Hand(private val room: Room) : GObject<CrazyEights>(room), DragTarget
 {
 	val offsetCenterY = 48F
-	private val cardGroup = CardGroup(room, y = offsetCenterY, type = ServerCardGroup.Type.SPREAD)
+	val cardGroup = CardGroup(room, y = offsetCenterY, type = ServerCardGroup.Type.SPREAD)
 	
 	init
 	{

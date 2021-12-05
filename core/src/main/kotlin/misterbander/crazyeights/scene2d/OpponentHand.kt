@@ -33,7 +33,7 @@ class OpponentHand(
 	private var xAdjustFactor = 1F
 	private var yAdjustFactor = 1F
 	
-	private val cardGroup = CardGroup(room, spreadSeparation = 20F, type = ServerCardGroup.Type.SPREAD).apply {
+	val cardGroup = CardGroup(room, spreadSeparation = 20F, type = ServerCardGroup.Type.SPREAD).apply {
 		setScale(0.5F)
 	}
 	private val nameGroup = Group().apply {

@@ -38,6 +38,13 @@ class Tabletop(private val room: Room)
 	val opponentHands = Group()
 	val hand = Hand(room)
 	
+	val drawStackHolder: CardHolder
+		get() = cardHolders.children.first { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.STACK } as CardHolder
+	val discardPileHolder: CardHolder
+		get() = cardHolders.children.first { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.PILE } as CardHolder
+	
+	var isGameStarted = false
+	
 	@Suppress("UNCHECKED_CAST")
 	fun setState(state: TabletopState)
 	{
@@ -79,6 +86,8 @@ class Tabletop(private val room: Room)
 		}
 		
 		arrangePlayers()
+		
+		isGameStarted = state.isGameStarted
 	}
 	
 	private fun ServerObject.toGObject(): GObject<CrazyEights> = when (this)
@@ -164,7 +173,7 @@ class Tabletop(private val room: Room)
 		{
 			val lockable = gObject.getModule<Lockable>()
 			if (lockable != null && lockable.lockHolder == user)
-				lockable.unlock()
+				lockable.unlock(false)
 		}
 	}
 	
@@ -216,5 +225,7 @@ class Tabletop(private val room: Room)
 		cards.clearChildren()
 		cardHolders.clearChildren()
 		opponentHands.clearChildren()
+		
+		isGameStarted = false
 	}
 }

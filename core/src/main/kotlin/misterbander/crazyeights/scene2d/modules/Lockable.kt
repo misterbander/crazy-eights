@@ -75,7 +75,7 @@ open class Lockable(
 			parent.setScrollFocus()
 	}
 	
-	open fun unlock()
+	open fun unlock(sideEffects: Boolean = true)
 	{
 		lockHolder = null
 		justLongPressed = false

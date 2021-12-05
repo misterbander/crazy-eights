@@ -10,6 +10,7 @@ import ktx.log.info
 import ktx.scene2d.*
 import misterbander.crazyeights.INFO_LABEL_STYLE_S
 import misterbander.crazyeights.MainMenu
+import misterbander.crazyeights.Room
 import misterbander.crazyeights.TEXT_BUTTON_STYLE
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.gframework.scene2d.UnfocusListener
@@ -56,8 +57,11 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 							game.network.createAndStartServer(port)
 							if (!isActive)
 								throw CancellationException()
+							val room = game.getScreen<Room>()
+							room.clientListener = room.ClientListener()
 							val client = game.network.createAndConnectClient("localhost", port)
 							client.addListener(mainMenu.ClientListener())
+							client.addListener(room.clientListener)
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
 							client.sendTCP(Handshake(data = arrayOf(game.user.username)))

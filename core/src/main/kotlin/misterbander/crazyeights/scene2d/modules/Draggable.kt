@@ -58,7 +58,7 @@ open class Draggable(
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
 				smoothMovable.setPositionAndTargetPosition(newX, newY)
 				val ownable = parent.getModule<Ownable>()
-				ownable?.hand?.arrange() ?: game.client?.apply {
+				ownable?.myHand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }
 						?: objectMoveEventPool.obtain()!!
 					objectMoveEvent.apply {
@@ -87,7 +87,7 @@ open class Draggable(
 					if (!isOwned && wasInHand)
 					{
 						wasInHand = false
-						room.tabletop.hand.sendUpdates()
+						room.tabletop.myHand.sendUpdates()
 					}
 				}
 			}
@@ -105,7 +105,7 @@ open class Draggable(
 		currentDragTarget = null
 		val dragTarget = room.tabletop.hitDragTarget(x, y)
 		if (parent.getModule<Ownable>()?.isOwned == true)
-			currentDragTarget = room.tabletop.hand
+			currentDragTarget = room.tabletop.myHand
 		else if (dragTarget?.canAccept(parent) == true)
 		{
 			currentDragTarget = dragTarget

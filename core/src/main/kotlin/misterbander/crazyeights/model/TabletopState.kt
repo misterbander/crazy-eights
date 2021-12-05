@@ -4,9 +4,9 @@ import com.badlogic.gdx.utils.OrderedMap
 import ktx.collections.*
 
 data class TabletopState(
-	val users: OrderedMap<String, User> = OrderedMap(),
+	val users: GdxMap<String, User> = GdxMap(),
 	val serverObjects: GdxArray<ServerObject> = GdxArray(),
-	val hands: GdxMap<String, GdxArray<ServerObject>> = GdxMap(),
+	val hands: OrderedMap<String, GdxArray<ServerObject>> = OrderedMap(),
 	var isGameStarted: Boolean = false
 )
 {

@@ -179,6 +179,8 @@ class CrazyEightsServer
 			{
 				val user = connection.arbitraryData as User
 				state.users.remove(user.username)
+				if (state.hands[user.username]!!.isEmpty)
+					state.hands.remove(user.username)
 				for (serverObject: ServerObject in state.serverObjects)
 				{
 					if (serverObject is ServerLockable && serverObject.lockHolder == user)
@@ -233,6 +235,7 @@ class CrazyEightsServer
 				{
 					connection.arbitraryData = `object`
 					state.users[`object`.username] = `object`
+					state.hands.getOrPut(`object`.username) { GdxArray() }
 					connection.sendTCP(state)
 					server.sendToAllTCP(UserJoinedEvent(`object`))
 					info("Server | INFO") { "${`object`.username} joined the game" }
@@ -240,7 +243,7 @@ class CrazyEightsServer
 				is SwapSeatsEvent ->
 				{
 					val (user1, user2) = `object`
-					val keys: GdxArray<String> = state.users.orderedKeys()
+					val keys: GdxArray<String> = state.hands.orderedKeys()
 					val index1 = keys.indexOf(user1, false)
 					val index2 = keys.indexOf(user2, false)
 					keys.swap(index1, index2)
@@ -253,13 +256,15 @@ class CrazyEightsServer
 					val name = aiNames.random() ?: "AI $aiCount"
 					aiNames -= name
 					val ai = User(name, Color.LIGHT_GRAY, true)
-					state.users[ai.username] = ai
+					state.users[name] = ai
+					state.hands[name] = GdxArray()
 					server.sendToAllTCP(UserJoinedEvent(ai))
 				}
 				is AiRemoveEvent ->
 				{
 					aiCount--
 					val ai = state.users.remove(`object`.username)
+					state.hands.remove(`object`.username)
 					if (!`object`.username.startsWith("AI "))
 						aiNames += `object`.username
 					server.sendToAllTCP(UserLeftEvent(ai))
@@ -309,7 +314,7 @@ class CrazyEightsServer
 					val (id, ownerUsername) = `object`
 					val toOwn = idToObjectMap[id]!!
 					state.serverObjects.removeValue(toOwn, true)
-					state.hands.getOrPut(ownerUsername) { GdxArray() } += toOwn
+					state.hands[ownerUsername]!!.add(toOwn)
 					server.sendToAllExceptTCP(connection.id, `object`)
 				}
 				is ObjectDisownEvent ->
@@ -442,7 +447,13 @@ class CrazyEightsServer
 							state.serverObjects.removeValue(serverObject, true)
 						}
 					}
-					state.hands.clear()
+//					for (username in state.hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
+//					{
+//						if (username !in state.users)
+//							state.hands.remove(username)
+//					}
+					state.hands.values().forEach { it.clear() }
+					
 					val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
 					
 					// Shuffle draw stack
@@ -450,12 +461,12 @@ class CrazyEightsServer
 					drawStack.shuffle(seed)
 					
 					// Deal
-					repeat(if (state.users.size > 2) 5 else 7) {
-						for (username: String in state.users.orderedKeys())
+					repeat(if (state.hands.size > 2) 5 else 7) {
+						for (username: String in state.hands.orderedKeys())
 						{
 							val card: ServerCard = drawStack.cards.pop()
 							card.isFaceUp = true
-							state.hands.getOrPut(username) { GdxArray() } += card
+							state.hands[username]!!.add(card)
 						}
 					}
 					

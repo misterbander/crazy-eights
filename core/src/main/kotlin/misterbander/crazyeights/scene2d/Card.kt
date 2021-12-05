@@ -97,7 +97,7 @@ class Card(
 			super.unlock(sideEffects)
 			cardGroup?.arrange()
 			if (isLockHolder && ownable.isOwned)
-				room.tabletop.hand.sendUpdates()
+				room.tabletop.myHand.sendUpdates()
 		}
 	}
 	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
@@ -149,7 +149,7 @@ class Card(
 	private fun separateFromCardGroup()
 	{
 		val cardGroup = cardGroup ?: return
-		if (cardGroup.ownable.hand != null)
+		if (cardGroup.ownable.myHand != null)
 			return
 		if (cardGroup.cardHolder != null || cardGroup.cards.size > 2)
 		{

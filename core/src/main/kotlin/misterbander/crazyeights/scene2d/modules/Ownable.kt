@@ -10,7 +10,7 @@ import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.Groupable
-import misterbander.crazyeights.scene2d.Hand
+import misterbander.crazyeights.scene2d.MyHand
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 
@@ -20,10 +20,10 @@ class Ownable(
 	draggable: Draggable
 ) : GModule<CrazyEights>(draggable.parent)
 {
-	val hand: Hand?
-		get() = parent.firstAscendant(Hand::class.java)
+	val myHand: MyHand?
+		get() = parent.firstAscendant(MyHand::class.java)
 	val isOwned: Boolean
-		get() = hand != null
+		get() = myHand != null
 	var wasInHand = false
 	
 	@Suppress("UNCHECKED_CAST")
@@ -34,11 +34,11 @@ class Ownable(
 		
 		if (isOwned)
 		{
-			if (uiStageY > 98 + room.tabletop.hand.offsetCenterY) // Should disown it from hand?
+			if (uiStageY > 98 + room.tabletop.myHand.offsetCenterY) // Should disown it from hand?
 			{
 				val smoothMovable = parent.getModule<SmoothMovable>()!!
-				room.tabletop.hand -= parent as Groupable<CardGroup>
-				room.tabletop.hand.arrange()
+				room.tabletop.myHand -= parent as Groupable<CardGroup>
+				room.tabletop.myHand.arrange()
 				game.client?.apply {
 					outgoingPacketBuffer += ObjectDisownEvent(
 						id,
@@ -53,10 +53,10 @@ class Ownable(
 		}
 		else
 		{
-			if (uiStageY <= 92 + room.tabletop.hand.offsetCenterY) // Should own it in hand?
+			if (uiStageY <= 92 + room.tabletop.myHand.offsetCenterY) // Should own it in hand?
 			{
-				room.tabletop.hand += parent as Groupable<CardGroup>
-				room.tabletop.hand.arrange()
+				room.tabletop.myHand += parent as Groupable<CardGroup>
+				room.tabletop.myHand.arrange()
 				game.client?.apply { outgoingPacketBuffer += ObjectOwnEvent(id, game.user.username) }
 			}
 		}

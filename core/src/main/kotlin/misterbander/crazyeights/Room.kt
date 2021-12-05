@@ -58,6 +58,8 @@ import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.Groupable
+import misterbander.crazyeights.scene2d.Hand
+import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.actions.DealAction
 import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
@@ -196,7 +198,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.cardHolders
 		stage += tabletop.opponentHands
 		stage += tabletop.cards
-		stage += tabletop.hand
+		stage += tabletop.myHand
 		stage += tabletop.cursors
 		stage += tabletop.myCursors
 		stage += gizmo1
@@ -232,7 +234,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 		
 		selfDisconnect = false
-		tabletop.hand.arrange()
+		tabletop.myHand.arrange()
 	}
 	
 	override fun render(delta: Float)
@@ -366,7 +368,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				{
 					val user = packet.user
 					if (user != game.user)
+					{
 						tabletop += user
+						val opponentHand = tabletop.userToHandMap.getOrPut(user.username) {
+							OpponentHand(this@Room)
+						} as OpponentHand
+						opponentHand.user = user
+						tabletop.opponentHands += opponentHand
+					}
 					if (!user.isAi)
 						chatBox.chat("${user.username} joined the game", Color.YELLOW)
 					tabletop.arrangePlayers()
@@ -384,7 +393,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is SwapSeatsEvent ->
 				{
 					val (user1, user2) = packet
-					val keys: GdxArray<String> = tabletop.users.orderedKeys()
+					val keys: GdxArray<String> = tabletop.userToHandMap.orderedKeys()
 					val index1 = keys.indexOf(user1, false)
 					val index2 = keys.indexOf(user2, false)
 					keys.swap(index1, index2)
@@ -428,7 +437,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				{
 					val (id, ownerUsername) = packet
 					val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
-					val hand = tabletop.userToOpponentHandMap[ownerUsername]!!
+					val hand = tabletop.userToHandMap[ownerUsername]!!
 					toOwn.getModule<Lockable>()?.unlock()
 					hand += toOwn
 					hand.arrange()
@@ -437,7 +446,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				{
 					val (id, x, y, rotation, isFaceUp, disownerUsername) = packet
 					val toDisown = idToGObjectMap[id] as Groupable<CardGroup>
-					val hand = tabletop.userToOpponentHandMap[disownerUsername]!!
+					val hand = tabletop.userToHandMap[disownerUsername]!!
 					hand -= toDisown
 					hand.arrange()
 					toDisown.getModule<SmoothMovable>()?.apply {
@@ -448,7 +457,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					if (toDisown is Card)
 						toDisown.isFaceUp = isFaceUp
 				}
-				is HandUpdateEvent -> tabletop.userToOpponentHandMap[packet.ownerUsername]!!.flatten()
+				is HandUpdateEvent -> (tabletop.userToHandMap[packet.ownerUsername] as? OpponentHand)?.flatten()
 				is ObjectMoveEvent ->
 				{
 					val (id, x, y) = packet
@@ -544,9 +553,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val drawStack = tabletop.drawStackHolder.cardGroup!!
 					drawStack.flip(false)
 					
-					val hands: Array<CardGroup> = tabletop.users.orderedKeys().map {
-						tabletop.userToOpponentHandMap[it]?.cardGroup ?: tabletop.hand.cardGroup
-					}.toArray(CardGroup::class.java)
+					val hands: Array<Hand> = tabletop.userToHandMap.orderedKeys().map {
+						tabletop.userToHandMap[it]!!
+					}.toArray(Hand::class.java)
 					
 					drawStack += targeting(tabletop.drawStackHolder, touchable(Touchable.disabled)) then
 						delay(1F, ShowCenterTitleAction(this@Room, "Shuffling...")) then

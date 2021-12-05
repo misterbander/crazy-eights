@@ -7,9 +7,10 @@ import ktx.actors.plusAssign
 import ktx.actors.then
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.scene2d.Card
-import misterbander.crazyeights.scene2d.CardGroup
+import misterbander.crazyeights.scene2d.Hand
+import misterbander.crazyeights.scene2d.MyHand
 
-class DealAction(private val room: Room, private val hands: Array<CardGroup>) : RunnableAction()
+class DealAction(private val room: Room, private val hands: Array<Hand>) : RunnableAction()
 {
 	private var finished = false
 	
@@ -29,10 +30,10 @@ class DealAction(private val room: Room, private val hands: Array<CardGroup>) : 
 			room.cardSlide.play()
 			val card = drawStack.cards.peek() as Card
 			val hand = hands[i%size]
-			card.cardGroup = hand
-			if (hand.ownable.hand != null)
+			card.cardGroup = hand.cardGroup
+			if (hand is MyHand)
 			{
-				hand.ownable.hand!!.arrange(false)
+				hand.arrange(false)
 				card.isFaceUp = true
 				card.ownable.wasInHand = true
 			}

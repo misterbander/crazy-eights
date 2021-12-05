@@ -1,6 +1,7 @@
 package misterbander.crazyeights.scene2d
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
@@ -8,17 +9,16 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import ktx.actors.onClick
 import ktx.actors.plusAssign
+import ktx.actors.txt
 import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
-import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.PLAYER_NAMETAG_LABEL_STYLE_S
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Highlightable
-import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 import kotlin.math.min
 
@@ -27,24 +27,35 @@ class OpponentHand(
 	var realX: Float = 0F,
 	var realY: Float = 0F,
 	rotation: Float = 0F,
-	user: User,
-) : GObject<CrazyEights>(room)
+	user: User = User("", Color.LIGHT_GRAY),
+) : Hand(room)
 {
 	private var xAdjustFactor = 1F
 	private var yAdjustFactor = 1F
 	
-	val cardGroup = CardGroup(room, spreadSeparation = 20F, type = ServerCardGroup.Type.SPREAD).apply {
+	override val cardGroup = CardGroup(room, spreadSeparation = 20F, type = ServerCardGroup.Type.SPREAD).apply {
 		setScale(0.5F)
 	}
+	private val nameLabel = scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE_S) {
+		color = user.color
+		pack()
+		setPosition(0F, 0F, Align.center)
+	}
 	private val nameGroup = Group().apply {
-		this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE_S) {
-			pack()
-			color = user.color
-			setPosition(0F, 0F, Align.center)
-		}
+		this += nameLabel
 		setPosition(0F, 0F, Align.center)
 		this.rotation = -rotation
 	}
+	
+	var user: User = user
+		set(value)
+		{
+			field = value
+			nameLabel.txt = value.username
+			nameLabel.color = value.color
+			nameLabel.pack()
+			nameLabel.setPosition(0F, 0F, Align.center)
+		}
 	
 	// Modules
 	private val highlightable = Highlightable(this)
@@ -62,7 +73,7 @@ class OpponentHand(
 		
 		onClick {
 			room.click.play()
-			room.userDialog.show(user)
+			room.userDialog.show(this.user)
 		}
 		
 		// Add modules
@@ -89,17 +100,7 @@ class OpponentHand(
 		return null
 	}
 	
-	operator fun plusAssign(groupable: Groupable<CardGroup>)
-	{
-		cardGroup += groupable
-	}
-	
-	operator fun minusAssign(groupable: Groupable<CardGroup>)
-	{
-		cardGroup -= groupable
-	}
-	
-	fun arrange() = cardGroup.arrange()
+	override fun arrange(sort: Boolean) = cardGroup.arrange()
 	
 	fun flatten()
 	{

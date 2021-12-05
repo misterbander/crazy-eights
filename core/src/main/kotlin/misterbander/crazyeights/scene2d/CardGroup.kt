@@ -64,7 +64,7 @@ class CardGroup(
 	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
-			get() = ownable.hand == null && (UIUtils.shift() || lockable.justLongPressed)
+			get() = ownable.myHand == null && (UIUtils.shift() || lockable.justLongPressed)
 		
 		override fun pan() = detachFromCardHolder()
 	}
@@ -75,7 +75,7 @@ class CardGroup(
 	override val highlightable = object : Highlightable(this)
 	{
 		override val shouldHighlight: Boolean
-			get() = over && UIUtils.shift() && ownable.hand == null || lockable.isLockHolder || forceHighlight
+			get() = over && UIUtils.shift() && ownable.myHand == null || lockable.isLockHolder || forceHighlight
 		
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked

@@ -49,8 +49,13 @@ class Card(
 		setPosition(0F, 0F, Align.center)
 	}
 	
-	val cardGroup: CardGroup?
+	var cardGroup: CardGroup?
 		get() = parent as? CardGroup?
+		set(value)
+		{
+			cardGroup?.minusAssign(this)
+			value?.plusAssign(this)
+		}
 	
 	// Modules
 	override val smoothMovable = SmoothMovable(this, x, y, rotation)
@@ -73,8 +78,14 @@ class Card(
 			return false
 		}
 		
-		override fun unlock()
+		override fun unlock(sideEffects: Boolean)
 		{
+			if (!sideEffects)
+			{
+				super.unlock(false)
+				cardGroup?.arrange()
+				return
+			}
 			val isLockHolder = isLockHolder
 			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
 			{
@@ -83,7 +94,7 @@ class Card(
 				else
 					game.client?.sendTCP(CardFlipEvent(id))
 			}
-			super.unlock()
+			super.unlock(sideEffects)
 			cardGroup?.arrange()
 			if (isLockHolder && ownable.isOwned)
 				room.tabletop.hand.sendUpdates()
@@ -149,9 +160,7 @@ class Card(
 		}
 		else
 		{
-			game.client?.apply {
-				outgoingPacketBuffer += CardGroupDismantleEvent(cardGroup.id)
-			}
+			game.client?.apply { outgoingPacketBuffer += CardGroupDismantleEvent(cardGroup.id) }
 			cardGroup.dismantle()
 		}
 	}

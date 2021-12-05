@@ -54,7 +54,7 @@ class CrazyEights : GFramework()
 	}
 	val jhengheiuil by lazy {
 		generator.generateFont {
-			size = 50
+			size = 64
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
@@ -92,6 +92,7 @@ class CrazyEights : GFramework()
 				background.rightWidth = 12F
 				background.bottomHeight = 2F
 			}
+			label(CENTER_TITLE_LABEL_STYLE) { font = jhengheiuil; fontColor = Color.WHITE }
 			window(WINDOW_STYLE) {
 				background = this@skin["window"]
 				titleFont = jhengheiuis
@@ -182,6 +183,7 @@ class CrazyEights : GFramework()
 				assetStorage.loadAsync(Textures.title),
 				assetStorage.loadAsync(Fonts.msjhl),
 				assetStorage.loadAsync(Sounds.click),
+				assetStorage.loadAsync(Sounds.cardSlide),
 				assetStorage.loadAsync(Shaders.brighten),
 				assetStorage.loadAsync(Shaders.vignette)
 			)

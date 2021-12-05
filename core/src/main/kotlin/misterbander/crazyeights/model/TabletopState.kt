@@ -6,7 +6,8 @@ import ktx.collections.*
 data class TabletopState(
 	val users: OrderedMap<String, User> = OrderedMap(),
 	val serverObjects: GdxArray<ServerObject> = GdxArray(),
-	val hands: GdxMap<String, GdxArray<ServerObject>> = GdxMap()
+	val hands: GdxMap<String, GdxArray<ServerObject>> = GdxMap(),
+	var isGameStarted: Boolean = false
 )
 {
 	@Volatile @Transient var serverObjectsDebugString: String = ""

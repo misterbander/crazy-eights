@@ -54,11 +54,11 @@ class CardGroup(
 				Gdx.input.vibrate(100)
 		}
 		
-		override fun unlock()
+		override fun unlock(sideEffects: Boolean)
 		{
 			if (cardHolder != null)
 				smoothMovable.rotationInterpolator.target = 0F
-			super.unlock()
+			super.unlock(sideEffects)
 		}
 	}
 	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
@@ -215,6 +215,7 @@ class CardGroup(
 						yInterpolator.smoothingFactor = 5F
 						setTargetPosition(-index.toFloat(), index.toFloat())
 						rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
+						groupable.zIndex = index
 					}
 				}
 			}
@@ -268,7 +269,7 @@ class CardGroup(
 			if (groupable is Card)
 				groupable.isFaceUp = isFaceUp
 			else if (groupable is CardGroup)
-				flip(isFaceUp)
+				groupable.flip(isFaceUp)
 		}
 	}
 	
@@ -276,6 +277,7 @@ class CardGroup(
 	{
 		while (cards.isNotEmpty())
 			this -= cards.first()
+		room.tabletop.idToGObjectMap.remove(id)
 		remove()
 	}
 	

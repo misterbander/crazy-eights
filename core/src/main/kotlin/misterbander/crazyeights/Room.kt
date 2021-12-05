@@ -9,12 +9,15 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.KtxInputListener
 import ktx.actors.onChange
 import ktx.actors.plusAssign
+import ktx.actors.then
 import ktx.app.Platform
 import ktx.collections.*
 import ktx.graphics.use
@@ -36,6 +39,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
+import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
@@ -55,10 +59,15 @@ import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.Tabletop
+import misterbander.crazyeights.scene2d.actions.DealAction
+import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
+import misterbander.crazyeights.scene2d.actions.ShowCenterTitleAction
+import misterbander.crazyeights.scene2d.actions.ShuffleAction
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.dialogs.GameSettingsDialog
 import misterbander.crazyeights.scene2d.dialogs.UserDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
+import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.crazyeights.scene2d.transformToGroupCoordinates
 import misterbander.gframework.layer.StageLayer
@@ -69,6 +78,9 @@ import misterbander.gframework.util.toPixmap
 
 class Room(game: CrazyEights) : CrazyEightsScreen(game)
 {
+	// Sounds
+	val cardSlide = game.assetStorage[Sounds.cardSlide]
+	
 	// Shaders
 	val brightenShader = game.assetStorage[Shaders.brighten]
 	private val vignetteShader = game.assetStorage[Shaders.vignette]
@@ -117,6 +129,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		onChange { click.play(); gameMenuDialog.show() }
 	}
 	val chatBox = ChatBox(this)
+	val centerTitle = scene2d.label("Test", CENTER_TITLE_LABEL_STYLE)
+	val centerTitleContainer = scene2d.container(centerTitle) {
+		background = Scene2DSkin.defaultSkin["chatbackground"]
+		isVisible = false
+	}
 	
 	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
 	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED) // TODO ###### remove debug
@@ -159,18 +176,21 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 		uiStage += scene2d.table {
 			setFillParent(true)
-			top()
-			actor(menuButton).cell(pad = 16F).inCell.top()
-			actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
-			row()
-			actor(debugInfo).cell(colspan = 2, padLeft = 16F).inCell.left()
-			row()
-			imageButton(SETTINGS_BUTTON_STYLE) {
-				onChange {
-					click.play()
-					gameSettingsDialog.show()
+			stack {
+				table {
+					actor(menuButton).cell(pad = 16F).inCell.top()
+					actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
+					row()
+					imageButton(SETTINGS_BUTTON_STYLE) {
+						onChange {
+							click.play()
+							gameSettingsDialog.show()
+						}
+					}.cell(expand = true, colspan = 2, pad = 16F).inCell.bottom().right()
 				}
-			}.cell(expand = true, colspan = 2, pad = 16F).inCell.bottom().right()
+				container(debugInfo) { top().left().padTop(128F).padLeft(16F) }
+				table { actor(centerTitleContainer).cell(growX = true) }
+			}.cell(grow = true)
 		}
 		
 		stage += tabletop.cardHolders
@@ -270,6 +290,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		if (shouldSyncServer)
 			game.client?.flushOutgoingPacketBuffer()
 		clientListener.processPackets()
+		
+		if (!tabletop.isGameStarted && Gdx.input.isKeyJustPressed(Input.Keys.N))
+//			stage += RecallCardsAction(tabletop)
+			game.client?.sendTCP(NewGameEvent())
 	}
 	
 	override fun clearScreen()
@@ -315,6 +339,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		// Reset room state
 		chatBox.clearChats()
 		tabletop.reset()
+		centerTitleContainer.isVisible = false
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 	}
 	
@@ -398,7 +423,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val (id, lockerUsername) = packet
 					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
 				}
-				is ObjectUnlockEvent -> idToGObjectMap[packet.id]!!.getModule<Lockable>()?.unlock()
+				is ObjectUnlockEvent -> idToGObjectMap[packet.id]?.getModule<Lockable>()?.unlock()
 				is ObjectOwnEvent ->
 				{
 					val (id, ownerUsername) = packet
@@ -470,12 +495,12 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val (cards, newCardGroupId, changerUsername) = packet
 					if (changerUsername != game.user.username || newCardGroupId != -1)
 					{
-						val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
+						val newCardGroup =
+							if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
 						for ((id, x, y, rotation) in cards)
 						{
 							val card = idToGObjectMap[id] as Card
-							card.cardGroup?.minusAssign(card)
-							newCardGroup?.plusAssign(card)
+							card.cardGroup = newCardGroup
 							card.smoothMovable.setTargetPosition(x, y)
 							card.smoothMovable.rotationInterpolator.target = rotation
 						}
@@ -501,6 +526,38 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					cardHolder += replacementCardGroup
 				}
 				is CardGroupDismantleEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
+//				is CardGroupShuffleEvent ->
+//				{
+//					val (id, seed) = packet
+//					val cardGroup = idToGObjectMap[id] as CardGroup
+//					cardGroup.shuffle(seed)
+//				}
+				is NewGameEvent ->
+				{
+					val (cardGroupChangeEvent, shuffleSeed) = packet
+					for (gObject: GObject<CrazyEights> in idToGObjectMap.values()) // Unlock and disown everything
+					{
+						gObject.getModule<Lockable>()?.unlock(false)
+						gObject.getModule<Ownable>()?.wasInHand = false
+					}
+					processPacket(cardGroupChangeEvent!!)
+					val drawStack = tabletop.drawStackHolder.cardGroup!!
+					drawStack.flip(false)
+					
+					val hands: Array<CardGroup> = tabletop.users.orderedKeys().map {
+						tabletop.userToOpponentHandMap[it]?.cardGroup ?: tabletop.hand.cardGroup
+					}.toArray(CardGroup::class.java)
+					
+					drawStack += targeting(tabletop.drawStackHolder, touchable(Touchable.disabled)) then
+						delay(1F, ShowCenterTitleAction(this@Room, "Shuffling...")) then
+						ShuffleAction(this@Room, shuffleSeed) then
+						delay(0.5F, ShowCenterTitleAction(this@Room, "Dealing...")) then
+						DealAction(this@Room, hands) then
+						HideCenterTitleAction(this@Room) then
+						targeting(tabletop.drawStackHolder, touchable(Touchable.enabled))
+					
+					tabletop.isGameStarted = true
+				}
 			}
 		}
 	}

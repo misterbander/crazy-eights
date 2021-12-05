@@ -1,6 +1,7 @@
 package misterbander.gframework.util
 
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.RandomXS128
 import com.badlogic.gdx.utils.IntIntMap
 import com.badlogic.gdx.utils.ObjectIntMap
 import ktx.collections.*
@@ -49,4 +50,21 @@ fun <T> ObjectIntMap<T>.weightedRandom(): T
 			low = mid + 1
 	}
 	return items[low]
+}
+
+/**
+ * Shuffles a [GdxArray] using a specific seed.
+ * @param seed the seed for the random number generator
+ */
+fun <T> GdxArray<T>.shuffle(seed: Long)
+{
+	val random = RandomXS128(seed)
+	val items = items
+	for (i in size - 1 downTo 0)
+	{
+		val ii = random.nextInt(i + 1)
+		val temp = items[i]
+		items[i] = items[ii]
+		items[ii] = temp
+	}
 }

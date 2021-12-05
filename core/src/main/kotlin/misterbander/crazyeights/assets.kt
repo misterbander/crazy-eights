@@ -26,6 +26,7 @@ object Fonts
 object Sounds
 {
 	val click = assetDescriptor<Sound>("sounds/click.wav")
+	val cardSlide = assetDescriptor<Sound>("sounds/cardslide.wav")
 }
 
 object Shaders

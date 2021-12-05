@@ -12,7 +12,7 @@ data class ServerCardHolder(
 	val defaultType = cardGroup.type
 	
 	override val canLock: Boolean
-		get() = cardGroup.cards.isEmpty
+		get() = false
 	
 	init
 	{

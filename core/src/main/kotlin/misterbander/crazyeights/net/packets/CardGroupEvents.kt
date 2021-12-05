@@ -15,3 +15,6 @@ data class CardGroupDetachEvent(val cardHolderId: Int, val replacementCardGroupI
 
 @NoArg
 data class CardGroupDismantleEvent(val id: Int)
+
+@NoArg
+data class CardGroupShuffleEvent(val id: Int, val seed: Long)

@@ -20,9 +20,11 @@ import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.packets.CardGroupShuffleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
+import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
@@ -74,4 +76,6 @@ fun Kryo.registerClasses()
 	register(CardGroupChangeEvent::class.java)
 	register(CardGroupDetachEvent::class.java)
 	register(CardGroupDismantleEvent::class.java)
+	register(CardGroupShuffleEvent::class.java)
+	register(NewGameEvent::class.java)
 }

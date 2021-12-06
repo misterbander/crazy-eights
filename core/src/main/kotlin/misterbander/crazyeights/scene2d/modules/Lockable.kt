@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import ktx.actors.setScrollFocus
+import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.ObjectLockEvent
@@ -39,7 +40,7 @@ open class Lockable(
 					if (parent.getModule<Ownable>()?.isOwned == true)
 						lock(game.user)
 					else
-						game.client?.sendTCP(ObjectLockEvent(id, game.user.username))
+						game.client?.apply { outgoingPacketBuffer += ObjectLockEvent(id, game.user.username) }
 				}
 			}
 			
@@ -53,7 +54,7 @@ open class Lockable(
 					if (parent.getModule<Ownable>()?.isOwned == true)
 						unlock()
 					else
-						game.client?.sendTCP(ObjectUnlockEvent(id, game.user.username))
+						game.client?.apply { outgoingPacketBuffer += ObjectUnlockEvent(id, game.user.username) }
 				}
 			}
 		})

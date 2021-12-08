@@ -257,14 +257,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				)
 				if (!Platform.isDesktop || i != 0)
 				{
-					val cursorsMap = tabletop.userToCursorsMap[game.user.username]!!
-					cursorsMap.getOrPut(i) {
+					val cursorsMap: IntMap<CrazyEightsCursor>? = tabletop.userToCursorsMap[game.user.username]
+					cursorsMap?.getOrPut(i) {
 						val cursor = CrazyEightsCursor(this, game.user, true)
 						cursorsMap[i] = cursor
 						tabletop.cursors += cursor
 						addUprightGObject(cursor)
 						cursor
-					}.setPositionAndTargetPosition(inputX, inputY)
+					}?.setPositionAndTargetPosition(inputX, inputY)
 				}
 				
 				if (shouldSyncServer)
@@ -285,7 +285,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			else if (i in cursorPositions && cursorPositions.size > 1)
 			{
 				cursorPositions.remove(i)
-				tabletop.userToCursorsMap[game.user.username]!!.remove(i)?.remove()
+				tabletop.userToCursorsMap[game.user.username]?.remove(i)?.remove()
 				game.client?.sendTCP(TouchUpEvent(game.user.username, i))
 			}
 		}

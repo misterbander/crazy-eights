@@ -199,7 +199,8 @@ class Card(
 		smoothMovable.rotationInterpolator.target,
 		rank,
 		suit,
-		isFaceUp
+		isFaceUp,
+		cardGroupId = cardGroup?.id ?: -1
 	)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)

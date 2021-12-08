@@ -2,7 +2,6 @@ package misterbander.crazyeights.net
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.IntSet
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
@@ -49,12 +48,10 @@ import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
-import misterbander.gframework.util.shuffle
 
 class CrazyEightsServer
 {
 	private var maxId = 0
-	private val idToObjectMap = IntMap<ServerObject>()
 	val state = TabletopState()
 	private val aiNames = gdxArrayOf("Shark (AI)", "Queenpin (AI)", "Watson (AI)", "Ning (AI)")
 	private var aiCount = 0
@@ -69,8 +66,6 @@ class CrazyEightsServer
 	private val startServerJob = Job()
 	@Volatile private var isStopped = false
 	
-	private val drawStackHolder: ServerCardHolder
-	private val discardPileHolder: ServerCardHolder
 	private var gameState: GameState? = null
 	
 	init
@@ -86,31 +81,17 @@ class CrazyEightsServer
 					deck += ServerCard(newId(), rank = rank, suit = suit)
 			}
 		}
-		drawStackHolder = ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
-		discardPileHolder = ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE))
-		addServerObject(drawStackHolder)
-		addServerObject(discardPileHolder)
+		val drawStackHolder = ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
+		val discardPileHolder = ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE))
+		state.drawStackHolderId = drawStackHolder.id
+		state.discardPileHolderId = discardPileHolder.id
+		state.addServerObject(drawStackHolder)
+		state.addServerObject(discardPileHolder)
 		
 		debug("Server | DEBUG") { "Initialized Room server" }
 	}
 	
 	private fun newId(): Int = maxId++
-	
-	private fun addServerObject(serverObject: ServerObject, insertAtIndex: Int = -1)
-	{
-		idToObjectMap[serverObject.id] = serverObject
-		if (serverObject is ServerCardGroup)
-			serverObject.cards.forEach { idToObjectMap[it.id] = it }
-		else if (serverObject is ServerCardHolder)
-		{
-			idToObjectMap[serverObject.cardGroup.id] = serverObject.cardGroup
-			serverObject.cardGroup.cards.forEach { idToObjectMap[it.id] = it }
-		}
-		if (insertAtIndex != -1)
-			state.serverObjects.insert(insertAtIndex, serverObject)
-		else
-			state.serverObjects += serverObject
-	}
 	
 	fun start(port: Int)
 	{
@@ -123,33 +104,6 @@ class CrazyEightsServer
 		{
 			startServerJob.complete()
 		}
-	}
-	
-	private fun ServerObject.toFront()
-	{
-		// Remove the object and add it again to move it to the front
-		if (state.serverObjects.removeValue(this, true))
-			state.serverObjects += this
-	}
-	
-	private var ServerCard.cardGroup: ServerCardGroup?
-		get() = if (cardGroupId != -1) idToObjectMap[cardGroupId] as ServerCardGroup else null
-		set(value)
-		{
-			cardGroup?.minusAssign(this)
-			if (value != null)
-			{
-				value += this
-				state.serverObjects.removeValue(this, true)
-			}
-			else
-				state.serverObjects += this
-		}
-	
-	private fun ServerCardGroup.shuffle(seed: Long)
-	{
-		cardHolder?.toFront() ?: toFront()
-		cards.shuffle(seed)
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
@@ -229,6 +183,7 @@ class CrazyEightsServer
 			
 //			if (`object` !is FrameworkMessage.KeepAlive && `object` !is CursorPosition && `object` !is ObjectMoveEvent && `object` !is ObjectRotateEvent)
 //				println("Server $`object`")
+			val idToObjectMap = state.idToObjectMap
 			when (`object`)
 			{
 				is User -> // A new user tries to join
@@ -284,7 +239,7 @@ class CrazyEightsServer
 					{
 						debug("Server | DEBUG") { "$lockerUsername locks $toLock" }
 						toLock.lockHolder = state.users[lockerUsername]
-						toLock.toFront()
+						toLock.toFront(state)
 						server.sendToAllTCP(`object`)
 					}
 				}
@@ -303,7 +258,7 @@ class CrazyEightsServer
 						}
 						else if (toUnlock is ServerCardGroup)
 						{
-							if (toUnlock.cardHolder != null)
+							if (toUnlock.cardHolderId != -1)
 								toUnlock.rotation = 0F
 						}
 						server.sendToAllTCP(`object`)
@@ -376,10 +331,10 @@ class CrazyEightsServer
 						card.y = y
 						card.rotation = rotation
 						cards[index] = card
-						cardGroup += card
+						cardGroup.plusAssign(card, state)
 					}
 					cardGroup.arrange()
-					addServerObject(cardGroup, insertAtIndex)
+					state.addServerObject(cardGroup, insertAtIndex)
 					server.sendToAllTCP(`object`.copy(id = cardGroup.id))
 				}
 				is CardGroupChangeEvent ->
@@ -389,7 +344,7 @@ class CrazyEightsServer
 					cards.forEachIndexed { index, (id, _, _, rotation) ->
 						val card = idToObjectMap[id] as ServerCard
 						card.rotation = rotation
-						card.cardGroup = newCardGroup
+						card.setServerCardGroup(newCardGroup, state)
 						cards[index] = card
 					}
 					newCardGroup?.arrange()
@@ -403,12 +358,12 @@ class CrazyEightsServer
 					cardGroup.x = cardHolder.x
 					cardGroup.y = cardHolder.y
 					cardGroup.rotation = cardHolder.rotation
-					cardGroup.cardHolder = null
+					cardGroup.cardHolderId = -1
 					state.serverObjects += cardGroup
 					val replacementCardGroup = ServerCardGroup(newId(), type = cardHolder.defaultType)
 					idToObjectMap[replacementCardGroup.id] = replacementCardGroup
 					cardHolder.cardGroup = replacementCardGroup
-					replacementCardGroup.cardHolder = cardHolder
+					replacementCardGroup.cardHolderId = cardHolder.id
 					server.sendToAllTCP(CardGroupDetachEvent(cardHolderId, cardHolder.cardGroup.id, changerUsername))
 				}
 				is CardGroupDismantleEvent ->
@@ -417,7 +372,7 @@ class CrazyEightsServer
 					while (cardGroup.cards.isNotEmpty())
 					{
 						val card: ServerCard = cardGroup.cards.removeIndex(0)
-						card.cardGroup = null
+						card.setServerCardGroup(null, state)
 					}
 					idToObjectMap.remove(cardGroup.id)
 					state.serverObjects.removeValue(cardGroup, true)
@@ -425,7 +380,7 @@ class CrazyEightsServer
 				}
 				is NewGameEvent ->
 				{
-					val drawStack = drawStackHolder.cardGroup
+					val drawStack = (idToObjectMap[state.drawStackHolderId] as ServerCardHolder).cardGroup
 					
 					// Recall all cards
 					val serverObjects = idToObjectMap.values().toArray()
@@ -435,13 +390,13 @@ class CrazyEightsServer
 							serverObject.lockHolder = null
 						if (serverObject is ServerCard && serverObject.cardGroupId != drawStack.id)
 						{
-							serverObject.cardGroup = drawStack
+							serverObject.setServerCardGroup(drawStack, state)
 							serverObject.isFaceUp = false
 						}
 					}
 					for (serverObject: ServerObject in serverObjects) // Remove all empty card groups
 					{
-						if (serverObject is ServerCardGroup && serverObject.cardHolder == null)
+						if (serverObject is ServerCardGroup && serverObject.cardHolderId == -1)
 						{
 							idToObjectMap.remove(serverObject.id)
 							state.serverObjects.removeValue(serverObject, true)
@@ -458,7 +413,7 @@ class CrazyEightsServer
 					
 					// Shuffle draw stack
 					val seed = MathUtils.random.nextLong()
-					drawStack.shuffle(seed)
+					drawStack.shuffle(seed, state)
 					
 					// Deal
 					repeat(if (state.hands.size > 2) 5 else 7) {

@@ -16,7 +16,7 @@ data class ServerCardHolder(
 	
 	init
 	{
-		cardGroup.cardHolder = this
+		cardGroup.cardHolderId = id
 	}
 	
 	override fun toString(): String = "ServerCardHolder(id=$id, x=$x, y=$y, rotation=$rotation,\n        cardGroup=$cardGroup, lockholder=$lockHolder)"

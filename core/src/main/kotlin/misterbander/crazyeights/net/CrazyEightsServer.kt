@@ -139,6 +139,11 @@ class CrazyEightsServer
 				{
 					if (serverObject is ServerLockable && serverObject.lockHolder == user)
 						serverObject.lockHolder = null
+					if (serverObject is ServerCard)
+					{
+						serverObject.justMoved = false
+						serverObject.justRotated = false
+					}
 				}
 				server.sendToAllTCP(UserLeftEvent(user))
 				info("Server | INFO") { "${user.username} left the game" }
@@ -245,7 +250,7 @@ class CrazyEightsServer
 				}
 				is ObjectUnlockEvent -> // User unlocks an object
 				{
-					val (id, unlockerUsername) = `object`
+					val (id, unlockerUsername, sideEffects) = `object`
 					val toUnlock = idToObjectMap[id] ?: return
 					if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
 					{
@@ -255,6 +260,13 @@ class CrazyEightsServer
 						{
 							if (toUnlock.cardGroupId != -1)
 								(idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup).arrange()
+							if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects)
+							{
+								toUnlock.isFaceUp = !toUnlock.isFaceUp
+								server.sendToAllTCP(CardFlipEvent(id))
+							}
+							toUnlock.justMoved = false
+							toUnlock.justRotated = false
 						}
 						else if (toUnlock is ServerCardGroup)
 						{
@@ -300,23 +312,25 @@ class CrazyEightsServer
 					val toMove = idToObjectMap[id]!!
 					toMove.x = x
 					toMove.y = y
-					if (toMove is ServerCardGroup && toMove.isLocked && toMove.type == ServerCardGroup.Type.PILE)
-						toMove.type = ServerCardGroup.Type.STACK
+					if (toMove is ServerCard)
+						toMove.justMoved = true
+					else if (toMove is ServerCardGroup)
+					{
+						if (toMove.isLocked && toMove.type == ServerCardGroup.Type.PILE)
+							toMove.type = ServerCardGroup.Type.STACK
+					}
 					server.sendToAllExceptTCP(connection.id, `object`)
 					objectMoveEventPool.free(`object`)
 				}
 				is ObjectRotateEvent ->
 				{
 					val (id, rotation) = `object`
-					idToObjectMap[id]!!.rotation = rotation
+					val toRotate = idToObjectMap[id]!!
+					toRotate.rotation = rotation
+					if (toRotate is ServerCard)
+						toRotate.justRotated = true
 					server.sendToAllExceptTCP(connection.id, `object`)
 					objectRotateEventPool.free(`object`)
-				}
-				is CardFlipEvent ->
-				{
-					val card = idToObjectMap[`object`.id] as ServerCard
-					card.isFaceUp = !card.isFaceUp
-					server.sendToAllTCP(`object`)
 				}
 				is CardGroupCreateEvent ->
 				{

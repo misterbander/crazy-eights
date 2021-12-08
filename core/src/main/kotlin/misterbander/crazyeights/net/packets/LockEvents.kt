@@ -6,4 +6,4 @@ import misterbander.crazyeights.model.NoArg
 data class ObjectLockEvent(val id: Int, val lockerUsername: String)
 
 @NoArg
-data class ObjectUnlockEvent(val id: Int, val unlockerUsername: String)
+data class ObjectUnlockEvent(val id: Int, val unlockerUsername: String, val sideEffects: Boolean = true)

@@ -55,6 +55,9 @@ open class Lockable(
 						unlock()
 					else
 						game.client?.apply { outgoingPacketBuffer += ObjectUnlockEvent(id, game.user.username) }
+					justLongPressed = false
+					parent.getModule<Draggable>()?.justDragged = false
+					parent.getModule<Rotatable>()?.justRotated = false
 				}
 			}
 		})
@@ -79,8 +82,5 @@ open class Lockable(
 	open fun unlock(sideEffects: Boolean = true)
 	{
 		lockHolder = null
-		justLongPressed = false
-		parent.getModule<Draggable>()?.justDragged = false
-		parent.getModule<Rotatable>()?.justRotated = false
 	}
 }

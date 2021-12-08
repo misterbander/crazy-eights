@@ -8,12 +8,13 @@ abstract class BufferedListener : Listener
 {
 	private val packetBuffer = Queue<Any>()
 	
-	override fun received(connection: Connection, `object`: Any) = packetBuffer.addLast(`object`)
+	override fun received(connection: Connection, `object`: Any) = synchronized(packetBuffer) {
+		packetBuffer.addFirst(`object`)
+	}
 	
-	fun processPackets()
-	{
+	fun processPackets() = synchronized(packetBuffer) {
 		while (packetBuffer.notEmpty())
-			processPacket(packetBuffer.removeFirst())
+			processPacket(packetBuffer.removeLast())
 	}
 	
 	abstract fun processPacket(packet: Any)

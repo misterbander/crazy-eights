@@ -11,7 +11,9 @@ data class ServerCard(
 	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
 	override var lockHolder: User? = null,
-	var cardGroupId: Int = -1
+	var cardGroupId: Int = -1,
+	var justMoved: Boolean = false,
+	var justRotated: Boolean = false
 ) : ServerObject, ServerLockable
 {
 	val name: String

@@ -16,7 +16,6 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
@@ -70,7 +69,7 @@ class Card(
 				cardGroup!!.lockable.justLongPressed = true
 				cardGroup!!.draggable.justDragged = true
 				game.client?.apply {
-					sendTCP(ObjectUnlockEvent(id, game.user.username))
+					sendTCP(ObjectUnlockEvent(id, game.user.username, false))
 					sendTCP(ObjectLockEvent(cardGroup!!.id, game.user.username))
 				}
 				return true
@@ -87,13 +86,8 @@ class Card(
 				return
 			}
 			val isLockHolder = isLockHolder
-			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
-			{
-				if (ownable.isOwned)
-					this@Card.isFaceUp = !this@Card.isFaceUp
-				else
-					game.client?.sendTCP(CardFlipEvent(id))
-			}
+			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed && ownable.isOwned)
+				this@Card.isFaceUp = !this@Card.isFaceUp
 			super.unlock(sideEffects)
 			cardGroup?.arrange()
 			if (isLockHolder && ownable.isOwned)

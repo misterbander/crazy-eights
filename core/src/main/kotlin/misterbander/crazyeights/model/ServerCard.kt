@@ -1,5 +1,7 @@
 package misterbander.crazyeights.model
 
+import ktx.collections.*
+
 data class ServerCard(
 	override val id: Int = -1,
 	override var x: Float = 0F,
@@ -8,14 +10,30 @@ data class ServerCard(
 	val rank: Rank = Rank.NO_RANK,
 	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
-	override var lockHolder: User? = null
+	override var lockHolder: User? = null,
+	var cardGroupId: Int = -1
 ) : ServerObject, ServerLockable
 {
-	var cardGroupId: Int = -1
+	val name: String
+		get() = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
 	
-	val name: String = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
+	private fun getServerCardGroup(state: TabletopState): ServerCardGroup? =
+		if (cardGroupId != -1) state.idToObjectMap[cardGroupId] as ServerCardGroup else null
 	
-	override fun toString(): String = "ServerCard($name, id=$id, x=$x, y=$y, rotation=$rotation, isFaceUp=$isFaceUp, lockHolder=$lockHolder)"
+	fun setServerCardGroup(cardGroup: ServerCardGroup?, state: TabletopState)
+	{
+		getServerCardGroup(state)?.minusAssign(this, state)
+		if (cardGroup != null)
+		{
+			cardGroup.plusAssign(this, state)
+			state.serverObjects.removeValue(this, true)
+		}
+		else
+			state.serverObjects += this
+	}
+	
+	override fun toString(): String =
+		"ServerCard($name, id=$id, x=$x, y=$y, rotation=$rotation, isFaceUp=$isFaceUp, lockHolder=$lockHolder)"
 	
 	enum class Rank
 	{

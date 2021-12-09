@@ -20,10 +20,10 @@ data class ServerCard(
 	val name: String
 		get() = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
 	
-	private fun getServerCardGroup(state: TabletopState): ServerCardGroup? =
+	private fun getServerCardGroup(state: ServerTabletop): ServerCardGroup? =
 		if (cardGroupId != -1) state.idToObjectMap[cardGroupId] as ServerCardGroup else null
 	
-	fun setServerCardGroup(cardGroup: ServerCardGroup?, state: TabletopState)
+	fun setServerCardGroup(cardGroup: ServerCardGroup?, state: ServerTabletop)
 	{
 		getServerCardGroup(state)?.minusAssign(this, state)
 		if (cardGroup != null)
@@ -35,7 +35,7 @@ data class ServerCard(
 			state.serverObjects += this
 	}
 	
-	override fun setOwner(ownerUsername: String, state: TabletopState)
+	override fun setOwner(ownerUsername: String, state: ServerTabletop)
 	{
 		(state.idToObjectMap[cardGroupId] as? ServerCardGroup)?.minusAssign(this, state)
 		lastOwner = ownerUsername

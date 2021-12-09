@@ -16,7 +16,7 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerObject
-import misterbander.crazyeights.model.TabletopState
+import misterbander.crazyeights.model.ServerTabletop
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.Ownable
@@ -46,7 +46,7 @@ class Tabletop(private val room: Room)
 		get() = cardHolders.children.firstOrNull { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.PILE } as? CardHolder
 	
 	@Suppress("UNCHECKED_CAST")
-	fun setState(state: TabletopState)
+	fun setState(state: ServerTabletop)
 	{
 		// Add users and cursors
 		state.users.forEach { this += it.value }

@@ -15,14 +15,14 @@ interface ServerObject
 		this.y = y
 	}
 	
-	fun toFront(state: TabletopState)
+	fun toFront(state: ServerTabletop)
 	{
 		// Remove the object and add it again to move it to the front
 		if (state.serverObjects.removeValue(this, true))
 			state.serverObjects += this
 	}
 	
-	fun setOwner(ownerUsername: String, state: TabletopState)
+	fun setOwner(ownerUsername: String, state: ServerTabletop)
 	{
 		state.serverObjects.removeValue(this, true)
 		state.hands[ownerUsername]!!.add(this)

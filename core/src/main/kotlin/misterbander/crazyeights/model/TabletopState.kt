@@ -8,7 +8,6 @@ data class TabletopState(
 	val users: GdxMap<String, User> = GdxMap(),
 	val serverObjects: GdxArray<ServerObject> = GdxArray(),
 	val hands: OrderedMap<String, GdxArray<ServerObject>> = OrderedMap(),
-	var isGameStarted: Boolean = false,
 	var drawStackHolderId: Int = -1,
 	var discardPileHolderId: Int = -1
 )

@@ -6,7 +6,7 @@ data class ServerCardHolder(
 	override var y: Float = 0F,
 	override var rotation: Float = 0F,
 	var cardGroup: ServerCardGroup = ServerCardGroup(),
-	override var lockHolder: User? = null
+	override var lockHolder: String? = null
 ) : ServerObject, ServerLockable
 {
 	val defaultType = cardGroup.type

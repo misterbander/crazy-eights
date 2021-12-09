@@ -10,7 +10,9 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
@@ -28,6 +30,7 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
+import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.BufferedListener
 import misterbander.crazyeights.net.cursorPositionPool
@@ -39,6 +42,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
+import misterbander.crazyeights.net.packets.NewGameActionFinishedEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
@@ -59,6 +63,7 @@ import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.Hand
+import misterbander.crazyeights.scene2d.MyHand
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.actions.DealAction
@@ -147,9 +152,23 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	private val uprightActors = GdxSet<Actor>()
 	private val originalRotationMap = ObjectFloatMap<Actor>()
 	
+	val passButton = scene2d.textButton("Pass", TEXT_BUTTON_STYLE) {
+		setOrigin(Align.center)
+		isTransform = true
+		isVisible = false
+		addUprightGObject(this)
+		onChange {
+			click.play()
+		}
+	}
+	
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private val cursorPositions = IntMap<CursorPosition>()
+	var gameState: GameState? = null
+		private set
+	val isGameStarted: Boolean
+		get() = gameState != null
 	
 	// Networking
 	var clientListener = ClientListener()
@@ -199,8 +218,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.opponentHands
 		stage += tabletop.cards
 		stage += tabletop.myHand
+		stage += passButton
 		stage += tabletop.cursors
 		stage += tabletop.myCursors
+		
 		stage += gizmo1
 		stage += gizmo2
 		stage += gizmo3
@@ -257,7 +278,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				)
 				if (!Platform.isDesktop || i != 0)
 				{
-					val cursorsMap: IntMap<CrazyEightsCursor>? = tabletop.userToCursorsMap[game.user.username]
+					val cursorsMap: IntMap<CrazyEightsCursor>? = tabletop.userToCursorsMap[game.user.name]
 					cursorsMap?.getOrPut(i) {
 						val cursor = CrazyEightsCursor(this, game.user, true)
 						cursorsMap[i] = cursor
@@ -273,7 +294,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
 					{
 						cursorPosition.apply {
-							username = game.user.username
+							username = game.user.name
 							x = inputX
 							y = inputY
 							pointer = i
@@ -285,17 +306,13 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			else if (i in cursorPositions && cursorPositions.size > 1)
 			{
 				cursorPositions.remove(i)
-				tabletop.userToCursorsMap[game.user.username]?.remove(i)?.remove()
-				game.client?.sendTCP(TouchUpEvent(game.user.username, i))
+				tabletop.userToCursorsMap[game.user.name]?.remove(i)?.remove()
+				game.client?.sendTCP(TouchUpEvent(game.user.name, i))
 			}
 		}
 		if (shouldSyncServer)
 			game.client?.flushOutgoingPacketBuffer()
 		clientListener.processPackets()
-		
-		if (!tabletop.isGameStarted && Gdx.input.isKeyJustPressed(Input.Keys.N))
-//			stage += RecallCardsAction(tabletop)
-			game.client?.sendTCP(NewGameEvent())
 	}
 	
 	override fun clearScreen()
@@ -341,12 +358,19 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		// Reset room state
 		chatBox.clearChats()
 		tabletop.reset()
+		passButton.isVisible = false
+		gameState = null
 		centerTitleContainer.isVisible = false
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 	}
 	
 	inner class ClientListener : BufferedListener()
 	{
+		override fun connected(connection: Connection)
+		{
+			connection.setTimeout(0)
+		}
+		
 		override fun disconnected(connection: Connection)
 		{
 			val mainMenu = game.getScreen<MainMenu>()
@@ -370,14 +394,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					if (user != game.user)
 					{
 						tabletop += user
-						val opponentHand = tabletop.userToHandMap.getOrPut(user.username) {
+						val opponentHand = tabletop.userToHandMap.getOrPut(user.name) {
 							OpponentHand(this@Room)
 						} as OpponentHand
 						opponentHand.user = user
 						tabletop.opponentHands += opponentHand
 					}
 					if (!user.isAi)
-						chatBox.chat("${user.username} joined the game", Color.YELLOW)
+						chatBox.chat("${user.name} joined the game", Color.YELLOW)
 					tabletop.arrangePlayers()
 				}
 				is UserLeftEvent ->
@@ -385,7 +409,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val user = packet.user
 					tabletop -= user
 					if (!user.isAi)
-						chatBox.chat("${user.username} left the game", Color.YELLOW)
+						chatBox.chat("${user.name} left the game", Color.YELLOW)
 					tabletop.arrangePlayers()
 					if (user == userDialog.user)
 						userDialog.hide()
@@ -430,7 +454,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is ObjectLockEvent -> // User attempts to lock an object
 				{
 					val (id, lockerUsername) = packet
-					idToGObjectMap[id]!!.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
+					val toLock = idToGObjectMap[id]!!
+					toLock.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
+					
+					if (isGameStarted && toLock is Card && toLock.cardGroup == tabletop.drawStackHolder!!.cardGroup)
+						gameState!!.drawCount++
 				}
 				is ObjectUnlockEvent -> idToGObjectMap[packet.id]?.getModule<Lockable>()?.unlock()
 				is ObjectOwnEvent ->
@@ -439,8 +467,17 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
 					val hand = tabletop.userToHandMap[ownerUsername]!!
 					toOwn.getModule<Lockable>()?.unlock()
+					(toOwn.parent as? CardGroup)?.minusAssign(toOwn)
 					hand += toOwn
-					hand.arrange()
+					if (hand is MyHand)
+					{
+						toOwn.getModule<Ownable>()?.wasInHand = true
+						if (toOwn is Card)
+							toOwn.isFaceUp = true
+						hand.arrange(false)
+					}
+					else
+						hand.arrange()
 				}
 				is ObjectDisownEvent ->
 				{
@@ -502,16 +539,18 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is CardGroupChangeEvent ->
 				{
 					val (cards, newCardGroupId, changerUsername) = packet
-					if (changerUsername != game.user.username || newCardGroupId != -1)
+					if (changerUsername != game.user.name || newCardGroupId != -1)
 					{
 						val newCardGroup =
 							if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
 						for ((id, x, y, rotation) in cards)
 						{
 							val card = idToGObjectMap[id] as Card
+							val oldCardGroup = card.cardGroup
 							card.cardGroup = newCardGroup
 							card.smoothMovable.setTargetPosition(x, y)
 							card.smoothMovable.rotationInterpolator.target = rotation
+							oldCardGroup?.arrange()
 						}
 						newCardGroup?.arrange()
 					}
@@ -520,7 +559,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				{
 					val (cardHolderId, replacementCardGroupId, changerUsername) = packet
 					val cardHolder = idToGObjectMap[cardHolderId] as CardHolder
-					if (changerUsername != game.user.username)
+					if (changerUsername != game.user.name)
 					{
 						val cardGroup = cardHolder.cardGroup!!
 						cardGroup.transformToGroupCoordinates(tabletop.cards)
@@ -543,30 +582,48 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //				}
 				is NewGameEvent ->
 				{
-					val (cardGroupChangeEvent, shuffleSeed) = packet
+					val (cardGroupChangeEvent, shuffleSeed, gameState) = packet
 					for (gObject: GObject<CrazyEights> in idToGObjectMap.values()) // Unlock and disown everything
 					{
 						gObject.getModule<Lockable>()?.unlock(false)
 						gObject.getModule<Ownable>()?.wasInHand = false
 					}
 					processPacket(cardGroupChangeEvent!!)
-					val drawStack = tabletop.drawStackHolder.cardGroup!!
+					val drawStack = tabletop.drawStackHolder!!.cardGroup!!
 					drawStack.flip(false)
 					
-					val hands: Array<Hand> = tabletop.userToHandMap.orderedKeys().map {
-						tabletop.userToHandMap[it]!!
-					}.toArray(Hand::class.java)
+					val userToHandMap = tabletop.userToHandMap
+					for ((username, hand) in userToHandMap.toGdxArray()) // Remove hands of offline users
+					{
+						if (username !in tabletop.users)
+						{
+							userToHandMap.remove(username)
+							hand!!.remove()
+						}
+					}
+					tabletop.arrangePlayers()
 					
-					drawStack += targeting(tabletop.drawStackHolder, touchable(Touchable.disabled)) then
+					val hands: Array<Hand> = userToHandMap.orderedKeys().map { userToHandMap[it]!! }
+						.toArray(Hand::class.java)
+					
+					drawStack += Actions.run {
+						tabletop.drawStackHolder!!.touchable = Touchable.disabled
+						tabletop.myHand.touchable = Touchable.disabled
+					} then
 						delay(1F, ShowCenterTitleAction(this@Room, "Shuffling...")) then
 						ShuffleAction(this@Room, shuffleSeed) then
 						delay(0.5F, ShowCenterTitleAction(this@Room, "Dealing...")) then
 						DealAction(this@Room, hands) then
 						HideCenterTitleAction(this@Room) then
-						targeting(tabletop.drawStackHolder, touchable(Touchable.enabled))
+						Actions.run {
+							tabletop.drawStackHolder!!.touchable = Touchable.enabled
+							tabletop.myHand.touchable = Touchable.enabled
+							game.client?.sendTCP(NewGameActionFinishedEvent)
+						}
 					
-					tabletop.isGameStarted = true
+					this@Room.gameState = gameState
 				}
+				is GameState -> gameState = packet
 			}
 		}
 	}

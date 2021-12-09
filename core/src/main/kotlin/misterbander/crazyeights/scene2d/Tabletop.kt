@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.OrderedMap
 import ktx.actors.plusAssign
@@ -39,12 +40,10 @@ class Tabletop(private val room: Room)
 	val opponentHands = Group()
 	val myHand = MyHand(room)
 	
-	val drawStackHolder: CardHolder
-		get() = cardHolders.children.first { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.STACK } as CardHolder
-	val discardPileHolder: CardHolder
-		get() = cardHolders.children.first { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.PILE } as CardHolder
-	
-	var isGameStarted = false
+	val drawStackHolder: CardHolder?
+		get() = cardHolders.children.firstOrNull { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.STACK } as? CardHolder
+	val discardPileHolder: CardHolder?
+		get() = cardHolders.children.firstOrNull { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.PILE } as? CardHolder
 	
 	@Suppress("UNCHECKED_CAST")
 	fun setState(state: TabletopState)
@@ -65,9 +64,9 @@ class Tabletop(private val room: Room)
 		// Add each hand
 		for ((ownerUsername, hand) in state.hands)
 		{
-			if (ownerUsername == game.user.username)
+			if (ownerUsername == game.user.name)
 			{
-				userToHandMap[game.user.username] = myHand
+				userToHandMap[game.user.name] = myHand
 				for (serverObject: ServerObject in hand!!)
 				{
 					val gObject = serverObject.toGObject()
@@ -90,9 +89,10 @@ class Tabletop(private val room: Room)
 			}
 		}
 		
-		arrangePlayers()
+		val drawStackHolder = drawStackHolder!!
+		room.passButton.setPosition(drawStackHolder.x, drawStackHolder.y, Align.center)
 		
-		isGameStarted = state.isGameStarted
+		arrangePlayers()
 	}
 	
 	private fun ServerObject.toGObject(): GObject<CrazyEights> = when (this)
@@ -100,7 +100,7 @@ class Tabletop(private val room: Room)
 		is ServerCard ->
 		{
 			val (id, x, y, rotation, rank, suit, isFaceUp, lockHolder) = this
-			val card = Card(room, id, x, y, rotation, rank, suit, isFaceUp, lockHolder)
+			val card = Card(room, id, x, y, rotation, rank, suit, isFaceUp, lockHolder?.let { users[it] ?: User(it) })
 			idToGObjectMap[id] = card
 			card
 		}
@@ -114,7 +114,7 @@ class Tabletop(private val room: Room)
 				idToGObjectMap[cardId] = card
 				cards += card
 			}
-			val cardGroup = CardGroup(room, id, x, y, rotation, spreadSeparation, spreadCurvature, cards, type, lockHolder)
+			val cardGroup = CardGroup(room, id, x, y, rotation, spreadSeparation, spreadCurvature, cards, type, lockHolder?.let { users[it] ?: User(it) })
 			idToGObjectMap[id] = cardGroup
 			cardGroup
 		}
@@ -138,7 +138,7 @@ class Tabletop(private val room: Room)
 				type = type
 			)
 			idToGObjectMap[cardGroupId] = cardGroup
-			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder = lockHolder)
+			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder = lockHolder?.let { users[it] ?: User(it) })
 			idToGObjectMap[id] = cardHolder
 			cardHolders += cardHolder
 			cardHolder
@@ -148,29 +148,29 @@ class Tabletop(private val room: Room)
 	
 	operator fun plusAssign(user: User)
 	{
-		users[user.username] = user
+		users[user.name] = user
 		if (user.isAi)
 			return
 		val cursor = CrazyEightsCursor(room, user, user == game.user)
-		userToCursorsMap[user.username] = IntMap<CrazyEightsCursor>().apply { this[-1] = cursor }
+		userToCursorsMap[user.name] = IntMap<CrazyEightsCursor>().apply { this[-1] = cursor }
 		room.addUprightGObject(cursor)
 		if (user != game.user)
 			cursors += cursor
 		else if (Platform.isMobile)
 		{
 			cursors += cursor
-			userToCursorsMap[game.user.username]!![0] = cursor
+			userToCursorsMap[game.user.name]!![0] = cursor
 		}
 	}
 	
 	operator fun minusAssign(user: User)
 	{
-		users.remove(user.username)
-		userToCursorsMap.remove(user.username)?.apply { values().forEach { it.remove() } }
-		val hand = userToHandMap[user.username]!!
+		users.remove(user.name)
+		userToCursorsMap.remove(user.name)?.apply { values().forEach { it.remove() } }
+		val hand = userToHandMap[user.name]!!
 		if (hand.cardGroup.cards.isEmpty)
 		{
-			userToHandMap.remove(user.username)
+			userToHandMap.remove(user.name)
 			hand.remove()
 		}
 		else if (hand is OpponentHand)
@@ -193,7 +193,7 @@ class Tabletop(private val room: Room)
 			hand.realY = 360 + radius*MathUtils.sinDeg(directionToPlayer)
 			hand.rotation = directionToPlayer + 90
 		}
-		val myIndex = userToHandMap.orderedKeys().indexOf(game.user.username)
+		val myIndex = userToHandMap.orderedKeys().indexOf(game.user.name)
 		room.cameraAngleInterpolator.target = 360F*myIndex/userToHandMap.size
 	}
 	
@@ -231,7 +231,5 @@ class Tabletop(private val room: Room)
 		cards.clearChildren()
 		cardHolders.clearChildren()
 		opponentHands.clearChildren()
-		
-		isGameStarted = false
 	}
 }

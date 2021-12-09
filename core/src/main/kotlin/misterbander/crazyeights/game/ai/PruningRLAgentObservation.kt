@@ -5,12 +5,12 @@ import ktx.collections.*
 import misterbander.crazyeights.game.ChangeSuitMove
 import misterbander.crazyeights.game.DrawMove
 import misterbander.crazyeights.game.DrawTwoEffectPenalty
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
 import misterbander.crazyeights.game.PassMove
 import misterbander.crazyeights.game.PlayMove
 import misterbander.crazyeights.game.Player
 import misterbander.crazyeights.game.Ruleset
+import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
@@ -89,7 +89,7 @@ class PruningRLAgentObservation(
 	}
 	
 	constructor(
-		state: GameState
+		state: ServerGameState
 	) : this(
 		state.ruleset,
 		OrderedMap(),

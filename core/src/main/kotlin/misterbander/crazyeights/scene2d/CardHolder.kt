@@ -38,15 +38,11 @@ class CardHolder(
 	
 	// Modules
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
-	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
-	{
-		override val canLock: Boolean
-			get() = super.canLock && this@CardHolder.cardGroup?.cards?.isEmpty != false
-	}
+	override val lockable = Lockable(id, lockHolder, smoothMovable)
 	private val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
-			get() = this@CardHolder.cardGroup?.cards?.isEmpty != false
+			get() = false //this@CardHolder.cardGroup?.cards?.isEmpty != false
 	}
 	private val rotatable = Rotatable(smoothMovable, lockable, draggable)
 	override val highlightable: Highlightable = object : Highlightable(this)

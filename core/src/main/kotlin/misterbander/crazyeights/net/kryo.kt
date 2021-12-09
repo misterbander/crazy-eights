@@ -4,8 +4,10 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.utils.OrderedMap
 import com.esotericsoftware.kryo.Kryo
 import ktx.collections.*
+import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
+import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
@@ -24,6 +26,7 @@ import misterbander.crazyeights.net.packets.CardGroupShuffleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
+import misterbander.crazyeights.net.packets.NewGameActionFinishedEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
@@ -78,4 +81,8 @@ fun Kryo.registerClasses()
 	register(CardGroupDismantleEvent::class.java)
 	register(CardGroupShuffleEvent::class.java)
 	register(NewGameEvent::class.java)
+	register(NewGameActionFinishedEvent::class.java)
+	register(Ruleset::class.java)
+	register(GameState::class.java)
+	register(CrazyEightsClient.BufferEnd::class.java)
 }

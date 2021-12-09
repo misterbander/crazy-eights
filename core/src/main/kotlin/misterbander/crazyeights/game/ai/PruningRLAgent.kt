@@ -4,16 +4,16 @@ import ktx.collections.*
 import misterbander.crazyeights.game.ChangeSuitMove
 import misterbander.crazyeights.game.DrawMove
 import misterbander.crazyeights.game.DrawTwoEffectPenalty
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
 import misterbander.crazyeights.game.PassMove
 import misterbander.crazyeights.game.PlayMove
 import misterbander.crazyeights.game.Player
+import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.model.ServerCard
 import kotlin.math.max
 import kotlin.math.min
 
-class PruningRLAgent : Agent
+class PruningRLAgent(override val name: String = "PruningAgent") : Agent
 {
 	// rl_weights
 	private val rlCoefficients = doubleArrayOf(-9.800666370478867, 6.345468984316739, 10.699691747666808, 0.09546959149951917, 1.0870586436293268, 8.058630148009408, 48.47630741126674)
@@ -26,7 +26,7 @@ class PruningRLAgent : Agent
 	
 	private val bestMoves = GdxArray<Move>()
 	
-	override fun getMove(state: GameState): Move
+	override fun getMove(state: ServerGameState): Move
 	{
 		bestMoves.clear()
 		

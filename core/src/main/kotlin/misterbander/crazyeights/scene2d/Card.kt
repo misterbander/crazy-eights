@@ -69,8 +69,8 @@ class Card(
 				cardGroup!!.lockable.justLongPressed = true
 				cardGroup!!.draggable.justDragged = true
 				game.client?.apply {
-					sendTCP(ObjectUnlockEvent(id, game.user.username, false))
-					sendTCP(ObjectLockEvent(cardGroup!!.id, game.user.username))
+					sendTCP(ObjectUnlockEvent(id, game.user.name, false))
+					sendTCP(ObjectLockEvent(cardGroup!!.id, game.user.name))
 				}
 				return true
 			}
@@ -86,11 +86,24 @@ class Card(
 				return
 			}
 			val isLockHolder = isLockHolder
-			if (isLockHolder && !draggable.justDragged && !rotatable.justRotated && !justLongPressed && ownable.isOwned)
-				this@Card.isFaceUp = !this@Card.isFaceUp
+			var shouldSendUpdates = true
+			if (isLockHolder && ownable.isOwned && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
+			{
+				if (room.isGameStarted)
+				{
+					game.client?.apply {
+						outgoingPacketBuffer += CardGroupChangeEvent(
+							gdxArrayOf(toServerCard()), room.tabletop.discardPileHolder!!.cardGroup!!.id, game.user.name
+						)
+					}
+					shouldSendUpdates = false
+				}
+				else
+					this@Card.isFaceUp = !this@Card.isFaceUp
+			}
 			super.unlock(sideEffects)
 			cardGroup?.arrange()
-			if (isLockHolder && ownable.isOwned)
+			if (isLockHolder && ownable.isOwned && shouldSendUpdates)
 				room.tabletop.myHand.sendUpdates()
 		}
 	}
@@ -148,7 +161,7 @@ class Card(
 		if (cardGroup.cardHolder != null || cardGroup.cards.size > 2)
 		{
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupChangeEvent(gdxArrayOf(toServerCard()), -1, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(gdxArrayOf(toServerCard()), -1, game.user.name)
 			}
 			cardGroup -= this@Card
 		}

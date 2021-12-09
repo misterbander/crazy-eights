@@ -85,10 +85,7 @@ open class Draggable(
 				
 				parent.getModule<Ownable>()?.apply {
 					if (!isOwned && wasInHand)
-					{
 						wasInHand = false
-						room.tabletop.myHand.sendUpdates()
-					}
 				}
 			}
 		})

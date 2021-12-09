@@ -27,14 +27,14 @@ abstract class RoomSettingsDialog(mainMenu: MainMenu, title: String) : CrazyEigh
 	override fun show()
 	{
 		super.show()
-		usernameTextField.text = game.user.username
+		usernameTextField.text = game.user.name
 		colorButton.image.color.fromHsv(game.user.color.toHsv(FloatArray(3))[0], 0.8F, 0.8F)
 	}
 	
 	override fun hide()
 	{
 		super.hide()
-		game.user = game.user.copy(username = usernameTextField.text)
+		game.user = game.user.copy(name = usernameTextField.text)
 		game.savePreferences()
 	}
 }

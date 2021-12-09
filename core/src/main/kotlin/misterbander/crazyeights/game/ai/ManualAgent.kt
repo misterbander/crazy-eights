@@ -1,12 +1,12 @@
 package misterbander.crazyeights.game.ai
 
 import ktx.collections.*
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
+import misterbander.crazyeights.game.ServerGameState
 
-class ManualAgent : Agent
+class ManualAgent(override val name: String = "ManualAgent") : Agent
 {
-	override fun getMove(state: GameState): Move
+	override fun getMove(state: ServerGameState): Move
 	{
 		val moves = state.moves
 		println("Your hand:       ${state.currentPlayerHand.map { it.name }}")

@@ -4,17 +4,17 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.utils.ObjectIntMap
 import misterbander.crazyeights.game.ChangeSuitMove
 import misterbander.crazyeights.game.DrawMove
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
 import misterbander.crazyeights.game.PassMove
 import misterbander.crazyeights.game.PlayMove
+import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 
-class OracleAgent : Agent
+class OracleAgent(override val name: String = "OracleAgent") : Agent
 {
-	override fun getMove(state: GameState): Move
+	override fun getMove(state: ServerGameState): Move
 	{
 		val hand = state.currentPlayerHand
 		val topCard = state.topCard

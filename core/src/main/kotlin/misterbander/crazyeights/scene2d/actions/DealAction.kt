@@ -22,7 +22,8 @@ class DealAction(private val room: Room, private val hands: Array<Hand>) : Runna
 	
 	override fun run()
 	{
-		val drawStack = room.tabletop.drawStackHolder.cardGroup!!
+		val drawStack = room.tabletop.drawStackHolder!!.cardGroup!!
+		val discardPile = room.tabletop.discardPileHolder!!.cardGroup!!
 		val size = hands.size
 		var i = 0
 		
@@ -40,6 +41,15 @@ class DealAction(private val room: Room, private val hands: Array<Hand>) : Runna
 			else
 				hand.arrange()
 			i++
-		})) then Actions.run { finished = true }
+		})) then delay(0.1F, Actions.run {
+			room.cardSlide.play()
+			val topCard = drawStack.cards.peek() as Card
+			topCard.cardGroup = discardPile
+			topCard.smoothMovable.setTargetPosition(0F, 0F)
+			topCard.smoothMovable.rotationInterpolator.target = 0F
+			topCard.isFaceUp = true
+			discardPile.arrange()
+			finished = true
+		})
 	}
 }

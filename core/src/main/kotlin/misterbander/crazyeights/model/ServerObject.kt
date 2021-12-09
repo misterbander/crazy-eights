@@ -21,4 +21,10 @@ interface ServerObject
 		if (state.serverObjects.removeValue(this, true))
 			state.serverObjects += this
 	}
+	
+	fun setOwner(ownerUsername: String, state: TabletopState)
+	{
+		state.serverObjects.removeValue(this, true)
+		state.hands[ownerUsername]!!.add(this)
+	}
 }

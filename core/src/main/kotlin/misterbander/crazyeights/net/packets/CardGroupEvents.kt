@@ -84,6 +84,7 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 {
 	val (cards, newCardGroupId, changerUsername) = event
 	val newCardGroup = if (newCardGroupId != -1) tabletop.idToObjectMap[newCardGroupId] as ServerCardGroup else null
+	var shouldPlayCardSlideSound = false
 	cards.forEachIndexed { index, (id, _, _, rotation) ->
 		val card = tabletop.idToObjectMap[id] as ServerCard
 		if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolderId)
@@ -93,7 +94,7 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 				return
 		}
 		card.rotation = rotation
-		tabletop.hands[changerUsername]!!.removeValue(card, true)
+		shouldPlayCardSlideSound = shouldPlayCardSlideSound || tabletop.hands[changerUsername]!!.removeValue(card, true)
 		card.setServerCardGroup(newCardGroup, tabletop)
 		cards[index] = card
 		if (isGameStarted)
@@ -101,6 +102,8 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 	}
 	newCardGroup?.arrange()
 	server.sendToAllTCP(event)
+	if (isGameStarted && shouldPlayCardSlideSound)
+		server.sendToAllTCP(CardSlideSoundEvent)
 }
 
 @NoArg

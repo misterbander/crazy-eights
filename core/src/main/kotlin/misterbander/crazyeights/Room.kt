@@ -34,6 +34,7 @@ import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.packets.CardSlideSoundEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
@@ -429,6 +430,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //				}
 				is NewGameEvent -> onNewGame(packet)
 				is GameState -> gameState = packet
+				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}
 	}

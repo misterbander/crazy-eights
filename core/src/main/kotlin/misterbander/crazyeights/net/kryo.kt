@@ -23,6 +23,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardGroupShuffleEvent
+import misterbander.crazyeights.net.packets.CardSlideSoundEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
@@ -85,4 +86,5 @@ fun Kryo.registerClasses()
 	register(Ruleset::class.java)
 	register(GameState::class.java)
 	register(CrazyEightsClient.BufferEnd::class.java)
+	register(CardSlideSoundEvent::class.java)
 }

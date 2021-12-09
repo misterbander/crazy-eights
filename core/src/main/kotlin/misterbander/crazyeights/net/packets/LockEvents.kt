@@ -80,6 +80,7 @@ fun CrazyEightsServer.onObjectUnlock(event: ObjectUnlockEvent)
 				cardGroup.draw(unlockerUsername)
 				server.sendToAllTCP(event)
 				server.sendToAllTCP(ObjectOwnEvent(id, unlockerUsername))
+				server.sendToAllTCP(CardSlideSoundEvent)
 				return
 			}
 			else

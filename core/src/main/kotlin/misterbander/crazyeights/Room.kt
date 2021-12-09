@@ -9,9 +9,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.Touchable
-import com.badlogic.gdx.scenes.scene2d.actions.Actions
-import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
@@ -19,7 +16,6 @@ import com.esotericsoftware.kryonet.Connection
 import ktx.actors.KtxInputListener
 import ktx.actors.onChange
 import ktx.actors.plusAssign
-import ktx.actors.then
 import ktx.app.Platform
 import ktx.collections.*
 import ktx.graphics.use
@@ -31,18 +27,14 @@ import ktx.style.*
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.GameState
-import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.BufferedListener
 import misterbander.crazyeights.net.cursorPositionPool
-import misterbander.crazyeights.net.objectMoveEventPool
-import misterbander.crazyeights.net.objectRotateEventPool
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
-import misterbander.crazyeights.net.packets.NewGameActionFinishedEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
@@ -54,29 +46,32 @@ import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
-import misterbander.crazyeights.scene2d.Card
+import misterbander.crazyeights.net.packets.onCardFlip
+import misterbander.crazyeights.net.packets.onCardGroupChange
+import misterbander.crazyeights.net.packets.onCardGroupCreate
+import misterbander.crazyeights.net.packets.onCardGroupDetach
+import misterbander.crazyeights.net.packets.onNewGame
+import misterbander.crazyeights.net.packets.onObjectDisown
+import misterbander.crazyeights.net.packets.onObjectLock
+import misterbander.crazyeights.net.packets.onObjectMove
+import misterbander.crazyeights.net.packets.onObjectOwn
+import misterbander.crazyeights.net.packets.onObjectRotate
+import misterbander.crazyeights.net.packets.onSwapSeats
+import misterbander.crazyeights.net.packets.onTouchUp
+import misterbander.crazyeights.net.packets.onUserJoined
+import misterbander.crazyeights.net.packets.onUserLeft
 import misterbander.crazyeights.scene2d.CardGroup
-import misterbander.crazyeights.scene2d.CardHolder
 import misterbander.crazyeights.scene2d.ChatBox
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
-import misterbander.crazyeights.scene2d.Groupable
-import misterbander.crazyeights.scene2d.Hand
-import misterbander.crazyeights.scene2d.MyHand
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
-import misterbander.crazyeights.scene2d.actions.DealAction
-import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
-import misterbander.crazyeights.scene2d.actions.ShowCenterTitleAction
-import misterbander.crazyeights.scene2d.actions.ShuffleAction
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.dialogs.GameSettingsDialog
 import misterbander.crazyeights.scene2d.dialogs.UserDialog
 import misterbander.crazyeights.scene2d.modules.Lockable
-import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
-import misterbander.crazyeights.scene2d.transformToGroupCoordinates
 import misterbander.gframework.layer.StageLayer
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.SmoothAngleInterpolator
@@ -166,7 +161,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	val tabletop = Tabletop(this)
 	private val cursorPositions = IntMap<CursorPosition>()
 	var gameState: GameState? = null
-		private set
 	val isGameStarted: Boolean
 		get() = gameState != null
 	
@@ -388,41 +382,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			val idToGObjectMap = tabletop.idToGObjectMap
 			when (packet)
 			{
-				is UserJoinedEvent ->
-				{
-					val user = packet.user
-					if (user != game.user)
-					{
-						tabletop += user
-						val opponentHand = tabletop.userToHandMap.getOrPut(user.name) {
-							OpponentHand(this@Room)
-						} as OpponentHand
-						opponentHand.user = user
-						tabletop.opponentHands += opponentHand
-					}
-					if (!user.isAi)
-						chatBox.chat("${user.name} joined the game", Color.YELLOW)
-					tabletop.arrangePlayers()
-				}
-				is UserLeftEvent ->
-				{
-					val user = packet.user
-					tabletop -= user
-					if (!user.isAi)
-						chatBox.chat("${user.name} left the game", Color.YELLOW)
-					tabletop.arrangePlayers()
-					if (user == userDialog.user)
-						userDialog.hide()
-				}
-				is SwapSeatsEvent ->
-				{
-					val (user1, user2) = packet
-					val keys: GdxArray<String> = tabletop.userToHandMap.orderedKeys()
-					val index1 = keys.indexOf(user1, false)
-					val index2 = keys.indexOf(user2, false)
-					keys.swap(index1, index2)
-					tabletop.arrangePlayers()
-				}
+				is UserJoinedEvent -> onUserJoined(packet)
+				is UserLeftEvent -> onUserLeft(packet)
+				is SwapSeatsEvent -> onSwapSeats(packet)
 				is Chat ->
 				{
 					val (_, message, isSystemMessage) = packet
@@ -446,133 +408,18 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					}
 					cursorPositionPool.free(packet)
 				}
-				is TouchUpEvent ->
-				{
-					val (username, pointer) = packet
-					tabletop.userToCursorsMap[username].remove(pointer)?.remove()
-				}
-				is ObjectLockEvent -> // User attempts to lock an object
-				{
-					val (id, lockerUsername) = packet
-					val toLock = idToGObjectMap[id]!!
-					toLock.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
-					
-					if (isGameStarted && toLock is Card && toLock.cardGroup == tabletop.drawStackHolder!!.cardGroup)
-						gameState!!.drawCount++
-				}
+				is TouchUpEvent -> onTouchUp(packet)
+				is ObjectLockEvent -> onObjectLock(packet) // User attempts to lock an object
 				is ObjectUnlockEvent -> idToGObjectMap[packet.id]?.getModule<Lockable>()?.unlock()
-				is ObjectOwnEvent ->
-				{
-					val (id, ownerUsername) = packet
-					val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
-					val hand = tabletop.userToHandMap[ownerUsername]!!
-					toOwn.getModule<Lockable>()?.unlock()
-					(toOwn.parent as? CardGroup)?.minusAssign(toOwn)
-					hand += toOwn
-					if (hand is MyHand)
-					{
-						toOwn.getModule<Ownable>()?.wasInHand = true
-						if (toOwn is Card)
-							toOwn.isFaceUp = true
-						hand.arrange(false)
-					}
-					else
-						hand.arrange()
-				}
-				is ObjectDisownEvent ->
-				{
-					val (id, x, y, rotation, isFaceUp, disownerUsername) = packet
-					val toDisown = idToGObjectMap[id] as Groupable<CardGroup>
-					val hand = tabletop.userToHandMap[disownerUsername]!!
-					hand -= toDisown
-					hand.arrange()
-					toDisown.getModule<SmoothMovable>()?.apply {
-						setTargetPosition(x, y)
-						rotationInterpolator.target = rotation
-					}
-					toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername]!!)
-					if (toDisown is Card)
-						toDisown.isFaceUp = isFaceUp
-				}
+				is ObjectOwnEvent -> onObjectOwn(packet)
+				is ObjectDisownEvent -> onObjectDisown(packet)
 				is HandUpdateEvent -> (tabletop.userToHandMap[packet.ownerUsername] as? OpponentHand)?.flatten()
-				is ObjectMoveEvent ->
-				{
-					val (id, x, y) = packet
-					val toMove = idToGObjectMap[id]!!
-					toMove.getModule<SmoothMovable>()?.setTargetPosition(x, y)
-					if (toMove is CardGroup && toMove.type == ServerCardGroup.Type.PILE)
-					{
-						toMove.type = ServerCardGroup.Type.STACK
-						toMove.arrange()
-					}
-					objectMoveEventPool.free(packet)
-				}
-				is ObjectRotateEvent ->
-				{
-					val (id, rotation) = packet
-					idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
-					objectRotateEventPool.free(packet)
-				}
-				is CardFlipEvent ->
-				{
-					val card = idToGObjectMap[packet.id] as Card
-					card.isFaceUp = !card.isFaceUp
-				}
-				is CardGroupCreateEvent ->
-				{
-					val (id, serverCards) = packet
-					val cards = serverCards.map { idToGObjectMap[it.id] as Card }
-					val firstX = cards.first().smoothMovable.xInterpolator.target
-					val firstY = cards.first().smoothMovable.yInterpolator.target
-					val firstRotation = cards.first().smoothMovable.rotationInterpolator.target
-					val cardGroup = CardGroup(this@Room, id, firstX, firstY, firstRotation)
-					tabletop.cards.addActorAfter(cards.first(), cardGroup)
-					cards.forEachIndexed { index, card: Card ->
-						val (_, x, y, rotation) = serverCards[index]
-						cardGroup += card
-						card.smoothMovable.setTargetPosition(x, y)
-						card.smoothMovable.rotationInterpolator.target = rotation
-					}
-					cardGroup.arrange()
-					idToGObjectMap[id] = cardGroup
-				}
-				is CardGroupChangeEvent ->
-				{
-					val (cards, newCardGroupId, changerUsername) = packet
-					if (changerUsername != game.user.name || newCardGroupId != -1)
-					{
-						val newCardGroup =
-							if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
-						for ((id, x, y, rotation) in cards)
-						{
-							val card = idToGObjectMap[id] as Card
-							val oldCardGroup = card.cardGroup
-							card.cardGroup = newCardGroup
-							card.smoothMovable.setTargetPosition(x, y)
-							card.smoothMovable.rotationInterpolator.target = rotation
-							oldCardGroup?.arrange()
-						}
-						newCardGroup?.arrange()
-					}
-				}
-				is CardGroupDetachEvent ->
-				{
-					val (cardHolderId, replacementCardGroupId, changerUsername) = packet
-					val cardHolder = idToGObjectMap[cardHolderId] as CardHolder
-					if (changerUsername != game.user.name)
-					{
-						val cardGroup = cardHolder.cardGroup!!
-						cardGroup.transformToGroupCoordinates(tabletop.cards)
-						tabletop.cards += cardGroup
-					}
-					val replacementCardGroup = CardGroup(
-						this@Room,
-						replacementCardGroupId,
-						type = cardHolder.defaultType
-					)
-					idToGObjectMap[replacementCardGroupId] = replacementCardGroup
-					cardHolder += replacementCardGroup
-				}
+				is ObjectMoveEvent -> onObjectMove(packet)
+				is ObjectRotateEvent -> onObjectRotate(packet)
+				is CardFlipEvent -> onCardFlip(packet)
+				is CardGroupCreateEvent -> onCardGroupCreate(packet)
+				is CardGroupChangeEvent -> onCardGroupChange(packet)
+				is CardGroupDetachEvent -> onCardGroupDetach(packet)
 				is CardGroupDismantleEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
 //				is CardGroupShuffleEvent ->
 //				{
@@ -580,49 +427,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //					val cardGroup = idToGObjectMap[id] as CardGroup
 //					cardGroup.shuffle(seed)
 //				}
-				is NewGameEvent ->
-				{
-					val (cardGroupChangeEvent, shuffleSeed, gameState) = packet
-					for (gObject: GObject<CrazyEights> in idToGObjectMap.values()) // Unlock and disown everything
-					{
-						gObject.getModule<Lockable>()?.unlock(false)
-						gObject.getModule<Ownable>()?.wasInHand = false
-					}
-					processPacket(cardGroupChangeEvent!!)
-					val drawStack = tabletop.drawStackHolder!!.cardGroup!!
-					drawStack.flip(false)
-					
-					val userToHandMap = tabletop.userToHandMap
-					for ((username, hand) in userToHandMap.toGdxArray()) // Remove hands of offline users
-					{
-						if (username !in tabletop.users)
-						{
-							userToHandMap.remove(username)
-							hand!!.remove()
-						}
-					}
-					tabletop.arrangePlayers()
-					
-					val hands: Array<Hand> = userToHandMap.orderedKeys().map { userToHandMap[it]!! }
-						.toArray(Hand::class.java)
-					
-					drawStack += Actions.run {
-						tabletop.drawStackHolder!!.touchable = Touchable.disabled
-						tabletop.myHand.touchable = Touchable.disabled
-					} then
-						delay(1F, ShowCenterTitleAction(this@Room, "Shuffling...")) then
-						ShuffleAction(this@Room, shuffleSeed) then
-						delay(0.5F, ShowCenterTitleAction(this@Room, "Dealing...")) then
-						DealAction(this@Room, hands) then
-						HideCenterTitleAction(this@Room) then
-						Actions.run {
-							tabletop.drawStackHolder!!.touchable = Touchable.enabled
-							tabletop.myHand.touchable = Touchable.enabled
-							game.client?.sendTCP(NewGameActionFinishedEvent)
-						}
-					
-					this@Room.gameState = gameState
-				}
+				is NewGameEvent -> onNewGame(packet)
 				is GameState -> gameState = packet
 			}
 		}

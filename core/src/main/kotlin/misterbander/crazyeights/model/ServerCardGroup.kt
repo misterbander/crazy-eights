@@ -31,7 +31,7 @@ data class ServerCardGroup(
 		arrange()
 	}
 	
-	fun plusAssign(card: ServerCard, state: TabletopState)
+	fun plusAssign(card: ServerCard, state: ServerTabletop)
 	{
 		cards += card
 		if (type == Type.PILE)
@@ -59,7 +59,7 @@ data class ServerCardGroup(
 		card.cardGroupId = id
 	}
 	
-	fun minusAssign(card: ServerCard, state: TabletopState)
+	fun minusAssign(card: ServerCard, state: ServerTabletop)
 	{
 		val cardHolder = state.idToObjectMap[cardHolderId] as? ServerCardHolder
 		cards -= card
@@ -91,7 +91,7 @@ data class ServerCardGroup(
 		}
 	}
 	
-	fun shuffle(seed: Long, state: TabletopState)
+	fun shuffle(seed: Long, state: ServerTabletop)
 	{
 		val cardHolder = state.idToObjectMap[cardHolderId] as? ServerCardHolder
 		cardHolder?.toFront(state) ?: toFront(state)

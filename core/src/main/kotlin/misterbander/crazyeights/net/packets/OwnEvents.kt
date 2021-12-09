@@ -1,8 +1,20 @@
 package misterbander.crazyeights.net.packets
 
+import com.esotericsoftware.kryonet.Connection
 import ktx.collections.*
+import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.NoArg
+import misterbander.crazyeights.model.ServerCard
+import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
+import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.scene2d.Card
+import misterbander.crazyeights.scene2d.CardGroup
+import misterbander.crazyeights.scene2d.Groupable
+import misterbander.crazyeights.scene2d.MyHand
+import misterbander.crazyeights.scene2d.modules.Lockable
+import misterbander.crazyeights.scene2d.modules.Ownable
+import misterbander.crazyeights.scene2d.modules.SmoothMovable
 
 @NoArg
 data class ObjectOwnEvent(val id: Int, val ownerUsername: String)
@@ -17,5 +29,73 @@ data class ObjectDisownEvent(
 	val disownerUsername: String
 )
 
+@Suppress("UNCHECKED_CAST")
+fun Room.onObjectOwn(event: ObjectOwnEvent)
+{
+	val (id, ownerUsername) = event
+	val toOwn = tabletop.idToGObjectMap[id] as Groupable<CardGroup>
+	val hand = tabletop.userToHandMap[ownerUsername]!!
+	toOwn.getModule<Lockable>()?.unlock()
+	(toOwn.parent as? CardGroup)?.minusAssign(toOwn)
+	hand += toOwn
+	if (hand is MyHand)
+	{
+		toOwn.getModule<Ownable>()?.wasInHand = true
+		if (toOwn is Card)
+			toOwn.isFaceUp = true
+		hand.arrange(false)
+	}
+	else
+		hand.arrange()
+}
+
+fun CrazyEightsServer.onObjectOwn(connection: Connection, event: ObjectOwnEvent)
+{
+	val (id, ownerUsername) = event
+	tabletop.idToObjectMap[id]!!.setOwner(ownerUsername, tabletop)
+	server.sendToAllExceptTCP(connection.id, event)
+}
+
+@Suppress("UNCHECKED_CAST")
+fun Room.onObjectDisown(event: ObjectDisownEvent)
+{
+	val (id, x, y, rotation, isFaceUp, disownerUsername) = event
+	val toDisown = tabletop.idToGObjectMap[id] as Groupable<CardGroup>
+	val hand = tabletop.userToHandMap[disownerUsername]!!
+	hand -= toDisown
+	hand.arrange()
+	toDisown.getModule<SmoothMovable>()?.apply {
+		setTargetPosition(x, y)
+		rotationInterpolator.target = rotation
+	}
+	toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername]!!)
+	if (toDisown is Card)
+		toDisown.isFaceUp = isFaceUp
+}
+
+fun CrazyEightsServer.onObjectDisown(connection: Connection, event: ObjectDisownEvent)
+{
+	val (id, x, y, rotation, isFaceUp, disownerUsername) = event
+	val toDisown = tabletop.idToObjectMap[id]!!
+	toDisown.x = x
+	toDisown.y = y
+	toDisown.rotation = rotation
+	if (toDisown is ServerLockable)
+		toDisown.lockHolder = disownerUsername
+	if (toDisown is ServerCard)
+		toDisown.isFaceUp = isFaceUp
+	tabletop.serverObjects += toDisown
+	tabletop.hands[disownerUsername]!!.removeValue(toDisown, true)
+	server.sendToAllExceptTCP(connection.id, event)
+}
+
 @NoArg
 data class HandUpdateEvent(val hand: GdxArray<ServerObject>, val ownerUsername: String)
+
+fun CrazyEightsServer.onHandUpdate(connection: Connection, event: HandUpdateEvent)
+{
+	val (hand, ownerUsername) = event
+	tabletop.hands[ownerUsername] = hand
+	hand.forEach { tabletop.idToObjectMap[it.id] = it }
+	server.sendToAllExceptTCP(connection.id, event)
+}

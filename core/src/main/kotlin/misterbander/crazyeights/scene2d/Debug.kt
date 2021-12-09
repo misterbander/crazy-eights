@@ -28,8 +28,8 @@ class Debug(private val room: Room) : GObject<CrazyEights>(room)
 		if (!isVisible)
 			return
 		
-		val serverObjectsDebugString = game.server?.state?.serverObjectsDebugString ?: ""
-		val handsDebugString = game.server?.state?.handsDebugString ?: ""
+		val serverObjectsDebugString = game.server?.tabletop?.serverObjectsDebugString ?: ""
+		val handsDebugString = game.server?.tabletop?.handsDebugString ?: ""
 		
 		// View all objects locked by the user
 		lockedObjects.clear()

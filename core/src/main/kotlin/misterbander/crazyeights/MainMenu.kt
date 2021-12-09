@@ -18,7 +18,7 @@ import ktx.collections.*
 import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*
-import misterbander.crazyeights.model.TabletopState
+import misterbander.crazyeights.model.ServerTabletop
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
 import misterbander.crazyeights.scene2d.dialogs.CreateRoomDialog
@@ -129,7 +129,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 					game.network.stop()
 					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 				}
-				is TabletopState -> Gdx.app.postRunnable {
+				is ServerTabletop -> Gdx.app.postRunnable {
 					val room = game.getScreen<Room>()
 					room.tabletop.setState(`object`)
 					messageDialog.actionlessHide()

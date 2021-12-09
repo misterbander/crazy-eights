@@ -3,14 +3,14 @@ package misterbander.crazyeights.game.ai
 import com.badlogic.gdx.utils.ObjectIntMap
 import ktx.collections.*
 import misterbander.crazyeights.game.DrawMove
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
 import misterbander.crazyeights.game.PassMove
+import misterbander.crazyeights.game.ServerGameState
 import misterbander.gframework.util.weightedRandom
 
-class IsmctsAgent : Agent
+class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 {
-	override fun getMove(state: GameState): Move
+	override fun getMove(state: ServerGameState): Move
 	{
 		val moves = state.moves
 		if (moves.size == 1) // No need for tree search if there is only one move

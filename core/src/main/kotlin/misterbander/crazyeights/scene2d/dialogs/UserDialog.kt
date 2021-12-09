@@ -10,27 +10,27 @@ import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 
-class UserDialog(room: Room) : CrazyEightsDialog(room, "User Info")
+class UserDialog(private val room: Room) : CrazyEightsDialog(room, "User Info")
 {
 	var user = User("")
 		set(value)
 		{
 			field = value
-			usernameLabel.txt = value.username
+			usernameLabel.txt = value.name
 			usernameLabel.color = value.color
 		}
 	private val usernameLabel = scene2d.label("", INFO_LABEL_STYLE_S)
 	private val swapSeatsButton = scene2d.textButton("Swap Seats", TEXT_BUTTON_STYLE) {
 		onChange {
 			room.click.play()
-			game.client?.sendTCP(SwapSeatsEvent(game.user.username, user.username))
+			game.client?.sendTCP(SwapSeatsEvent(game.user.name, user.name))
 			hide()
 		}
 	}
 	private val removeButton = scene2d.textButton("Remove", TEXT_BUTTON_STYLE) {
 		onChange {
 			room.click.play()
-			game.client?.sendTCP(AiRemoveEvent(user.username))
+			game.client?.sendTCP(AiRemoveEvent(user.name))
 			hide()
 		}
 	}
@@ -58,6 +58,8 @@ class UserDialog(room: Room) : CrazyEightsDialog(room, "User Info")
 			horizontalGroup.addActorAfter(swapSeatsButton, removeButton)
 		else
 			horizontalGroup.removeActor(removeButton)
+		swapSeatsButton.isDisabled = room.isGameStarted
+		removeButton.isDisabled = room.isGameStarted
 		show()
 	}
 }

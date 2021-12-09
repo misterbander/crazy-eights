@@ -59,6 +59,7 @@ class CrazyEightsClient
 	
 	fun flushOutgoingPacketBuffer()
 	{
+		val isEmpty = outgoingPacketBuffer.isEmpty
 		for (packet: Any in outgoingPacketBuffer)
 		{
 			sendTCP(packet)
@@ -67,10 +68,14 @@ class CrazyEightsClient
 			else if (packet is ObjectRotateEvent)
 				objectRotateEventPool.free(packet)
 		}
+		if (!isEmpty)
+			sendTCP(BufferEnd)
 		outgoingPacketBuffer.clear()
 	}
 	
 	fun addListener(listener: Listener) = client.addListener(listener)
 	
 	fun removeListener(listener: Listener) = client.removeListener(listener)
+	
+	object BufferEnd
 }

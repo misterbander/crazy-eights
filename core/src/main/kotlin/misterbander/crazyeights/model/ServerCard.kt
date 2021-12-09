@@ -10,7 +10,8 @@ data class ServerCard(
 	val rank: Rank = Rank.NO_RANK,
 	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
-	override var lockHolder: User? = null,
+	override var lockHolder: String? = null,
+	var lastOwner: String? = null,
 	var cardGroupId: Int = -1,
 	var justMoved: Boolean = false,
 	var justRotated: Boolean = false
@@ -32,6 +33,13 @@ data class ServerCard(
 		}
 		else
 			state.serverObjects += this
+	}
+	
+	override fun setOwner(ownerUsername: String, state: TabletopState)
+	{
+		(state.idToObjectMap[cardGroupId] as? ServerCardGroup)?.minusAssign(this, state)
+		lastOwner = ownerUsername
+		super.setOwner(ownerUsername, state)
 	}
 	
 	override fun toString(): String =

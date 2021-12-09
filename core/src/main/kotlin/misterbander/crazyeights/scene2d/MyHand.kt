@@ -1,10 +1,14 @@
 package misterbander.crazyeights.scene2d
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.utils.Align
 import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
+import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEights
+import misterbander.crazyeights.INFO_LABEL_STYLE_S
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.packets.HandUpdateEvent
@@ -15,10 +19,14 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 {
 	val offsetCenterY = 48F
 	override val cardGroup = CardGroup(room, y = offsetCenterY, type = ServerCardGroup.Type.SPREAD)
+	private val spectatorLabel = scene2d.label("You are a spectator. Please wait for a new game.", INFO_LABEL_STYLE_S) {
+		setPosition(0F, offsetCenterY, Align.bottom)
+	}
 	
 	init
 	{
 		addActor(cardGroup)
+		addActor(spectatorLabel)
 		room.addUprightGObject(this)
 	}
 	
@@ -26,6 +34,7 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 	{
 		val (handX, handY) = stage.screenToStageCoordinates(tempVec.set(Gdx.graphics.width.toFloat()/2, Gdx.graphics.height.toFloat()))
 		setPosition(handX, handY)
+		spectatorLabel.isVisible = room.isGameStarted && game.user.name !in room.gameState!!.players
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup
@@ -65,12 +74,18 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 		cardGroup.spreadSeparation =
 			if ((cardGroup.cards.size - 1)*defaultSeparation < max) defaultSeparation else max/(cardGroup.cards.size - 1)
 		cardGroup.arrange(sort)
+		
+		if (room.isGameStarted && room.gameState!!.drawCount >= 3 && room.gameState!!.currentPlayer == game.user.name)
+		{
+			room.passButton.isVisible = true
+			room.tabletop.drawStackHolder!!.touchable = Touchable.disabled
+		}
 	}
 	
 	fun sendUpdates()
 	{
 		game.client?.apply {
-			outgoingPacketBuffer += HandUpdateEvent(cardGroup.cards.map { (it as Card).toServerCard() }, game.user.username)
+			outgoingPacketBuffer += HandUpdateEvent(cardGroup.cards.map { (it as Card).toServerCard() }, game.user.name)
 		}
 	}
 	

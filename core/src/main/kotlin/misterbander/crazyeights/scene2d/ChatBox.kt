@@ -46,7 +46,7 @@ class ChatBox(private val room: Room) : Table()
 		onKey { character ->
 			if ((character == '\r' || character == '\n') && text.isNotEmpty())
 			{
-				game.client?.sendTCP(Chat(game.user, "<${game.user.username}> $text"))
+				game.client?.sendTCP(Chat(game.user, "<${game.user.name}> $text"))
 				text = ""
 				uiStage.keyboardFocus = null
 				uiStage.scrollFocus = null

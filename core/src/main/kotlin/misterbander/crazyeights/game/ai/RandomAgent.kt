@@ -1,12 +1,12 @@
 package misterbander.crazyeights.game.ai
 
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
+import misterbander.crazyeights.game.ServerGameState
 
 /**
  * A simple baseline agent. It chooses moves randomly.
  */
-class RandomAgent : Agent
+class RandomAgent(override val name: String = "RandomAgent") : Agent
 {
-	override fun getMove(state: GameState): Move = state.moves.random()
+	override fun getMove(state: ServerGameState): Move = state.moves.random()
 }

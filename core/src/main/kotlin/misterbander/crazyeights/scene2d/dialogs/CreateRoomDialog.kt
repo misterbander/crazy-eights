@@ -64,7 +64,7 @@ class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Creat
 							client.addListener(room.clientListener)
 							// Perform handshake by doing checking version and username availability
 							info("Client | INFO") { "Perform handshake" }
-							client.sendTCP(Handshake(data = arrayOf(game.user.username)))
+							client.sendTCP(Handshake(data = arrayOf(game.user.name)))
 						}
 						catch (e: Exception)
 						{

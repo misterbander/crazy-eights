@@ -46,7 +46,7 @@ class Ownable(
 						smoothMovable.yInterpolator.target,
 						smoothMovable.rotationInterpolator.target,
 						if (parent is Card) parent.isFaceUp else false,
-						game.user.username
+						game.user.name
 					)
 				}
 			}
@@ -57,7 +57,7 @@ class Ownable(
 			{
 				room.tabletop.myHand += parent as Groupable<CardGroup>
 				room.tabletop.myHand.arrange()
-				game.client?.apply { outgoingPacketBuffer += ObjectOwnEvent(id, game.user.username) }
+				game.client?.apply { outgoingPacketBuffer += ObjectOwnEvent(id, game.user.name) }
 			}
 		}
 	}

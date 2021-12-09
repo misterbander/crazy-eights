@@ -121,7 +121,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 			{
 				is Handshake -> Gdx.app.postRunnable {
 					// Handshake is successful
-					info("Client | INFO") { "Handshake successful. Joining as ${game.user.username}..." }
+					info("Client | INFO") { "Handshake successful. Joining as ${game.user.name}..." }
 					connection.sendTCP(game.user)
 				}
 				is HandshakeReject -> Gdx.app.postRunnable {

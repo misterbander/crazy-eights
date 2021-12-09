@@ -1,9 +1,9 @@
 package misterbander.crazyeights.game.ai
 
 import ktx.collections.*
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Move
 import misterbander.crazyeights.game.Player
+import misterbander.crazyeights.game.ServerGameState
 import kotlin.math.ln
 import kotlin.math.sqrt
 
@@ -79,7 +79,7 @@ class Node(
 	/**
 	 * Update this node - increment the visit count by one, and increase the win count by the result of `terminalState` for `playerJustMoved`.
 	 */
-	fun update(terminalState: GameState)
+	fun update(terminalState: ServerGameState)
 	{
 		visits++
 		if (playerJustMoved != null)

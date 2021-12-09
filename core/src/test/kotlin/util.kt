@@ -1,6 +1,6 @@
 import ktx.collections.*
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Ruleset
+import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.OracleAgent
 import misterbander.crazyeights.game.ai.RandomAgent
 import misterbander.crazyeights.game.createState
@@ -17,11 +17,11 @@ fun main()
 		println(agent1.getMove(state))
 }
 
-fun readTestStates(ruleset: Ruleset = Ruleset()): Array<GameState>
+fun readTestStates(ruleset: Ruleset = Ruleset()): Array<ServerGameState>
 {
-	val states = GdxArray<GameState>()
+	val states = GdxArray<ServerGameState>()
 	File("test/random_states.txt").forEachLine { line ->
 		states += createState(ruleset, stateStr = line, agent1 = agent1, agent2 = agent2)
 	}
-	return states.toArray(GameState::class.java)
+	return states.toArray(ServerGameState::class.java)
 }

@@ -64,7 +64,7 @@ class CardGroup(
 	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
-			get() = ownable.myHand == null && (UIUtils.shift() || lockable.justLongPressed)
+			get() = ownable.myHand == null && (UIUtils.shift() || lockable.justLongPressed) && !room.isGameStarted
 		
 		override fun pan() = detachFromCardHolder()
 	}
@@ -75,7 +75,8 @@ class CardGroup(
 	override val highlightable = object : Highlightable(this)
 	{
 		override val shouldHighlight: Boolean
-			get() = over && UIUtils.shift() && ownable.myHand == null || lockable.isLockHolder || forceHighlight
+			get() = over && UIUtils.shift() && ownable.myHand == null && !room.isGameStarted
+				|| lockable.isLockHolder || forceHighlight
 		
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked
@@ -167,7 +168,7 @@ class CardGroup(
 		room.tabletop.cardHolders.addActorAt(cardHolderIndex, replacementCardHolder)
 		transformToGroupCoordinates(room.tabletop.cards)
 		game.client?.apply {
-			outgoingPacketBuffer += CardGroupDetachEvent(cardHolder.id, changerUsername = game.user.username)
+			outgoingPacketBuffer += CardGroupDetachEvent(cardHolder.id, changerUsername = game.user.name)
 		}
 		room.tabletop.cards += this
 		setScrollFocus()
@@ -179,13 +180,18 @@ class CardGroup(
 		}
 	}
 	
-	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup
+	override fun canAccept(gObject: GObject<CrazyEights>): Boolean
+	{
+		if (room.isGameStarted)
+			return gObject is Card && cardHolder != room.tabletop.drawStackHolder
+		return gObject is Card || gObject is CardGroup
+	}
 	
 	override fun accept(gObject: GObject<CrazyEights>)
 	{
 		if (gObject is Card)
 			game.client?.apply {
-				outgoingPacketBuffer += CardGroupChangeEvent(gdxArrayOf(gObject.toServerCard()), id, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(gdxArrayOf(gObject.toServerCard()), id, game.user.name)
 			}
 		else if (gObject is CardGroup)
 		{
@@ -198,7 +204,7 @@ class CardGroup(
 			gObject.dismantle()
 			game.client?.apply {
 				outgoingPacketBuffer += CardGroupDismantleEvent(gObject.id)
-				outgoingPacketBuffer += CardGroupChangeEvent(cards.map { it.toServerCard() }, id, game.user.username)
+				outgoingPacketBuffer += CardGroupChangeEvent(cards.map { it.toServerCard() }, id, game.user.name)
 			}
 		}
 	}

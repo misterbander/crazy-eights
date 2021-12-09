@@ -2,7 +2,9 @@ package misterbander.crazyeights.net
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.IntSet
+import com.badlogic.gdx.utils.OrderedMap
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
@@ -15,7 +17,11 @@ import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.VERSION_STRING
-import misterbander.crazyeights.game.GameState
+import misterbander.crazyeights.game.DrawMove
+import misterbander.crazyeights.game.PlayMove
+import misterbander.crazyeights.game.Player
+import misterbander.crazyeights.game.ServerGameState
+import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.ServerCard
@@ -37,6 +43,7 @@ import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
+import misterbander.crazyeights.net.packets.NewGameActionFinishedEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
@@ -53,6 +60,12 @@ class CrazyEightsServer
 {
 	private var maxId = 0
 	val state = TabletopState()
+	// Some actions play a client-side animation which takes some time. While the animation is playing, we must ensure
+	// that no other events take place to prevent events from overlapping, causing strange behavior. This is achieved
+	// using action locks.
+	// If an event that plays a client-side animation occurs, each currently online user will obtain an action lock.
+	// Action locks will only be released once the client-side animation finishes, or the user leaves the room.
+	private val actionLocks = GdxSet<String>()
 	private val aiNames = gdxArrayOf("Shark (AI)", "Queenpin (AI)", "Watson (AI)", "Ning (AI)")
 	private var aiCount = 0
 	
@@ -66,7 +79,9 @@ class CrazyEightsServer
 	private val startServerJob = Job()
 	@Volatile private var isStopped = false
 	
-	private var gameState: GameState? = null
+	private var serverGameState: ServerGameState? = null
+	private val isGameStarted: Boolean
+		get() = serverGameState != null
 	
 	init
 	{
@@ -106,6 +121,13 @@ class CrazyEightsServer
 		}
 	}
 	
+	fun ServerCardGroup.draw(ownerUsername: String)
+	{
+		val card: ServerCard = cards.peek()
+		card.isFaceUp = true
+		card.setOwner(ownerUsername, state)
+	}
+	
 	@Suppress("BlockingMethodInNonBlockingContext")
 	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
 		if (!isStopped)
@@ -121,8 +143,13 @@ class CrazyEightsServer
 	{
 		/** Contains ids of connections that have successfully performed a handshake. */
 		private val handshookConnections = IntSet()
+		private val runLater = GdxMap<String, IntMap<CancellableRunnable>>()
 		
-		override fun connected(connection: Connection) = connection.setName("Server-side client connection ${connection.id}")
+		override fun connected(connection: Connection)
+		{
+			connection.setName("Server-side client connection ${connection.id}")
+			connection.setTimeout(0)
+		}
 		
 		override fun disconnected(connection: Connection)
 		{
@@ -132,24 +159,34 @@ class CrazyEightsServer
 			if (connection.arbitraryData is User)
 			{
 				val user = connection.arbitraryData as User
-				state.users.remove(user.username)
-				if (state.hands[user.username]!!.isEmpty)
-					state.hands.remove(user.username)
-				for (serverObject: ServerObject in state.serverObjects)
+				state.users.remove(user.name)
+				actionLocks -= user.name
+				if (state.hands[user.name]!!.isEmpty)
+					state.hands.remove(user.name)
+				runLater.remove(user.name)?.values()?.forEach { it.runnable() }
+				for (serverObject: ServerObject in GdxArray(state.serverObjects))
 				{
-					if (serverObject is ServerLockable && serverObject.lockHolder == user)
+					if (serverObject is ServerLockable && serverObject.lockHolder == user.name)
 						serverObject.lockHolder = null
 					if (serverObject is ServerCard)
 					{
 						serverObject.justMoved = false
 						serverObject.justRotated = false
+						if (isGameStarted && serverObject.lastOwner == user.name)
+						{
+							serverObject.isFaceUp = true
+							serverObject.lockHolder = null
+							serverObject.setOwner(user.name, state)
+							server.sendToAllTCP(ObjectOwnEvent(serverObject.id, user.name))
+						}
 					}
 				}
 				server.sendToAllTCP(UserLeftEvent(user))
-				info("Server | INFO") { "${user.username} left the game" }
+				info("Server | INFO") { "${user.name} left the game" }
 			}
 		}
 		
+		@Suppress("UNCHECKED_CAST")
 		override fun received(connection: Connection, `object`: Any)
 		{
 			if (isStopped)
@@ -194,11 +231,13 @@ class CrazyEightsServer
 				is User -> // A new user tries to join
 				{
 					connection.arbitraryData = `object`
-					state.users[`object`.username] = `object`
-					state.hands.getOrPut(`object`.username) { GdxArray() }
+					state.users[`object`.name] = `object`
+					state.hands.getOrPut(`object`.name) { GdxArray() }
 					connection.sendTCP(state)
+					if (isGameStarted)
+						connection.sendTCP(serverGameState!!.toGameState())
 					server.sendToAllTCP(UserJoinedEvent(`object`))
-					info("Server | INFO") { "${`object`.username} joined the game" }
+					info("Server | INFO") { "${`object`.name} joined the game" }
 				}
 				is SwapSeatsEvent ->
 				{
@@ -238,50 +277,94 @@ class CrazyEightsServer
 				is TouchUpEvent -> server.sendToAllExceptTCP(connection.id, `object`)
 				is ObjectLockEvent -> // User attempts to lock an object
 				{
+					if (actionLocks.isNotEmpty())
+						return
 					val (id, lockerUsername) = `object`
 					val toLock = idToObjectMap[id]!!
-					if (toLock is ServerLockable && toLock.canLock) // Only unlocked draggables can be locked
+					if (toLock !is ServerLockable || !toLock.canLock) // Only unlocked draggables can be locked
+						return
+					if (isGameStarted)
 					{
-						debug("Server | DEBUG") { "$lockerUsername locks $toLock" }
-						toLock.lockHolder = state.users[lockerUsername]
-						toLock.toFront(state)
-						server.sendToAllTCP(`object`)
+						if (state.users[lockerUsername]!! !in serverGameState!!.playerHands)
+							return
+						if (toLock is ServerCard && toLock.cardGroupId != -1)
+						{
+							val cardGroup = idToObjectMap[toLock.cardGroupId] as ServerCardGroup
+							if (cardGroup.cardHolderId == state.drawStackHolderId)
+							{
+								if (serverGameState!!.drawCount >= 3)
+									return
+								serverGameState!!.doMove(DrawMove)
+							}
+							else if (cardGroup.cardHolderId == state.discardPileHolderId)
+								return
+						}
+						else if (toLock is ServerCardGroup)
+							return
 					}
+					debug("Server | DEBUG") { "$lockerUsername locks $toLock" }
+					toLock.lockHolder = lockerUsername
+					toLock.toFront(state)
+					server.sendToAllTCP(`object`)
 				}
 				is ObjectUnlockEvent -> // User unlocks an object
 				{
 					val (id, unlockerUsername, sideEffects) = `object`
 					val toUnlock = idToObjectMap[id] ?: return
-					if (toUnlock is ServerLockable && toUnlock.lockHolder == state.users[unlockerUsername])
+					if (toUnlock !is ServerLockable || toUnlock.lockHolder != unlockerUsername)
+						return
+					debug("Server | DEBUG") { "${toUnlock.lockHolder} unlocks $toUnlock" }
+					toUnlock.lockHolder = null
+					if (toUnlock is ServerCard)
 					{
-						debug("Server | DEBUG") { "${toUnlock.lockHolder?.username} unlocks $toUnlock" }
-						toUnlock.lockHolder = null
-						if (toUnlock is ServerCard)
+						if (toUnlock.cardGroupId != -1)
 						{
-							if (toUnlock.cardGroupId != -1)
-								(idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup).arrange()
-							if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects)
+							val cardGroup = idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup
+							if (isGameStarted && cardGroup.cardHolderId == state.drawStackHolderId)
 							{
-								toUnlock.isFaceUp = !toUnlock.isFaceUp
-								server.sendToAllTCP(CardFlipEvent(id))
+								cardGroup.draw(unlockerUsername)
+								server.sendToAllTCP(`object`)
+								server.sendToAllTCP(ObjectOwnEvent(id, unlockerUsername))
+								return
 							}
-							toUnlock.justMoved = false
-							toUnlock.justRotated = false
+							else
+								cardGroup.arrange()
 						}
-						else if (toUnlock is ServerCardGroup)
+						else if (isGameStarted) // Restrict
 						{
-							if (toUnlock.cardHolderId != -1)
-								toUnlock.rotation = 0F
+							toUnlock.lockHolder = ""
+							runLater.getOrPut(unlockerUsername) { IntMap() }.put(
+								toUnlock.id,
+								CancellableRunnable(
+									runnable = {
+										toUnlock.isFaceUp = true
+										toUnlock.lockHolder = null
+										toUnlock.setOwner(unlockerUsername, state)
+										server.sendToAllTCP(ObjectOwnEvent(id, unlockerUsername))
+									},
+									onCancel = { toUnlock.lockHolder = null }
+								)
+							)
 						}
-						server.sendToAllTCP(`object`)
+						if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects && !isGameStarted)
+						{
+							toUnlock.isFaceUp = !toUnlock.isFaceUp
+							server.sendToAllTCP(CardFlipEvent(id))
+						}
+						toUnlock.justMoved = false
+						toUnlock.justRotated = false
 					}
+					else if (toUnlock is ServerCardGroup)
+					{
+						if (toUnlock.cardHolderId != -1)
+							toUnlock.rotation = 0F
+					}
+					server.sendToAllTCP(`object`)
 				}
 				is ObjectOwnEvent ->
 				{
 					val (id, ownerUsername) = `object`
-					val toOwn = idToObjectMap[id]!!
-					state.serverObjects.removeValue(toOwn, true)
-					state.hands[ownerUsername]!!.add(toOwn)
+					idToObjectMap[id]!!.setOwner(ownerUsername, state)
 					server.sendToAllExceptTCP(connection.id, `object`)
 				}
 				is ObjectDisownEvent ->
@@ -292,7 +375,7 @@ class CrazyEightsServer
 					toDisown.y = y
 					toDisown.rotation = rotation
 					if (toDisown is ServerLockable)
-						toDisown.lockHolder = state.users[disownerUsername]
+						toDisown.lockHolder = disownerUsername
 					if (toDisown is ServerCard)
 						toDisown.isFaceUp = isFaceUp
 					state.serverObjects += toDisown
@@ -308,8 +391,12 @@ class CrazyEightsServer
 				}
 				is ObjectMoveEvent ->
 				{
+					if (actionLocks.isNotEmpty())
+						return
 					val (id, x, y) = `object`
 					val toMove = idToObjectMap[id]!!
+					if (toMove !is ServerLockable || toMove.lockHolder?.let { state.users[it] } != connection.arbitraryData)
+						return
 					toMove.x = x
 					toMove.y = y
 					if (toMove is ServerCard)
@@ -324,11 +411,15 @@ class CrazyEightsServer
 				}
 				is ObjectRotateEvent ->
 				{
+					if (actionLocks.isNotEmpty())
+						return
 					val (id, rotation) = `object`
 					val toRotate = idToObjectMap[id]!!
-					toRotate.rotation = rotation
+					if (toRotate !is ServerLockable || toRotate.lockHolder?.let { state.users[it] } != connection.arbitraryData)
+						return
 					if (toRotate is ServerCard)
 						toRotate.justRotated = true
+					toRotate.rotation = rotation
 					server.sendToAllExceptTCP(connection.id, `object`)
 					objectRotateEventPool.free(`object`)
 				}
@@ -353,13 +444,22 @@ class CrazyEightsServer
 				}
 				is CardGroupChangeEvent ->
 				{
-					val (cards, newCardGroupId) = `object`
+					val (cards, newCardGroupId, changerUsername) = `object`
 					val newCardGroup = if (newCardGroupId != -1) idToObjectMap[newCardGroupId] as ServerCardGroup else null
 					cards.forEachIndexed { index, (id, _, _, rotation) ->
 						val card = idToObjectMap[id] as ServerCard
+						if (isGameStarted && newCardGroup?.cardHolderId == state.discardPileHolderId)
+						{
+							val move = PlayMove(card)
+							if (move !in serverGameState!!.moves)
+								return
+						}
 						card.rotation = rotation
+						state.hands[changerUsername]!!.removeValue(card, true)
 						card.setServerCardGroup(newCardGroup, state)
 						cards[index] = card
+						if (isGameStarted)
+							runLater.getOrPut(changerUsername) { IntMap() }.remove(id)?.onCancel?.invoke()
 					}
 					newCardGroup?.arrange()
 					server.sendToAllTCP(`object`)
@@ -395,6 +495,7 @@ class CrazyEightsServer
 				is NewGameEvent ->
 				{
 					val drawStack = (idToObjectMap[state.drawStackHolderId] as ServerCardHolder).cardGroup
+					val discardPile = (idToObjectMap[state.discardPileHolderId] as ServerCardHolder).cardGroup
 					
 					// Recall all cards
 					val serverObjects = idToObjectMap.values().toArray()
@@ -416,11 +517,11 @@ class CrazyEightsServer
 							state.serverObjects.removeValue(serverObject, true)
 						}
 					}
-//					for (username in state.hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
-//					{
-//						if (username !in state.users)
-//							state.hands.remove(username)
-//					}
+					for (username in state.hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
+					{
+						if (username !in state.users)
+							state.hands.remove(username)
+					}
 					state.hands.values().forEach { it.clear() }
 					
 					val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
@@ -432,21 +533,43 @@ class CrazyEightsServer
 					// Deal
 					repeat(if (state.hands.size > 2) 5 else 7) {
 						for (username: String in state.hands.orderedKeys())
+							drawStack.draw(username)
+					}
+					val topCard: ServerCard = drawStack.cards.peek()
+					topCard.setServerCardGroup(discardPile, state)
+					topCard.isFaceUp = true
+					
+					// Set game state and action lock
+					val playerHands = OrderedMap<Player, GdxArray<ServerCard>>()
+					for ((username, hand) in state.hands)
+					{
+						val user = state.users[username]!!
+						if (user.isAi)
+							playerHands[IsmctsAgent(username)] = GdxArray(hand) as GdxArray<ServerCard>
+						else
 						{
-							val card: ServerCard = drawStack.cards.pop()
-							card.isFaceUp = true
-							state.hands[username]!!.add(card)
+							playerHands[user] = GdxArray(hand) as GdxArray<ServerCard>
+							actionLocks += user.name
 						}
 					}
-					
-					state.isGameStarted = true
+					serverGameState = ServerGameState(
+						playerHands = playerHands,
+						drawStack = GdxArray(drawStack.cards),
+						discardPile = GdxArray(discardPile.cards)
+					)
 					
 					server.sendToAllTCP(Chat(message = "Game started", isSystemMessage = true))
-					server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed))
+					server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState!!.toGameState()))
+				}
+				is NewGameActionFinishedEvent -> actionLocks -= (connection.arbitraryData as User).name
+				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {
+					it.runnable()
 				}
 			}
 			
 			state.updateDebugStrings()
 		}
 	}
+	
+	private class CancellableRunnable(val runnable: () -> Unit, val onCancel: () -> Unit)
 }

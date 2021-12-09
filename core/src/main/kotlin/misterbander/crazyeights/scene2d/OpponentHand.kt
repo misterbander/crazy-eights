@@ -36,7 +36,7 @@ class OpponentHand(
 	override val cardGroup = CardGroup(room, spreadSeparation = 20F, type = ServerCardGroup.Type.SPREAD).apply {
 		setScale(0.5F)
 	}
-	private val nameLabel = scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE_S) {
+	private val nameLabel = scene2d.label(user.name, PLAYER_NAMETAG_LABEL_STYLE_S) {
 		color = user.color
 		pack()
 		setPosition(0F, 0F, Align.center)
@@ -51,7 +51,7 @@ class OpponentHand(
 		set(value)
 		{
 			field = value
-			nameLabel.txt = value.username
+			nameLabel.txt = value.name
 			nameLabel.color = value.color
 			nameLabel.pack()
 			nameLabel.setPosition(0F, 0F, Align.center)

@@ -106,9 +106,11 @@ class CrazyEights : GFramework()
 				up = this@skin["button"]
 				over = this@skin["buttonover"]
 				down = this@skin["buttondown"]
+				disabled = this@skin["buttondisabled"]
 				font = jhengheiui
 				fontColor = Color.WHITE
 				downFontColor = Color.BLACK
+				disabledFontColor = Color.GRAY
 			}
 			button(CLOSE_BUTTON_STYLE) {
 				up = this@skin["closebutton"]
@@ -212,7 +214,7 @@ class CrazyEights : GFramework()
 	fun savePreferences()
 	{
 		val preferences = Gdx.app.getPreferences("misterbander.crazyeights")
-		preferences["username"] = user.username
+		preferences["username"] = user.name
 		preferences["color"] = user.color.toString()
 		preferences.flush()
 	}

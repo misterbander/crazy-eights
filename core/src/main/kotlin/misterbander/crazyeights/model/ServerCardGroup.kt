@@ -18,7 +18,7 @@ data class ServerCardGroup(
 	var spreadCurvature: Float = 0.07F,
 	val cards: GdxArray<ServerCard> = GdxArray(),
 	var type: Type = Type.STACK,
-	override var lockHolder: User? = null,
+	override var lockHolder: String? = null,
 	var cardHolderId: Int = -1
 ) : ServerObject, ServerLockable
 {

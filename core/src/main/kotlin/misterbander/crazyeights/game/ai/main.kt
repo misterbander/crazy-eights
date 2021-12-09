@@ -6,8 +6,8 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import ktx.collections.*
-import misterbander.crazyeights.game.GameState
 import misterbander.crazyeights.game.Ruleset
+import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.newGame
 import java.io.BufferedWriter
 import java.io.FileWriter
@@ -169,7 +169,7 @@ fun simulateGames(
 	val executorService = Executors.newFixedThreadPool(threadCount)
 	val context = executorService.asCoroutineDispatcher()
 	val agents = agentsProvider()
-	val agentNames = Array(agents.size) { i -> "${agents[i]::class.java.simpleName} $i" }
+	val agentNames = Array(agents.size) { i -> "${agents[i].name} $i" }
 	
 	val runGameJobs = Array(gamesCount) {
 		async(context) {
@@ -206,7 +206,7 @@ private fun simulateGame(
 	verbose: Boolean
 ): Agent
 {
-	val game: GameState = newGame(ruleset = ruleset, agents.orderedKeys())
+	val game: ServerGameState = newGame(ruleset = ruleset, agents.orderedKeys())
 	while (!game.isTerminal)
 	{
 		val currentPlayer = game.currentPlayer as Agent

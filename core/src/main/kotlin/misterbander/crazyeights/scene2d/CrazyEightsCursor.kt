@@ -37,7 +37,7 @@ class CrazyEightsCursor(
 		setPositionAndTargetPosition(room.uiViewport.minWorldWidth/2, room.uiViewport.minWorldHeight/2)
 		if (!noLabel)
 		{
-			this += scene2d.label(user.username, PLAYER_NAMETAG_LABEL_STYLE_XS) {
+			this += scene2d.label(user.name, PLAYER_NAMETAG_LABEL_STYLE_XS) {
 				pack()
 				setPosition(this@CrazyEightsCursor.width/2 - 3F, 0F, Align.topLeft)
 			}

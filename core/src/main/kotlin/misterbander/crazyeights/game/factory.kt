@@ -26,7 +26,7 @@ fun newDeck(): GdxArray<ServerCard>
 
 fun shuffledDeck(): GdxArray<ServerCard> = newDeck().apply { shuffle() }
 
-fun newGame(ruleset: Ruleset = Ruleset(), agents: GdxArray<Agent>): GameState
+fun newGame(ruleset: Ruleset = Ruleset(), agents: GdxArray<Agent>): ServerGameState
 {
 	val newDeck = shuffledDeck()
 	val playerHands = OrderedMap<Player, GdxArray<ServerCard>>()
@@ -35,7 +35,7 @@ fun newGame(ruleset: Ruleset = Ruleset(), agents: GdxArray<Agent>): GameState
 	playerHands.values().forEach { hand: GdxArray<ServerCard> -> repeat(7) { hand += newDeck.pop() } }
 	// Flip over the top card from the drawing pile to start the discard pile
 	val discardPile = gdxArrayOf(newDeck.pop())
-	return GameState(ruleset, playerHands, newDeck, discardPile)
+	return ServerGameState(ruleset, playerHands, newDeck, discardPile)
 }
 
 fun String.toCard(): ServerCard
@@ -60,7 +60,7 @@ fun String.toCard(): ServerCard
 	return ServerCard(rank = rank, suit = suit)
 }
 
-fun createState(ruleset: Ruleset = Ruleset(), stateStr: String, agent1: Agent, agent2: Agent): GameState
+fun createState(ruleset: Ruleset = Ruleset(), stateStr: String, agent1: Agent, agent2: Agent): ServerGameState
 {
 	val cards = stateStr.split("/").map { listStr ->
 		listStr
@@ -74,5 +74,5 @@ fun createState(ruleset: Ruleset = Ruleset(), stateStr: String, agent1: Agent, a
 	hands[agent2] = cards[1].toGdxArray()
 	val discardPile = cards[2].toGdxArray()
 	val drawStack = newDeck() - hands[agent1]!! - hands[agent2]!! - discardPile
-	return GameState(ruleset, playerHands = hands, drawStack = drawStack, discardPile = discardPile)
+	return ServerGameState(ruleset, playerHands = hands, drawStack = drawStack, discardPile = discardPile)
 }

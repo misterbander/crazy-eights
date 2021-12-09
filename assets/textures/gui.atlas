@@ -6,7 +6,16 @@ filter: Linear,Linear
 repeat: none
 button
   rotate: false
-  xy: 1442, 487
+  xy: 1298, 80
+  size: 80, 80
+  split: 38, 38, 38, 38
+  pad: 15, 17, 15, 17
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+buttondisabled
+  rotate: false
+  xy: 1298, 164
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -15,7 +24,7 @@ button
   index: -1
 buttondown
   rotate: false
-  xy: 1298, 80
+  xy: 1442, 403
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -24,7 +33,7 @@ buttondown
   index: -1
 buttonover
   rotate: false
-  xy: 1298, 164
+  xy: 1442, 487
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -40,7 +49,7 @@ cardbackred
   index: -1
 cardclubs10
   rotate: false
-  xy: 738, 830
+  xy: 594, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
@@ -82,7 +91,7 @@ cardclubs6
   index: -1
 cardclubs7
   rotate: false
-  xy: 882, 830
+  xy: 738, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
@@ -411,7 +420,7 @@ cardspadesace
   index: -1
 cardspadesjack
   rotate: false
-  xy: 594, 830
+  xy: 882, 830
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
@@ -520,14 +529,14 @@ hueslider
   index: -1
 huesliderknob
   rotate: false
-  xy: 1526, 503
+  xy: 1703, 568
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobdown
   rotate: false
-  xy: 1635, 568
+  xy: 1526, 503
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
@@ -541,14 +550,14 @@ huesliderknobover
   index: -1
 menuicon
   rotate: false
-  xy: 1671, 600
+  xy: 1526, 467
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 menuicondown
   rotate: false
-  xy: 1382, 92
+  xy: 1739, 600
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -562,7 +571,7 @@ textcursor
   index: -1
 textfield
   rotate: false
-  xy: 1442, 283
+  xy: 1567, 568
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 16, 15, 17
@@ -571,7 +580,7 @@ textfield
   index: -1
 textfieldfocused
   rotate: false
-  xy: 1442, 419
+  xy: 1442, 335
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 17, 15, 17
@@ -580,14 +589,14 @@ textfieldfocused
   index: -1
 textselection
   rotate: false
-  xy: 1442, 351
+  xy: 1442, 267
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 window
   rotate: false
-  xy: 1567, 568
+  xy: 1635, 568
   size: 64, 64
   split: 2, 2, 50, 2
   pad: 0, 0, 50, 0

@@ -2,6 +2,7 @@ package misterbander.crazyeights.game
 
 import com.badlogic.gdx.utils.OrderedMap
 import ktx.collections.*
+import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
@@ -20,7 +21,7 @@ import misterbander.crazyeights.model.ServerCard.Suit
  * suit of the top card of the discard pile. Used when the previous player plays an eight and declares
  * a suit.
  */
-class GameState(
+class ServerGameState(
 	val ruleset: Ruleset = Ruleset(),
 	val playerHands: OrderedMap<Player, GdxArray<ServerCard>>,
 	val drawStack: GdxArray<ServerCard>,
@@ -204,7 +205,7 @@ class GameState(
 		drawCount = 0
 	}
 	
-	val observedState: GameState
+	val observedState: ServerGameState
 		get()
 		{
 			// From the point of view of the current player, they can only see their own hand
@@ -235,7 +236,7 @@ class GameState(
 			}
 			assert(unseenCards.isEmpty)
 			
-			return GameState(
+			return ServerGameState(
 				ruleset,
 				observedHands,
 				observedDrawingStack,
@@ -260,4 +261,14 @@ class GameState(
 		}
 	
 	fun getResult(player: Player): Int = if (playerHands[player]!!.isEmpty) 1 else 0
+	
+	fun toGameState(): GameState = GameState(
+		ruleset,
+		playerHands.orderedKeys().map { it.name },
+		currentPlayer.name,
+		isPlayReversed,
+		drawCount,
+		declaredSuit,
+		drawTwoEffectCardCount
+	)
 }

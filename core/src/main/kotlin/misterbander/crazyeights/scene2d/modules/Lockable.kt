@@ -40,7 +40,7 @@ open class Lockable(
 					if (parent.getModule<Ownable>()?.isOwned == true)
 						lock(game.user)
 					else
-						game.client?.apply { outgoingPacketBuffer += ObjectLockEvent(id, game.user.username) }
+						game.client?.apply { outgoingPacketBuffer += ObjectLockEvent(id, game.user.name) }
 				}
 			}
 			
@@ -54,7 +54,7 @@ open class Lockable(
 					if (parent.getModule<Ownable>()?.isOwned == true)
 						unlock()
 					else
-						game.client?.apply { outgoingPacketBuffer += ObjectUnlockEvent(id, game.user.username) }
+						game.client?.apply { outgoingPacketBuffer += ObjectUnlockEvent(id, game.user.name) }
 					justLongPressed = false
 					parent.getModule<Draggable>()?.justDragged = false
 					parent.getModule<Rotatable>()?.justRotated = false

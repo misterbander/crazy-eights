@@ -35,6 +35,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
@@ -53,6 +54,7 @@ import misterbander.crazyeights.net.packets.onCardFlip
 import misterbander.crazyeights.net.packets.onCardGroupChange
 import misterbander.crazyeights.net.packets.onCardGroupCreate
 import misterbander.crazyeights.net.packets.onCardGroupDetach
+import misterbander.crazyeights.net.packets.onDrawTwosPlayed
 import misterbander.crazyeights.net.packets.onEightsPlayed
 import misterbander.crazyeights.net.packets.onNewGame
 import misterbander.crazyeights.net.packets.onObjectDisown
@@ -217,7 +219,8 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.opponentHands
 		stage += tabletop.cards
 		stage += tabletop.myHand
-		stage += tabletop.effects
+		stage += tabletop.powerCardEffects
+		stage += tabletop.persistentPowerCardEffects
 		stage += passButton
 		stage += tabletop.cursors
 		stage += tabletop.myCursors
@@ -313,6 +316,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		if (shouldSyncServer)
 			game.client?.flushOutgoingPacketBuffer()
 		clientListener.processPackets()
+		
+//		if (Gdx.input.isKeyJustPressed(Input.Keys.E))
+//			tabletop.persistentPowerCardEffects += EffectText(this, "+2", tabletop.userToHandMap.values().toArray().random())
 	}
 	
 	override fun clearScreen()
@@ -442,6 +448,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				}
 				is EightsPlayedEvent -> onEightsPlayed(packet)
 				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
+				is DrawTwosPlayedEvent -> onDrawTwosPlayed()
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

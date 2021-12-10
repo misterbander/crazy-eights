@@ -21,10 +21,7 @@ import misterbander.crazyeights.model.ServerCard.Suit
 class PowerCardEffect(
 	room: Room,
 	card: Card,
-	action: PowerCardEffect.() -> Action = {
-		targeting(shineImage, fadeOut(0.5F)) along targeting(powerLabelGroup, fadeOut(0.5F)) then
-			Actions.removeActor(this)
-	}
+	action: PowerCardEffect.() -> Action = { defaultAction }
 ) : Group()
 {
 	val shineImage = scene2d.image("shine") {
@@ -41,6 +38,9 @@ class PowerCardEffect(
 		this += powerLabel
 		setScale(0F)
 	}
+	val defaultAction: Action
+		get() = targeting(shineImage, fadeOut(0.5F)) along targeting(powerLabelGroup, fadeOut(0.5F)) then
+			Actions.removeActor(this)
 	
 	init
 	{

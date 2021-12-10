@@ -69,6 +69,16 @@ class CrazyEights : GFramework()
 			incremental = true
 		}
 	}
+	val tcbo by lazy {
+		tcbGenerator.generateFont {
+			size = 108
+			minFilter = Texture.TextureFilter.Linear
+			magFilter = Texture.TextureFilter.Linear
+			incremental = true
+			borderColor = Color.BLACK
+			borderWidth = 3F
+		}
+	}
 	
 	// Skins
 	private val skin by lazy {
@@ -103,6 +113,7 @@ class CrazyEights : GFramework()
 			}
 			label(CENTER_TITLE_LABEL_STYLE) { font = jhengheiuil; fontColor = Color.WHITE }
 			label(POWER_CARD_LABEL_STYLE) { font = tcb; fontColor = Color.WHITE }
+			label(EFFECT_TEXT_LABEL_STYLE) { font = tcbo; fontColor = Color.WHITE }
 			window(WINDOW_STYLE) {
 				background = this@skin["window"]
 				titleFont = jhengheiuis

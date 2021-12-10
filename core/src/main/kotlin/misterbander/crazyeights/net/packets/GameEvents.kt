@@ -131,6 +131,7 @@ fun CrazyEightsServer.onNewGame()
 	val seed = MathUtils.random.nextLong()
 //	val seed = 9020568252116114615 // Starting hand with 8, A
 //	val seed = -5000073366615045381 // Starting hand with 2
+//	val seed = 2212245332158196130 // Starting hand with Q
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
 	drawStack.shuffle(seed, tabletop)
 	
@@ -198,6 +199,20 @@ fun Room.onDrawTwosPlayed()
 	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
 			tabletop.powerCardEffects += EffectText(this@onDrawTwosPlayed, "+2")
+		}
+	}
+	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
+}
+
+@NoArg
+data class SkipsPlayedEvent(val victimUsername: String)
+
+fun Room.onSkipsPlayed(event: SkipsPlayedEvent)
+{
+	tabletop.powerCardEffects.clearChildren()
+	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+		defaultAction along Actions.run {
+			tabletop.powerCardEffects += EffectText(this@onSkipsPlayed, "Q", tabletop.userToHandMap[event.victimUsername]!!)
 		}
 	}
 	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)

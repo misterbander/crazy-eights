@@ -45,6 +45,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.SkipsPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
@@ -62,6 +63,7 @@ import misterbander.crazyeights.net.packets.onObjectLock
 import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
+import misterbander.crazyeights.net.packets.onSkipsPlayed
 import misterbander.crazyeights.net.packets.onSwapSeats
 import misterbander.crazyeights.net.packets.onTouchUp
 import misterbander.crazyeights.net.packets.onUserJoined
@@ -449,6 +451,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is EightsPlayedEvent -> onEightsPlayed(packet)
 				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
 				is DrawTwosPlayedEvent -> onDrawTwosPlayed()
+				is SkipsPlayedEvent -> onSkipsPlayed(packet)
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

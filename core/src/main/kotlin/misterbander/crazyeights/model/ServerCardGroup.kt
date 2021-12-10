@@ -63,8 +63,8 @@ data class ServerCardGroup(
 	{
 		val cardHolder = state.idToObjectMap[cardHolderId] as? ServerCardHolder
 		cards -= card
-		card.x += x
-		card.y += y
+		card.x += x + (cardHolder?.x ?: 0F)
+		card.y += y + (cardHolder?.y ?: 0F)
 		card.rotation += rotation + (cardHolder?.rotation ?: 0F)
 		card.cardGroupId = -1
 	}

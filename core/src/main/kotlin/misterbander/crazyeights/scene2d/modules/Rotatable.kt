@@ -141,7 +141,7 @@ open class Rotatable(
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(pointerCenterX - centerOffsetVec.x, pointerCenterY - centerOffsetVec.y))
 				
 				// Apply final position and rotation
-				smoothMovable.setPositionAndTargetPosition(newX, newY)
+				smoothMovable.overwritePosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
 				
 				val ownable = parent.getModule<Ownable>()
@@ -166,18 +166,18 @@ open class Rotatable(
 	
 	private fun setRotation(rotation: Float, isRelative: Boolean = false, isImmediate: Boolean = false)
 	{
-		val newRotation = rotation + if (isRelative) smoothMovable.rotationInterpolator.target else 0F
+		val newRotation = rotation + if (isRelative) smoothMovable.rotation else 0F
 		if (isImmediate)
-			smoothMovable.rotationInterpolator.set(newRotation)
+			smoothMovable.rotationInterpolator.overwrite(newRotation)
 		else
-			smoothMovable.rotationInterpolator.target = newRotation
+			smoothMovable.rotation = newRotation
 		justRotated = true
 		parent.getModule<Ownable>()?.myHand?.arrange() ?: game.client?.apply {
 			val objectRotateEvent = removeFromOutgoingPacketBuffer<ObjectRotateEvent> { it.id == lockable.id }
 				?: objectRotateEventPool.obtain()!!
 			objectRotateEvent.apply {
 				id = lockable.id
-				this.rotation = smoothMovable.rotationInterpolator.target
+				this.rotation = smoothMovable.rotation
 			}
 			outgoingPacketBuffer += objectRotateEvent
 		}

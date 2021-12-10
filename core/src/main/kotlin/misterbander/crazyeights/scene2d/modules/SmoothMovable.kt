@@ -13,7 +13,7 @@ class SmoothMovable(
 	rotation: Float = parent.rotation
 ) : GModule<CrazyEights>(parent)
 {
-	var xInterpolator = object : SmoothInterpolator(x)
+	val xInterpolator = object : SmoothInterpolator(x)
 	{
 		override var value: Float
 			get() = parent.x
@@ -22,7 +22,7 @@ class SmoothMovable(
 				parent.x = value
 			}
 	}
-	var yInterpolator = object : SmoothInterpolator(y)
+	val yInterpolator = object : SmoothInterpolator(y)
 	{
 		override var value: Float
 			get() = parent.y
@@ -31,13 +31,13 @@ class SmoothMovable(
 				parent.y = value
 			}
 	}
-	var scaleInterpolator = object : SmoothInterpolator(parent.scaleX, 5F)
+	val scaleInterpolator = object : SmoothInterpolator(parent.scaleX, 5F)
 	{
 		override var value: Float
 			get() = parent.scaleX
 			set(value) = parent.setScale(value)
 	}
-	var rotationInterpolator = object : SmoothAngleInterpolator(rotation, 5F)
+	val rotationInterpolator = object : SmoothAngleInterpolator(rotation, 5F)
 	{
 		override var value: Float
 			get() = parent.rotation
@@ -46,6 +46,10 @@ class SmoothMovable(
 				parent.rotation = value
 			}
 	}
+	var x by xInterpolator
+	var y by yInterpolator
+	var rotation by rotationInterpolator
+	var scale by scaleInterpolator
 	
 	override fun update(delta: Float)
 	{
@@ -55,15 +59,15 @@ class SmoothMovable(
 		rotationInterpolator.lerp(delta)
 	}
 	
-	fun setTargetPosition(x: Float, y: Float)
+	fun setPosition(x: Float, y: Float)
 	{
-		xInterpolator.target = x
-		yInterpolator.target = y
+		this.x = x
+		this.y = y
 	}
 	
-	fun setPositionAndTargetPosition(x: Float, y: Float)
+	fun overwritePosition(x: Float, y: Float)
 	{
-		xInterpolator.set(x)
-		yInterpolator.set(y)
+		xInterpolator.overwrite(x)
+		yInterpolator.overwrite(y)
 	}
 }

@@ -39,13 +39,13 @@ class ShuffleAction(
 				val card = room.tabletop.idToGObjectMap[(cards[i] as Card).id] as Card
 				if (i%2 == 0)
 					room.cardSlide.play()
-				card.smoothMovable.xInterpolator.target += if (i%2 == 0) -150 else 150
+				card.smoothMovable.x += if (i%2 == 0) -150 else 150
 				i++
 			})
 		) along delay(
 			0.2F, repeat(cards.size, delay(0.01F, Actions.run {
 					val card = room.tabletop.idToGObjectMap[(cards[j] as Card).id] as Card
-					card.smoothMovable.setTargetPosition(-j.toFloat(), j.toFloat())
+					card.smoothMovable.setPosition(-j.toFloat(), j.toFloat())
 					card.zIndex = j
 					j++
 				})

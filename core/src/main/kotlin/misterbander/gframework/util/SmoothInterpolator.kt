@@ -1,5 +1,7 @@
 package misterbander.gframework.util
 
+import kotlin.reflect.KProperty
+
 /**
  * Wraps a float value and provides a [lerp] method that can smoothly interpolate the encapsulated float towards a
  * target value.
@@ -25,9 +27,22 @@ abstract class SmoothInterpolator(value: Float, var smoothingFactor: Float = 2.5
 	 * Sets both the value and target without lerping.
 	 * @param value the value to set to
 	 */
-	fun set(value: Float)
+	fun overwrite(value: Float)
 	{
 		this.value = value
+		target = value
+	}
+	
+	/**
+	 * Property delegate to return the target value.
+	 */
+	operator fun getValue(from: Any?, property: KProperty<*>): Float = target
+	
+	/**
+	 * Property delegate to set the target value.
+	 */
+	operator fun setValue(from: Any?, property: KProperty<*>, value: Float)
+	{
 		target = value
 	}
 	

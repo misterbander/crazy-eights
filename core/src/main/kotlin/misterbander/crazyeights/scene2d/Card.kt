@@ -201,9 +201,9 @@ class Card(
 	
 	fun toServerCard(): ServerCard = ServerCard(
 		id,
-		smoothMovable.xInterpolator.target,
-		smoothMovable.yInterpolator.target,
-		smoothMovable.rotationInterpolator.target,
+		smoothMovable.x,
+		smoothMovable.y,
+		smoothMovable.rotation,
 		rank,
 		suit,
 		isFaceUp,

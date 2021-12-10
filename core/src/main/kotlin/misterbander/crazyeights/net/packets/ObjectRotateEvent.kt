@@ -25,7 +25,7 @@ data class ObjectRotateEvent(
 fun Room.onObjectRotate(event: ObjectRotateEvent)
 {
 	val (id, rotation) = event
-	tabletop.idToGObjectMap[id]!!.getModule<SmoothMovable>()?.apply { rotationInterpolator.target = rotation }
+	tabletop.idToGObjectMap[id]!!.getModule<SmoothMovable>()?.rotation = rotation
 	objectRotateEventPool.free(event)
 }
 

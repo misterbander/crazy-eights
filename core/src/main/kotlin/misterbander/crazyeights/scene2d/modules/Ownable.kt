@@ -42,9 +42,9 @@ class Ownable(
 				game.client?.apply {
 					outgoingPacketBuffer += ObjectDisownEvent(
 						id,
-						smoothMovable.xInterpolator.target,
-						smoothMovable.yInterpolator.target,
-						smoothMovable.rotationInterpolator.target,
+						smoothMovable.x,
+						smoothMovable.y,
+						smoothMovable.rotation,
 						if (parent is Card) parent.isFaceUp else false,
 						game.user.name
 					)

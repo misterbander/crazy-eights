@@ -65,8 +65,8 @@ fun Room.onObjectDisown(event: ObjectDisownEvent)
 	hand -= toDisown
 	hand.arrange()
 	toDisown.getModule<SmoothMovable>()?.apply {
-		setTargetPosition(x, y)
-		rotationInterpolator.target = rotation
+		setPosition(x, y)
+		this.rotation = rotation
 	}
 	toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername]!!)
 	if (toDisown is Card)

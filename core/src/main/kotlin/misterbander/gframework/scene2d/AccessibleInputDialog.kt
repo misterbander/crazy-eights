@@ -1,6 +1,7 @@
 package misterbander.gframework.scene2d
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import ktx.actors.onKeyboardFocus
@@ -66,5 +67,11 @@ abstract class AccessibleInputDialog(
 			return true
 		}
 		return false
+	}
+	
+	override fun hide(action: Action?)
+	{
+		stage?.unfocusAll()
+		super.hide(action)
 	}
 }

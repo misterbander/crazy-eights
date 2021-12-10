@@ -9,6 +9,7 @@ import ktx.actors.along
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.collections.*
+import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
@@ -26,6 +27,7 @@ import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.Card
+import misterbander.crazyeights.scene2d.EffectText
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.PowerCardEffect
 import misterbander.crazyeights.scene2d.PowerCardEffectRing
@@ -127,6 +129,9 @@ fun CrazyEightsServer.onNewGame()
 	
 	// Shuffle draw stack
 	val seed = MathUtils.random.nextLong()
+//	val seed = 9020568252116114615 // Starting hand with 8, A
+//	val seed = -5000073366615045381 // Starting hand with 2
+	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
 	drawStack.shuffle(seed, tabletop)
 	
 	// Deal
@@ -169,10 +174,11 @@ fun Room.onEightsPlayed(event: EightsPlayedEvent)
 	dramatic.play()
 	val suitChooser = SuitChooser(this@onEightsPlayed, event.playerUsername == game.user.name)
 	tabletop.suitChooser = suitChooser
-	tabletop.effects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
-		targeting(powerLabelGroup, fadeOut(0.5F)) along Actions.run { tabletop.effects += suitChooser }
+	tabletop.powerCardEffects.clearChildren()
+	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+		targeting(powerLabelGroup, fadeOut(0.5F)) along Actions.run { tabletop.powerCardEffects += suitChooser }
 	}
-	tabletop.effects += PowerCardEffectRing(this)
+	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
 }
 
 @NoArg
@@ -182,4 +188,17 @@ fun CrazyEightsServer.onSuitDeclare(event: SuitDeclareEvent)
 {
 	info("Server | INFO") { "Suit changed to ${event.suit.name}" }
 	server.sendToAllTCP(event)
+}
+
+object DrawTwosPlayedEvent
+
+fun Room.onDrawTwosPlayed()
+{
+	tabletop.powerCardEffects.clearChildren()
+	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+		defaultAction along Actions.run {
+			tabletop.powerCardEffects += EffectText(this@onDrawTwosPlayed, "+2")
+		}
+	}
+	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
 }

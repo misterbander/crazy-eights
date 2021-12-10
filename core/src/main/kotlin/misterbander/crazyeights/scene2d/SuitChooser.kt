@@ -32,7 +32,7 @@ class SuitChooser(private val room: Room, isTouchable: Boolean) : Group()
 			field = value
 			if (value == null)
 				return
-			room.tabletop.effects += PowerCardEffectRing(room)
+			room.tabletop.persistentPowerCardEffects += PowerCardEffectRing(room)
 			for (button in buttons)
 			{
 				button.clearActions()

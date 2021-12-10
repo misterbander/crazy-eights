@@ -41,7 +41,8 @@ class Tabletop(private val room: Room)
 	val cardHolders = Group()
 	val opponentHands = Group()
 	val myHand = MyHand(room)
-	val effects = Group()
+	val powerCardEffects = Group()
+	val persistentPowerCardEffects = Group()
 	
 	val drawStackHolder: CardHolder?
 		get() = cardHolders.children.firstOrNull { (it as? CardHolder)?.defaultType == ServerCardGroup.Type.STACK } as? CardHolder
@@ -245,7 +246,8 @@ class Tabletop(private val room: Room)
 		cardHolders.clearChildren()
 		opponentHands.clearChildren()
 		myHand.reset()
-		effects.clearChildren()
+		powerCardEffects.clearChildren()
+		persistentPowerCardEffects.clearChildren()
 		
 		suitChooser = null
 	}

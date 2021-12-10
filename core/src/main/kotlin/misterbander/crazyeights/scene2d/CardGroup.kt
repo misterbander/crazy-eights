@@ -183,7 +183,7 @@ class CardGroup(
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean
 	{
 		if (room.isGameStarted)
-			return gObject is Card && cardHolder != room.tabletop.drawStackHolder
+			return gObject is Card && this != room.tabletop.drawStack
 		return gObject is Card || gObject is CardGroup
 	}
 	

@@ -43,6 +43,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
@@ -61,6 +62,7 @@ import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
 import misterbander.crazyeights.net.packets.onObjectUnlock
+import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
 
 class CrazyEightsServer
@@ -270,6 +272,7 @@ class CrazyEightsServer
 				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
 				is NewGameEvent -> onNewGame()
 				is NewGameActionFinishedEvent -> actionLocks -= (connection.arbitraryData as User).name
+				is SuitDeclareEvent -> onSuitDeclare(`object`)
 				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {
 					it.runnable()
 				}

@@ -25,7 +25,7 @@ fun Room.onObjectLock(event: ObjectLockEvent)
 	val toLock = tabletop.idToGObjectMap[id]!!
 	toLock.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
 	
-	if (isGameStarted && toLock is Card && toLock.cardGroup == tabletop.drawStackHolder!!.cardGroup)
+	if (isGameStarted && toLock is Card && toLock.cardGroup == tabletop.drawStack)
 		gameState!!.drawCount++
 }
 

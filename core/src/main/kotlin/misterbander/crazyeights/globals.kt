@@ -9,11 +9,13 @@ const val VERSION_STRING = "v$MAJOR_VERSION.$MINOR_VERSION"
 val TRANSPARENT_COLOR = Color(0x00000000)
 val BACKGROUND_COLOR = Color(0x5B1C1CFF)
 val ACCENT_COLOR = Color(0x772D2DFF)
+val DESATURATED_RED = Color(0xC93F3FFF.toInt())
 const val ANIMATION_DURATION = 0.2F
 
 const val INFO_LABEL_STYLE_S = "infolabelstyles"
 const val INFO_LABEL_STYLE_XS = "infolabelstylexs"
 const val CHAT_LABEL_STYLE = "chatlabelstyle"
+const val POWER_CARD_LABEL_STYLE = "powercardlabelstyle"
 const val PLAYER_NAMETAG_LABEL_STYLE_S = "playernametaglabelstyles"
 const val PLAYER_NAMETAG_LABEL_STYLE_XS = "playernametaglabelstylexs"
 const val CENTER_TITLE_LABEL_STYLE = "centertitlelabelstyle"

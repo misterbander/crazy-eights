@@ -9,7 +9,8 @@ data class ServerTabletop(
 	val serverObjects: GdxArray<ServerObject> = GdxArray(),
 	val hands: OrderedMap<String, GdxArray<ServerObject>> = OrderedMap(),
 	var drawStackHolderId: Int = -1,
-	var discardPileHolderId: Int = -1
+	var discardPileHolderId: Int = -1,
+	var suitChooser: String? = null
 )
 {
 	@Transient val idToObjectMap = IntMap<ServerObject>()

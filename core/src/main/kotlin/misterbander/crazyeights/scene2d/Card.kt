@@ -35,8 +35,8 @@ class Card(
 	x: Float,
 	y: Float,
 	rotation: Float,
-	private val rank: Rank = Rank.NO_RANK,
-	private val suit: Suit = Suit.NO_SUIT,
+	val rank: Rank = Rank.NO_RANK,
+	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
 	lockHolder: User? = null
 ) : Groupable<CardGroup>(room), DragTarget
@@ -93,7 +93,7 @@ class Card(
 				{
 					game.client?.apply {
 						outgoingPacketBuffer += CardGroupChangeEvent(
-							gdxArrayOf(toServerCard()), room.tabletop.discardPileHolder!!.cardGroup!!.id, game.user.name
+							gdxArrayOf(toServerCard()), room.tabletop.discardPile!!.id, game.user.name
 						)
 					}
 					shouldSendUpdates = false

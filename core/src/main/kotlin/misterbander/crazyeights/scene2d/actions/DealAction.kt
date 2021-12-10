@@ -45,8 +45,8 @@ class DealAction(private val room: Room, private val hands: Array<Hand>) : Runna
 			room.cardSlide.play()
 			val topCard = drawStack.cards.peek() as Card
 			topCard.cardGroup = discardPile
-			topCard.smoothMovable.setTargetPosition(0F, 0F)
-			topCard.smoothMovable.rotationInterpolator.target = 0F
+			topCard.smoothMovable.setPosition(0F, 0F)
+			topCard.smoothMovable.rotation = 0F
 			topCard.isFaceUp = true
 			discardPile.arrange()
 			finished = true

@@ -57,7 +57,7 @@ class CardGroup(
 		override fun unlock(sideEffects: Boolean)
 		{
 			if (cardHolder != null)
-				smoothMovable.rotationInterpolator.target = 0F
+				smoothMovable.rotation = 0F
 			super.unlock(sideEffects)
 		}
 	}
@@ -219,8 +219,8 @@ class CardGroup(
 					groupable.smoothMovable.apply {
 						xInterpolator.smoothingFactor = 5F
 						yInterpolator.smoothingFactor = 5F
-						setTargetPosition(-index.toFloat(), index.toFloat())
-						rotationInterpolator.target = 180*round(rotationInterpolator.target/180)
+						setPosition(-index.toFloat(), index.toFloat())
+						rotation = 180*round(rotation/180)
 						groupable.zIndex = index
 					}
 				}
@@ -249,8 +249,8 @@ class CardGroup(
 						groupable.smoothMovable.apply {
 							xInterpolator.smoothingFactor = 5F
 							yInterpolator.smoothingFactor = 5F
-							setTargetPosition(x, y)
-							rotationInterpolator.target = rotation
+							setPosition(x, y)
+							this.rotation = rotation
 						}
 					}
 					if (ghost == null)

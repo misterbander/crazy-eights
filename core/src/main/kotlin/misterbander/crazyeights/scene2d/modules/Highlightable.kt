@@ -48,7 +48,7 @@ open class Highlightable(parent: GObject<CrazyEights>) : GModule<CrazyEights>(pa
 	
 	override fun update(delta: Float)
 	{
-		parent.getModule<SmoothMovable>()?.scaleInterpolator?.target = if (parent is CardGroup && parent.parent is OpponentHand)
+		parent.getModule<SmoothMovable>()?.scale = if (parent is CardGroup && parent.parent is OpponentHand)
 			0.7F
 		else if (shouldExpand)
 			1.05F

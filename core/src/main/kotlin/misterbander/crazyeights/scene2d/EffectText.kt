@@ -46,7 +46,7 @@ class EffectText(room: Room, text: String, targetHand: Hand? = null, delay: Floa
 	fun moveToHand(hand: Hand)
 	{
 		val (x, y) = hand.cardGroup.localToStageCoordinates(tempVec.set(0F, if (hand is MyHand) hand.offsetCenterY else 0F))
-		smoothMovable.setTargetPosition(x, y)
+		smoothMovable.setPosition(x, y)
 		this += delay(1F, fadeOut(0.5F)) then Actions.removeActor(this)
 	}
 }

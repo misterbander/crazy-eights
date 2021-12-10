@@ -209,7 +209,7 @@ class Tabletop(private val room: Room)
 			hand.rotation = directionToPlayer + 90
 		}
 		val myIndex = userToHandMap.orderedKeys().indexOf(game.user.name)
-		room.cameraAngleInterpolator.target = 360F*myIndex/userToHandMap.size
+		room.cameraAngle = 360F*myIndex/userToHandMap.size
 	}
 	
 	fun hitDragTarget(x: Float, y: Float): DragTarget? = hitDragTarget(cards, x, y) ?: hitDragTarget(cardHolders, x, y)

@@ -111,6 +111,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			uprightActors.forEach { it.makeUpright() }
 		}
 	}
+	var cameraAngle by cameraAngleInterpolator
 	
 	override val mainLayer by lazy {
 		object : StageLayer(game, camera, viewport, false)
@@ -120,9 +121,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				// TODO add proper ui for cam adjustments
 				val dAngle = 45*delta
 				if (Gdx.input.isKeyPressed(Input.Keys.LEFT_BRACKET))
-					cameraAngleInterpolator.target += dAngle
+					cameraAngle += dAngle
 				if (Gdx.input.isKeyPressed(Input.Keys.RIGHT_BRACKET))
-					cameraAngleInterpolator.target -= dAngle
+					cameraAngle -= dAngle
 				
 				cameraAngleInterpolator.lerp(delta)
 				camera.update()
@@ -290,7 +291,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 						tabletop.cursors += cursor
 						addUprightGObject(cursor)
 						cursor
-					}?.setPositionAndTargetPosition(inputX, inputY)
+					}?.overwritePosition(inputX, inputY)
 				}
 				
 				if (shouldSyncServer)
@@ -353,7 +354,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	{
 		val uprightAngle = -cameraAngleInterpolator.value + originalRotationMap[this, 0F]
 		if (this is GObject<*> && hasModule<SmoothMovable>())
-			getModule<SmoothMovable>()!!.rotationInterpolator.set(uprightAngle)
+			getModule<SmoothMovable>()!!.rotationInterpolator.overwrite(uprightAngle)
 		else
 			rotation = uprightAngle
 	}
@@ -361,7 +362,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	override fun hide()
 	{
 		// Reset camera
-		cameraAngleInterpolator.set(0F)
+		cameraAngleInterpolator.overwrite(0F)
 		
 		// Reset room state
 		chatBox.clearChats()
@@ -411,14 +412,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					val cursorsMap = tabletop.userToCursorsMap[username]!!
 					cursorsMap[-1]?.remove()
 					if (pointer in cursorsMap)
-						cursorsMap[pointer]!!.setTargetPosition(x, y)
+						cursorsMap[pointer]!!.setPosition(x, y)
 					else
 					{
 						val cursor = CrazyEightsCursor(this@Room, tabletop.users[username]!!)
 						cursorsMap[pointer] = cursor
 						tabletop.cursors += cursor
 						addUprightGObject(cursor)
-						cursor.setPositionAndTargetPosition(x, y)
+						cursor.overwritePosition(x, y)
 					}
 					cursorPositionPool.free(packet)
 				}

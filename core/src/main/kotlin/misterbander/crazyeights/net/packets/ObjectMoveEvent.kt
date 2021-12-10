@@ -30,7 +30,7 @@ fun Room.onObjectMove(event: ObjectMoveEvent)
 {
 	val (id, x, y) = event
 	val toMove = tabletop.idToGObjectMap[id]!!
-	toMove.getModule<SmoothMovable>()?.setTargetPosition(x, y)
+	toMove.getModule<SmoothMovable>()?.setPosition(x, y)
 	if (toMove is CardGroup && toMove.type == ServerCardGroup.Type.PILE)
 	{
 		toMove.type = ServerCardGroup.Type.STACK

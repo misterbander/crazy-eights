@@ -24,16 +24,16 @@ fun Room.onCardGroupCreate(event: CardGroupCreateEvent)
 {
 	val (id, serverCards) = event
 	val cards = serverCards.map { tabletop.idToGObjectMap[it.id] as Card }
-	val firstX = cards.first().smoothMovable.xInterpolator.target
-	val firstY = cards.first().smoothMovable.yInterpolator.target
-	val firstRotation = cards.first().smoothMovable.rotationInterpolator.target
+	val firstX = cards.first().smoothMovable.x
+	val firstY = cards.first().smoothMovable.y
+	val firstRotation = cards.first().smoothMovable.rotation
 	val cardGroup = CardGroup(this, id, firstX, firstY, firstRotation)
 	tabletop.cards.addActorAfter(cards.first(), cardGroup)
 	cards.forEachIndexed { index, card: Card ->
 		val (_, x, y, rotation) = serverCards[index]
 		cardGroup += card
-		card.smoothMovable.setTargetPosition(x, y)
-		card.smoothMovable.rotationInterpolator.target = rotation
+		card.smoothMovable.setPosition(x, y)
+		card.smoothMovable.rotation = rotation
 	}
 	cardGroup.arrange()
 	tabletop.idToGObjectMap[id] = cardGroup
@@ -73,8 +73,8 @@ fun Room.onCardGroupChange(event: CardGroupChangeEvent)
 			val card = tabletop.idToGObjectMap[id] as Card
 			val oldCardGroup = card.cardGroup
 			card.cardGroup = newCardGroup
-			card.smoothMovable.setTargetPosition(x, y)
-			card.smoothMovable.rotationInterpolator.target = rotation
+			card.smoothMovable.setPosition(x, y)
+			card.smoothMovable.rotation = rotation
 			oldCardGroup?.arrange()
 		}
 		newCardGroup?.arrange()

@@ -68,13 +68,14 @@ fun Tabletop.onCardGroupChange(event: CardGroupChangeEvent)
 	if (changerUsername != game.user.name || newCardGroupId != -1)
 	{
 		val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
-		for ((id, x, y, rotation) in cards)
+		for ((id, x, y, rotation, _, _, isFaceUp) in cards)
 		{
 			val card = idToGObjectMap[id] as Card
 			val oldCardGroup = card.cardGroup
 			card.cardGroup = newCardGroup
 			card.smoothMovable.setPosition(x, y)
 			card.smoothMovable.rotation = rotation
+			card.isFaceUp = isFaceUp
 			oldCardGroup?.arrange()
 		}
 		newCardGroup?.arrange()

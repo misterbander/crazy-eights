@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
@@ -45,6 +46,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
@@ -63,6 +65,7 @@ import misterbander.crazyeights.net.packets.onObjectLock
 import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
+import misterbander.crazyeights.net.packets.onReversePlayed
 import misterbander.crazyeights.net.packets.onSkipsPlayed
 import misterbander.crazyeights.net.packets.onSwapSeats
 import misterbander.crazyeights.net.packets.onTouchUp
@@ -91,6 +94,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// Sounds
 	val cardSlide = game.assetStorage[Sounds.cardSlide]
 	val dramatic = game.assetStorage[Sounds.dramatic]
+	val deepWhoosh = game.assetStorage[Sounds.deepwhoosh]
 	
 	// Shaders
 	val brightenShader = game.assetStorage[Shaders.brighten]
@@ -218,6 +222,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			}.cell(grow = true)
 		}
 		
+		stage += tabletop.playDirectionIndicator
 		stage += tabletop.cardHolders
 		stage += tabletop.opponentHands
 		stage += tabletop.cards
@@ -448,11 +453,18 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					gameState = packet
 					if (packet.declaredSuit != null)
 						tabletop.suitChooser!!.chosenSuit = packet.declaredSuit
+					if (packet.players.size > 2)
+					{
+						if (packet.isPlayReversed)
+							tabletop.playDirectionIndicator.scaleX = -1F
+						tabletop.playDirectionIndicator += fadeIn(2F)
+					}
 				}
 				is EightsPlayedEvent -> onEightsPlayed(packet)
 				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
 				is DrawTwosPlayedEvent -> onDrawTwosPlayed()
 				is SkipsPlayedEvent -> onSkipsPlayed(packet)
+				is ReversePlayedEvent -> onReversePlayed()
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

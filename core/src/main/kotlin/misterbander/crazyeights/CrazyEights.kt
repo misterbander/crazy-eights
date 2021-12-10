@@ -209,6 +209,7 @@ class CrazyEights : GFramework()
 				assetStorage.loadAsync(Sounds.click),
 				assetStorage.loadAsync(Sounds.cardSlide),
 				assetStorage.loadAsync(Sounds.dramatic),
+				assetStorage.loadAsync(Sounds.deepwhoosh),
 				assetStorage.loadAsync(Shaders.brighten),
 				assetStorage.loadAsync(Shaders.vignette)
 			)

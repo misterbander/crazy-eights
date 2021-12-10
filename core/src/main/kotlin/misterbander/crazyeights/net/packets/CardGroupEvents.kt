@@ -90,6 +90,7 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 	var isEightsPlayed = false
 	var isDrawTwosPlayed = false
 	var isSkipsPlayed = false
+	var isReversePlayed = false
 	
 	cards.forEachIndexed { index, (id, _, _, rotation) ->
 		val card = tabletop.idToObjectMap[id] as ServerCard
@@ -104,11 +105,11 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 			}
 			else if (move !in serverGameState!!.moves)
 				return
-			when (card.rank)
+			when
 			{
-				Rank.TWO -> isDrawTwosPlayed = true
-				Rank.QUEEN -> isSkipsPlayed = true
-				else -> {}
+				card.rank == Rank.TWO -> isDrawTwosPlayed = true
+				card.rank == Rank.QUEEN -> isSkipsPlayed = true
+				card.rank == Rank.ACE && serverGameState!!.playerCount > 2 -> isReversePlayed = true
 			}
 		}
 		card.rotation = rotation
@@ -129,6 +130,7 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 			isEightsPlayed -> server.sendToAllTCP(EightsPlayedEvent(changerUsername))
 			isDrawTwosPlayed -> server.sendToAllTCP(DrawTwosPlayedEvent)
 			isSkipsPlayed -> server.sendToAllTCP(SkipsPlayedEvent(serverGameState!!.nextPlayer.name))
+			isReversePlayed -> server.sendToAllTCP(ReversePlayedEvent)
 		}
 	}
 }

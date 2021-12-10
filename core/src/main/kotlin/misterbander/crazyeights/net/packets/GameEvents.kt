@@ -1,6 +1,5 @@
 package misterbander.crazyeights.net.packets
 
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
@@ -88,6 +87,9 @@ fun Room.onNewGame(event: NewGameEvent)
 			game.client?.sendTCP(NewGameActionFinishedEvent)
 		}
 	
+	if (hands.size > 2)
+		tabletop.playDirectionIndicator += fadeIn(2F)
+	
 	this.gameState = gameState
 }
 
@@ -128,10 +130,11 @@ fun CrazyEightsServer.onNewGame()
 	val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
 	
 	// Shuffle draw stack
-	val seed = MathUtils.random.nextLong()
+//	val seed = MathUtils.random.nextLong()
 //	val seed = 9020568252116114615 // Starting hand with 8, A
 //	val seed = -5000073366615045381 // Starting hand with 2
 //	val seed = 2212245332158196130 // Starting hand with Q
+	val seed = -3202561125370556140 // Starting hand with A
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
 	drawStack.shuffle(seed, tabletop)
 	
@@ -213,6 +216,21 @@ fun Room.onSkipsPlayed(event: SkipsPlayedEvent)
 	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
 			tabletop.powerCardEffects += EffectText(this@onSkipsPlayed, "Q", tabletop.userToHandMap[event.victimUsername]!!)
+		}
+	}
+	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
+}
+
+object ReversePlayedEvent
+
+fun Room.onReversePlayed()
+{
+	tabletop.powerCardEffects.clearChildren()
+	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+		defaultAction along Actions.run {
+			tabletop.persistentPowerCardEffects += PowerCardEffectRing(this@onReversePlayed)
+			deepWhoosh.play()
+			tabletop.playDirectionIndicator.flipDirection()
 		}
 	}
 	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)

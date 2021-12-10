@@ -37,6 +37,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.SkipsPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
@@ -93,4 +94,5 @@ fun Kryo.registerClasses()
 	register(EightsPlayedEvent::class.java)
 	register(SuitDeclareEvent::class.java)
 	register(DrawTwosPlayedEvent::class.java)
+	register(SkipsPlayedEvent::class.java)
 }

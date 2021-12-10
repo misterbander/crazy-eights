@@ -35,6 +35,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
@@ -43,6 +44,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
@@ -51,6 +53,7 @@ import misterbander.crazyeights.net.packets.onCardFlip
 import misterbander.crazyeights.net.packets.onCardGroupChange
 import misterbander.crazyeights.net.packets.onCardGroupCreate
 import misterbander.crazyeights.net.packets.onCardGroupDetach
+import misterbander.crazyeights.net.packets.onEightsPlayed
 import misterbander.crazyeights.net.packets.onNewGame
 import misterbander.crazyeights.net.packets.onObjectDisown
 import misterbander.crazyeights.net.packets.onObjectLock
@@ -83,6 +86,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 {
 	// Sounds
 	val cardSlide = game.assetStorage[Sounds.cardSlide]
+	val dramatic = game.assetStorage[Sounds.dramatic]
 	
 	// Shaders
 	val brightenShader = game.assetStorage[Shaders.brighten]
@@ -213,6 +217,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.opponentHands
 		stage += tabletop.cards
 		stage += tabletop.myHand
+		stage += tabletop.effects
 		stage += passButton
 		stage += tabletop.cursors
 		stage += tabletop.myCursors
@@ -429,7 +434,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //					cardGroup.shuffle(seed)
 //				}
 				is NewGameEvent -> onNewGame(packet)
-				is GameState -> gameState = packet
+				is GameState ->
+				{
+					gameState = packet
+					if (packet.declaredSuit != null)
+						tabletop.suitChooser!!.chosenSuit = packet.declaredSuit
+				}
+				is EightsPlayedEvent -> onEightsPlayed(packet)
+				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

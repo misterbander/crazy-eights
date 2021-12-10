@@ -22,8 +22,8 @@ class DealAction(private val room: Room, private val hands: Array<Hand>) : Runna
 	
 	override fun run()
 	{
-		val drawStack = room.tabletop.drawStackHolder!!.cardGroup!!
-		val discardPile = room.tabletop.discardPileHolder!!.cardGroup!!
+		val drawStack = room.tabletop.drawStack!!
+		val discardPile = room.tabletop.discardPile!!
 		val size = hands.size
 		var i = 0
 		

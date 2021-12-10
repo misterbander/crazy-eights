@@ -6,7 +6,7 @@ filter: Linear,Linear
 repeat: none
 button
   rotate: false
-  xy: 1298, 80
+  xy: 1790, 552
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -15,7 +15,7 @@ button
   index: -1
 buttondisabled
   rotate: false
-  xy: 1298, 164
+  xy: 1706, 552
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -24,7 +24,7 @@ buttondisabled
   index: -1
 buttondown
   rotate: false
-  xy: 1442, 403
+  xy: 1706, 384
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -33,7 +33,7 @@ buttondown
   index: -1
 buttonover
   rotate: false
-  xy: 1442, 487
+  xy: 1706, 468
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -474,9 +474,16 @@ closebuttonover
   orig: 32, 32
   offset: 0, 0
   index: -1
+clubs
+  rotate: false
+  xy: 1442, 372
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
 colorcircle
   rotate: false
-  xy: 1382, 196
+  xy: 1298, 64
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -495,6 +502,13 @@ cursorborder
   orig: 32, 32
   offset: 0, 0
   index: -1
+diamonds
+  rotate: false
+  xy: 1442, 504
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
 gearicon
   rotate: false
   xy: 486, 794
@@ -511,11 +525,18 @@ gearicondown
   index: -1
 hand
   rotate: false
-  xy: 1442, 571
+  xy: 1442, 307
   size: 121, 61
   split: 47, 47, 43, 0
   pad: 0, 0, 0, 0
   orig: 121, 61
+  offset: 0, 0
+  index: -1
+hearts
+  rotate: false
+  xy: 1574, 372
+  size: 128, 128
+  orig: 128, 128
   offset: 0, 0
   index: -1
 hueslider
@@ -529,37 +550,51 @@ hueslider
   index: -1
 huesliderknob
   rotate: false
-  xy: 1703, 568
+  xy: 1603, 304
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobdown
   rotate: false
-  xy: 1526, 503
+  xy: 1567, 304
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobover
   rotate: false
-  xy: 1382, 128
+  xy: 1639, 304
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 menuicon
   rotate: false
-  xy: 1526, 467
+  xy: 1350, 80
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 menuicondown
   rotate: false
-  xy: 1739, 600
+  xy: 1442, 271
   size: 32, 32
   orig: 32, 32
+  offset: 0, 0
+  index: -1
+shine
+  rotate: false
+  xy: 1298, 116
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+spades
+  rotate: false
+  xy: 1574, 504
+  size: 128, 128
+  orig: 128, 128
   offset: 0, 0
   index: -1
 textcursor
@@ -571,7 +606,7 @@ textcursor
   index: -1
 textfield
   rotate: false
-  xy: 1567, 568
+  xy: 1790, 416
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 16, 15, 17
@@ -580,7 +615,7 @@ textfield
   index: -1
 textfieldfocused
   rotate: false
-  xy: 1442, 335
+  xy: 1790, 484
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 17, 15, 17
@@ -589,14 +624,14 @@ textfieldfocused
   index: -1
 textselection
   rotate: false
-  xy: 1442, 267
+  xy: 1874, 568
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 window
   rotate: false
-  xy: 1635, 568
+  xy: 1942, 568
   size: 64, 64
   split: 2, 2, 50, 2
   pad: 0, 0, 50, 0

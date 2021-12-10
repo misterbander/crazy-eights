@@ -5,9 +5,11 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.OrderedMap
+import ktx.actors.along
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.collections.*
+import ktx.log.info
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.game.Player
@@ -15,13 +17,19 @@ import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
+import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
+import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.Hand
+import misterbander.crazyeights.scene2d.PowerCardEffect
+import misterbander.crazyeights.scene2d.PowerCardEffectRing
+import misterbander.crazyeights.scene2d.SuitChooser
 import misterbander.crazyeights.scene2d.actions.DealAction
 import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
 import misterbander.crazyeights.scene2d.actions.ShowCenterTitleAction
@@ -47,7 +55,7 @@ fun Room.onNewGame(event: NewGameEvent)
 		gObject.getModule<Ownable>()?.wasInHand = false
 	}
 	onCardGroupChange(cardGroupChangeEvent!!)
-	val drawStack = tabletop.drawStackHolder!!.cardGroup!!
+	val drawStack = tabletop.drawStack!!
 	drawStack.flip(false)
 	
 	val userToHandMap = tabletop.userToHandMap
@@ -151,4 +159,27 @@ fun CrazyEightsServer.onNewGame()
 	
 	server.sendToAllTCP(Chat(message = "Game started", isSystemMessage = true))
 	server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState!!.toGameState()))
+}
+
+@NoArg
+data class EightsPlayedEvent(val playerUsername: String)
+
+fun Room.onEightsPlayed(event: EightsPlayedEvent)
+{
+	dramatic.play()
+	val suitChooser = SuitChooser(this@onEightsPlayed, event.playerUsername == game.user.name)
+	tabletop.suitChooser = suitChooser
+	tabletop.effects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+		targeting(powerLabelGroup, fadeOut(0.5F)) along Actions.run { tabletop.effects += suitChooser }
+	}
+	tabletop.effects += PowerCardEffectRing(this)
+}
+
+@NoArg
+data class SuitDeclareEvent(val suit: Suit)
+
+fun CrazyEightsServer.onSuitDeclare(event: SuitDeclareEvent)
+{
+	info("Server | INFO") { "Suit changed to ${event.suit.name}" }
+	server.sendToAllTCP(event)
 }

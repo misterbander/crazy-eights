@@ -21,12 +21,14 @@ object Textures
 object Fonts
 {
 	val msjhl = assetDescriptor<FreeTypeFontGenerator>("fonts/msjhl.ttc")
+	val tcb = assetDescriptor<FreeTypeFontGenerator>("fonts/tcb.ttf")
 }
 
 object Sounds
 {
 	val click = assetDescriptor<Sound>("sounds/click.wav")
 	val cardSlide = assetDescriptor<Sound>("sounds/cardslide.wav")
+	val dramatic = assetDescriptor<Sound>("sounds/dramatic.wav")
 }
 
 object Shaders

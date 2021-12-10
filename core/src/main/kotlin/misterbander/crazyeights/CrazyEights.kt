@@ -27,9 +27,10 @@ import misterbander.gframework.scene2d.gTextField
 class CrazyEights : GFramework()
 {
 	// Fonts
-	private val generator by lazy { assetStorage[Fonts.msjhl] }
+	private val msjhlGenerator by lazy { assetStorage[Fonts.msjhl] }
+	private val tcbGenerator by lazy { assetStorage[Fonts.tcb] }
 	val jhengheiui by lazy {
-		generator.generateFont {
+		msjhlGenerator.generateFont {
 			size = 40
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
@@ -37,7 +38,7 @@ class CrazyEights : GFramework()
 		}
 	}
 	val jhengheiuis by lazy {
-		generator.generateFont {
+		msjhlGenerator.generateFont {
 			size = 25
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
@@ -45,7 +46,7 @@ class CrazyEights : GFramework()
 		}
 	}
 	val jhengheiuixs by lazy {
-		generator.generateFont {
+		msjhlGenerator.generateFont {
 			size = 15
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
@@ -53,8 +54,16 @@ class CrazyEights : GFramework()
 		}
 	}
 	val jhengheiuil by lazy {
-		generator.generateFont {
+		msjhlGenerator.generateFont {
 			size = 64
+			minFilter = Texture.TextureFilter.Linear
+			magFilter = Texture.TextureFilter.Linear
+			incremental = true
+		}
+	}
+	val tcb by lazy {
+		tcbGenerator.generateFont {
+			size = 128
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
@@ -93,6 +102,7 @@ class CrazyEights : GFramework()
 				background.bottomHeight = 2F
 			}
 			label(CENTER_TITLE_LABEL_STYLE) { font = jhengheiuil; fontColor = Color.WHITE }
+			label(POWER_CARD_LABEL_STYLE) { font = tcb; fontColor = Color.WHITE }
 			window(WINDOW_STYLE) {
 				background = this@skin["window"]
 				titleFont = jhengheiuis
@@ -184,8 +194,10 @@ class CrazyEights : GFramework()
 				assetStorage.loadAsync(TextureAtlases.gui),
 				assetStorage.loadAsync(Textures.title),
 				assetStorage.loadAsync(Fonts.msjhl),
+				assetStorage.loadAsync(Fonts.tcb),
 				assetStorage.loadAsync(Sounds.click),
 				assetStorage.loadAsync(Sounds.cardSlide),
+				assetStorage.loadAsync(Sounds.dramatic),
 				assetStorage.loadAsync(Shaders.brighten),
 				assetStorage.loadAsync(Shaders.vignette)
 			)

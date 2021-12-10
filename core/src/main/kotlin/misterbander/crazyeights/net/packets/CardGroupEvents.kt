@@ -8,6 +8,7 @@ import misterbander.crazyeights.Room
 import misterbander.crazyeights.game.PlayMove
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
+import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.net.CrazyEightsServer
@@ -85,12 +86,19 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 	val (cards, newCardGroupId, changerUsername) = event
 	val newCardGroup = if (newCardGroupId != -1) tabletop.idToObjectMap[newCardGroupId] as ServerCardGroup else null
 	var shouldPlayCardSlideSound = false
+	var isEightsPlayed = false
 	cards.forEachIndexed { index, (id, _, _, rotation) ->
 		val card = tabletop.idToObjectMap[id] as ServerCard
 		if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolderId)
 		{
+			assert(index == 0) { "Playing more than 1 card: $cards" }
 			val move = PlayMove(card)
-			if (move !in serverGameState!!.moves)
+			if (card.rank == Rank.EIGHT)
+			{
+				tabletop.suitChooser = changerUsername
+				isEightsPlayed = true
+			}
+			else if (move !in serverGameState!!.moves)
 				return
 		}
 		card.rotation = rotation
@@ -102,8 +110,13 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 	}
 	newCardGroup?.arrange()
 	server.sendToAllTCP(event)
-	if (isGameStarted && shouldPlayCardSlideSound)
-		server.sendToAllTCP(CardSlideSoundEvent)
+	if (isGameStarted)
+	{
+		if (shouldPlayCardSlideSound)
+			server.sendToAllTCP(CardSlideSoundEvent)
+		if (isEightsPlayed)
+			server.sendToAllTCP(EightsPlayedEvent(changerUsername))
+	}
 }
 
 @NoArg

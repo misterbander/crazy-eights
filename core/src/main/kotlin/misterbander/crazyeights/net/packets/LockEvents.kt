@@ -3,7 +3,6 @@ package misterbander.crazyeights.net.packets
 import com.badlogic.gdx.utils.IntMap
 import ktx.collections.*
 import ktx.log.debug
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.game.DrawMove
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
@@ -11,6 +10,7 @@ import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.Card
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.Lockable
 
 @NoArg
@@ -19,14 +19,14 @@ data class ObjectLockEvent(val id: Int, val lockerUsername: String)
 @NoArg
 data class ObjectUnlockEvent(val id: Int, val unlockerUsername: String, val sideEffects: Boolean = true)
 
-fun Room.onObjectLock(event: ObjectLockEvent)
+fun Tabletop.onObjectLock(event: ObjectLockEvent)
 {
 	val (id, lockerUsername) = event
-	val toLock = tabletop.idToGObjectMap[id]!!
-	toLock.getModule<Lockable>()?.lock(tabletop.users[lockerUsername]!!)
+	val toLock = idToGObjectMap[id]!!
+	toLock.getModule<Lockable>()?.lock(users[lockerUsername]!!)
 	
-	if (isGameStarted && toLock is Card && toLock.cardGroup == tabletop.drawStack)
-		gameState!!.drawCount++
+	if (room.isGameStarted && toLock is Card && toLock.cardGroup == drawStack)
+		room.gameState!!.drawCount++
 }
 
 fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)

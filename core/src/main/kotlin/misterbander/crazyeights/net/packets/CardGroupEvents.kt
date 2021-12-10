@@ -4,7 +4,6 @@ import com.badlogic.gdx.utils.IntMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.plusAssign
 import ktx.collections.*
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.game.PlayMove
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
@@ -15,20 +14,21 @@ import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.CardHolder
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.transformToGroupCoordinates
 
 @NoArg
 data class CardGroupCreateEvent(val id: Int = -1, val cards: GdxArray<ServerCard>)
 
-fun Room.onCardGroupCreate(event: CardGroupCreateEvent)
+fun Tabletop.onCardGroupCreate(event: CardGroupCreateEvent)
 {
 	val (id, serverCards) = event
-	val cards = serverCards.map { tabletop.idToGObjectMap[it.id] as Card }
+	val cards = serverCards.map { idToGObjectMap[it.id] as Card }
 	val firstX = cards.first().smoothMovable.x
 	val firstY = cards.first().smoothMovable.y
 	val firstRotation = cards.first().smoothMovable.rotation
-	val cardGroup = CardGroup(this, id, firstX, firstY, firstRotation)
-	tabletop.cards.addActorAfter(cards.first(), cardGroup)
+	val cardGroup = CardGroup(room, id, firstX, firstY, firstRotation)
+	this.cards.addActorAfter(cards.first(), cardGroup)
 	cards.forEachIndexed { index, card: Card ->
 		val (_, x, y, rotation) = serverCards[index]
 		cardGroup += card
@@ -36,7 +36,7 @@ fun Room.onCardGroupCreate(event: CardGroupCreateEvent)
 		card.smoothMovable.rotation = rotation
 	}
 	cardGroup.arrange()
-	tabletop.idToGObjectMap[id] = cardGroup
+	idToGObjectMap[id] = cardGroup
 }
 
 fun CrazyEightsServer.onCardGroupCreate(event: CardGroupCreateEvent)
@@ -62,15 +62,15 @@ fun CrazyEightsServer.onCardGroupCreate(event: CardGroupCreateEvent)
 @NoArg
 data class CardGroupChangeEvent(val cards: GdxArray<ServerCard>, val newCardGroupId: Int, val changerUsername: String)
 
-fun Room.onCardGroupChange(event: CardGroupChangeEvent)
+fun Tabletop.onCardGroupChange(event: CardGroupChangeEvent)
 {
 	val (cards, newCardGroupId, changerUsername) = event
 	if (changerUsername != game.user.name || newCardGroupId != -1)
 	{
-		val newCardGroup = if (newCardGroupId != -1) tabletop.idToGObjectMap[newCardGroupId] as CardGroup else null
+		val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
 		for ((id, x, y, rotation) in cards)
 		{
-			val card = tabletop.idToGObjectMap[id] as Card
+			val card = idToGObjectMap[id] as Card
 			val oldCardGroup = card.cardGroup
 			card.cardGroup = newCardGroup
 			card.smoothMovable.setPosition(x, y)
@@ -138,18 +138,18 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 @NoArg
 data class CardGroupDetachEvent(val cardHolderId: Int, val replacementCardGroupId: Int = -1, val changerUsername: String)
 
-fun Room.onCardGroupDetach(event: CardGroupDetachEvent)
+fun Tabletop.onCardGroupDetach(event: CardGroupDetachEvent)
 {
 	val (cardHolderId, replacementCardGroupId, changerUsername) = event
-	val cardHolder = tabletop.idToGObjectMap[cardHolderId] as CardHolder
+	val cardHolder = idToGObjectMap[cardHolderId] as CardHolder
 	if (changerUsername != game.user.name)
 	{
 		val cardGroup = cardHolder.cardGroup!!
-		cardGroup.transformToGroupCoordinates(tabletop.cards)
-		tabletop.cards += cardGroup
+		cardGroup.transformToGroupCoordinates(cards)
+		cards += cardGroup
 	}
-	val replacementCardGroup = CardGroup(this, replacementCardGroupId, type = cardHolder.defaultType)
-	tabletop.idToGObjectMap[replacementCardGroupId] = replacementCardGroup
+	val replacementCardGroup = CardGroup(room, replacementCardGroupId, type = cardHolder.defaultType)
+	idToGObjectMap[replacementCardGroupId] = replacementCardGroup
 	cardHolder += replacementCardGroup
 }
 

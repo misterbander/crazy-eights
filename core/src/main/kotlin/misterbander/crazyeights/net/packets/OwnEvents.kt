@@ -2,7 +2,6 @@ package misterbander.crazyeights.net.packets
 
 import com.esotericsoftware.kryonet.Connection
 import ktx.collections.*
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerLockable
@@ -12,6 +11,7 @@ import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.MyHand
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
@@ -30,11 +30,11 @@ data class ObjectDisownEvent(
 )
 
 @Suppress("UNCHECKED_CAST")
-fun Room.onObjectOwn(event: ObjectOwnEvent)
+fun Tabletop.onObjectOwn(event: ObjectOwnEvent)
 {
 	val (id, ownerUsername) = event
-	val toOwn = tabletop.idToGObjectMap[id] as Groupable<CardGroup>
-	val hand = tabletop.userToHandMap[ownerUsername]!!
+	val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
+	val hand = userToHandMap[ownerUsername]!!
 	toOwn.getModule<Lockable>()?.unlock()
 	(toOwn.parent as? CardGroup)?.minusAssign(toOwn)
 	hand += toOwn
@@ -57,18 +57,18 @@ fun CrazyEightsServer.onObjectOwn(connection: Connection, event: ObjectOwnEvent)
 }
 
 @Suppress("UNCHECKED_CAST")
-fun Room.onObjectDisown(event: ObjectDisownEvent)
+fun Tabletop.onObjectDisown(event: ObjectDisownEvent)
 {
 	val (id, x, y, rotation, isFaceUp, disownerUsername) = event
-	val toDisown = tabletop.idToGObjectMap[id] as Groupable<CardGroup>
-	val hand = tabletop.userToHandMap[disownerUsername]!!
+	val toDisown = idToGObjectMap[id] as Groupable<CardGroup>
+	val hand = userToHandMap[disownerUsername]!!
 	hand -= toDisown
 	hand.arrange()
 	toDisown.getModule<SmoothMovable>()?.apply {
 		setPosition(x, y)
 		this.rotation = rotation
 	}
-	toDisown.getModule<Lockable>()?.lock(tabletop.users[disownerUsername]!!)
+	toDisown.getModule<Lockable>()?.lock(users[disownerUsername]!!)
 	if (toDisown is Card)
 		toDisown.isFaceUp = isFaceUp
 }

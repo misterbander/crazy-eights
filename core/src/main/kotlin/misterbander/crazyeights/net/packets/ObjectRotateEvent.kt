@@ -2,12 +2,12 @@ package misterbander.crazyeights.net.packets
 
 import com.esotericsoftware.kryonet.Connection
 import ktx.collections.*
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.KryoPoolable
 import misterbander.crazyeights.net.objectRotateEventPool
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 
 data class ObjectRotateEvent(
@@ -22,10 +22,10 @@ data class ObjectRotateEvent(
 	}
 }
 
-fun Room.onObjectRotate(event: ObjectRotateEvent)
+fun Tabletop.onObjectRotate(event: ObjectRotateEvent)
 {
 	val (id, rotation) = event
-	tabletop.idToGObjectMap[id]!!.getModule<SmoothMovable>()?.rotation = rotation
+	idToGObjectMap[id]!!.getModule<SmoothMovable>()?.rotation = rotation
 	objectRotateEventPool.free(event)
 }
 

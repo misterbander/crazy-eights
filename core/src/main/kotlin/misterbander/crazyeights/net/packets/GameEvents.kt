@@ -11,7 +11,6 @@ import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.game.Player
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
@@ -31,6 +30,7 @@ import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.PowerCardEffect
 import misterbander.crazyeights.scene2d.PowerCardEffectRing
 import misterbander.crazyeights.scene2d.SuitChooser
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.actions.DealAction
 import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
 import misterbander.crazyeights.scene2d.actions.ShowCenterTitleAction
@@ -47,50 +47,50 @@ data class NewGameEvent(
 
 object NewGameActionFinishedEvent
 
-fun Room.onNewGame(event: NewGameEvent)
+fun Tabletop.onNewGame(event: NewGameEvent)
 {
 	val (cardGroupChangeEvent, shuffleSeed, gameState) = event
-	for (gObject: GObject<CrazyEights> in tabletop.idToGObjectMap.values()) // Unlock and disown everything
+	for (gObject: GObject<CrazyEights> in idToGObjectMap.values()) // Unlock and disown everything
 	{
 		gObject.getModule<Lockable>()?.unlock(false)
 		gObject.getModule<Ownable>()?.wasInHand = false
 	}
 	onCardGroupChange(cardGroupChangeEvent!!)
-	val drawStack = tabletop.drawStack!!
+	val drawStack = drawStack!!
 	drawStack.flip(false)
 	
-	val userToHandMap = tabletop.userToHandMap
+	val userToHandMap = userToHandMap
 	for ((username, hand) in userToHandMap.toGdxArray()) // Remove hands of offline users
 	{
-		if (username !in tabletop.users)
+		if (username !in users)
 		{
 			userToHandMap.remove(username)
 			hand!!.remove()
 		}
 	}
-	tabletop.arrangePlayers()
+	arrangePlayers()
 	
 	val hands: Array<Hand> = userToHandMap.orderedKeys().map { userToHandMap[it]!! }.toArray(Hand::class.java)
 	
 	drawStack += Actions.run {
-		tabletop.drawStackHolder!!.touchable = Touchable.disabled
-		tabletop.myHand.touchable = Touchable.disabled
+		drawStackHolder!!.touchable = Touchable.disabled
+		myHand.touchable = Touchable.disabled
 	} then
-		delay(1F, ShowCenterTitleAction(this, "Shuffling...")) then
-		ShuffleAction(this, shuffleSeed) then
-		delay(0.5F, ShowCenterTitleAction(this, "Dealing...")) then
-		DealAction(this, hands) then
-		HideCenterTitleAction(this) then
+		delay(1F, ShowCenterTitleAction(room, "Shuffling...")) then
+		ShuffleAction(room, shuffleSeed) then
+		delay(0.5F, ShowCenterTitleAction(room, "Dealing...")) then
+		DealAction(room, hands) then
+		HideCenterTitleAction(room) then
 		Actions.run {
-			tabletop.drawStackHolder!!.touchable = Touchable.enabled
-			tabletop.myHand.touchable = Touchable.enabled
+			drawStackHolder!!.touchable = Touchable.enabled
+			myHand.touchable = Touchable.enabled
 			game.client?.sendTCP(NewGameActionFinishedEvent)
 		}
 	
 	if (hands.size > 2)
-		tabletop.playDirectionIndicator += fadeIn(2F)
+		playDirectionIndicator += fadeIn(2F)
 	
-	this.gameState = gameState
+	room.gameState = gameState
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -173,16 +173,16 @@ fun CrazyEightsServer.onNewGame()
 @NoArg
 data class EightsPlayedEvent(val playerUsername: String)
 
-fun Room.onEightsPlayed(event: EightsPlayedEvent)
+fun Tabletop.onEightsPlayed(event: EightsPlayedEvent)
 {
-	dramatic.play()
-	val suitChooser = SuitChooser(this@onEightsPlayed, event.playerUsername == game.user.name)
-	tabletop.suitChooser = suitChooser
-	tabletop.powerCardEffects.clearChildren()
-	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
-		targeting(powerLabelGroup, fadeOut(0.5F)) along Actions.run { tabletop.powerCardEffects += suitChooser }
+	room.dramatic.play()
+	val suitChooser = SuitChooser(room, event.playerUsername == game.user.name)
+	this.suitChooser = suitChooser
+	powerCardEffects.clearChildren()
+	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
+		targeting(powerLabelGroup, fadeOut(0.5F)) along Actions.run { powerCardEffects += suitChooser }
 	}
-	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
+	persistentPowerCardEffects += PowerCardEffectRing(room)
 }
 
 @NoArg
@@ -196,42 +196,42 @@ fun CrazyEightsServer.onSuitDeclare(event: SuitDeclareEvent)
 
 object DrawTwosPlayedEvent
 
-fun Room.onDrawTwosPlayed()
+fun Tabletop.onDrawTwosPlayed()
 {
-	tabletop.powerCardEffects.clearChildren()
-	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+	powerCardEffects.clearChildren()
+	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
-			tabletop.powerCardEffects += EffectText(this@onDrawTwosPlayed, "+2")
+			powerCardEffects += EffectText(room, "+2")
 		}
 	}
-	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
+	persistentPowerCardEffects += PowerCardEffectRing(room)
 }
 
 @NoArg
 data class SkipsPlayedEvent(val victimUsername: String)
 
-fun Room.onSkipsPlayed(event: SkipsPlayedEvent)
+fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 {
-	tabletop.powerCardEffects.clearChildren()
-	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+	powerCardEffects.clearChildren()
+	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
-			tabletop.powerCardEffects += EffectText(this@onSkipsPlayed, "Q", tabletop.userToHandMap[event.victimUsername]!!)
+			powerCardEffects += EffectText(room, "Q", userToHandMap[event.victimUsername]!!)
 		}
 	}
-	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
+	persistentPowerCardEffects += PowerCardEffectRing(room)
 }
 
 object ReversePlayedEvent
 
-fun Room.onReversePlayed()
+fun Tabletop.onReversePlayed()
 {
-	tabletop.powerCardEffects.clearChildren()
-	tabletop.powerCardEffects += PowerCardEffect(this, tabletop.discardPile!!.cards.peek() as Card) {
+	powerCardEffects.clearChildren()
+	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
-			tabletop.persistentPowerCardEffects += PowerCardEffectRing(this@onReversePlayed)
-			deepWhoosh.play()
-			tabletop.playDirectionIndicator.flipDirection()
+			persistentPowerCardEffects += PowerCardEffectRing(room)
+			room.deepWhoosh.play()
+			playDirectionIndicator.flipDirection()
 		}
 	}
-	tabletop.persistentPowerCardEffects += PowerCardEffectRing(this)
+	persistentPowerCardEffects += PowerCardEffectRing(room)
 }

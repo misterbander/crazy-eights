@@ -2,7 +2,6 @@ package misterbander.crazyeights.net.packets
 
 import com.esotericsoftware.kryonet.Connection
 import ktx.collections.*
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerLockable
@@ -10,6 +9,7 @@ import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.KryoPoolable
 import misterbander.crazyeights.net.objectMoveEventPool
 import misterbander.crazyeights.scene2d.CardGroup
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 
 data class ObjectMoveEvent(
@@ -26,10 +26,10 @@ data class ObjectMoveEvent(
 	}
 }
 
-fun Room.onObjectMove(event: ObjectMoveEvent)
+fun Tabletop.onObjectMove(event: ObjectMoveEvent)
 {
 	val (id, x, y) = event
-	val toMove = tabletop.idToGObjectMap[id]!!
+	val toMove = idToGObjectMap[id]!!
 	toMove.getModule<SmoothMovable>()?.setPosition(x, y)
 	if (toMove is CardGroup && toMove.type == ServerCardGroup.Type.PILE)
 	{

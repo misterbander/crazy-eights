@@ -4,11 +4,11 @@ import com.badlogic.gdx.graphics.Color
 import ktx.actors.plusAssign
 import ktx.collections.*
 import ktx.log.info
-import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.OpponentHand
+import misterbander.crazyeights.scene2d.Tabletop
 
 @NoArg
 data class UserJoinedEvent(val user: User)
@@ -16,45 +16,45 @@ data class UserJoinedEvent(val user: User)
 @NoArg
 data class UserLeftEvent(val user: User)
 
-fun Room.onUserJoined(event: UserJoinedEvent)
+fun Tabletop.onUserJoined(event: UserJoinedEvent)
 {
 	val user = event.user
 	if (user != game.user)
 	{
-		tabletop += user
-		val opponentHand = tabletop.userToHandMap.getOrPut(user.name) {
-			OpponentHand(this)
+		this += user
+		val opponentHand = this.userToHandMap.getOrPut(user.name) {
+			OpponentHand(room)
 		} as OpponentHand
 		opponentHand.user = user
-		tabletop.opponentHands += opponentHand
+		this.opponentHands += opponentHand
 	}
 	if (!user.isAi)
-		chatBox.chat("${user.name} joined the game", Color.YELLOW)
-	tabletop.arrangePlayers()
+		room.chatBox.chat("${user.name} joined the game", Color.YELLOW)
+	this.arrangePlayers()
 }
 
-fun Room.onUserLeft(event: UserLeftEvent)
+fun Tabletop.onUserLeft(event: UserLeftEvent)
 {
 	val user = event.user
-	tabletop -= user
+	this -= user
 	if (!user.isAi)
-		chatBox.chat("${user.name} left the game", Color.YELLOW)
-	tabletop.arrangePlayers()
-	if (user == userDialog.user)
-		userDialog.hide()
+		room.chatBox.chat("${user.name} left the game", Color.YELLOW)
+	arrangePlayers()
+	if (user == room.userDialog.user)
+		room.userDialog.hide()
 }
 
 @NoArg
 data class SwapSeatsEvent(val username1: String, val username2: String)
 
-fun Room.onSwapSeats(event: SwapSeatsEvent)
+fun Tabletop.onSwapSeats(event: SwapSeatsEvent)
 {
 	val (user1, user2) = event
-	val keys: GdxArray<String> = tabletop.userToHandMap.orderedKeys()
+	val keys: GdxArray<String> = userToHandMap.orderedKeys()
 	val index1 = keys.indexOf(user1, false)
 	val index2 = keys.indexOf(user2, false)
 	keys.swap(index1, index2)
-	tabletop.arrangePlayers()
+	arrangePlayers()
 }
 
 fun CrazyEightsServer.onSwapSeats(event: SwapSeatsEvent)

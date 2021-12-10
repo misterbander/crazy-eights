@@ -25,7 +25,7 @@ import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 
-class Tabletop(private val room: Room)
+class Tabletop(val room: Room)
 {
 	val game: CrazyEights
 		get() = room.game
@@ -106,7 +106,7 @@ class Tabletop(private val room: Room)
 		room.passButton.setPosition(drawStackHolder.x, drawStackHolder.y, Align.center)
 		
 		if (state.suitChooser != null)
-			room.onEightsPlayed(EightsPlayedEvent(state.suitChooser!!))
+			room.tabletop.onEightsPlayed(EightsPlayedEvent(state.suitChooser!!))
 		
 		arrangePlayers()
 	}

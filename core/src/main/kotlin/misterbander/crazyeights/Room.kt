@@ -402,9 +402,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 			val idToGObjectMap = tabletop.idToGObjectMap
 			when (packet)
 			{
-				is UserJoinedEvent -> onUserJoined(packet)
-				is UserLeftEvent -> onUserLeft(packet)
-				is SwapSeatsEvent -> onSwapSeats(packet)
+				is UserJoinedEvent -> tabletop.onUserJoined(packet)
+				is UserLeftEvent -> tabletop.onUserLeft(packet)
+				is SwapSeatsEvent -> tabletop.onSwapSeats(packet)
 				is Chat ->
 				{
 					val (_, message, isSystemMessage) = packet
@@ -428,18 +428,18 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 					}
 					cursorPositionPool.free(packet)
 				}
-				is TouchUpEvent -> onTouchUp(packet)
-				is ObjectLockEvent -> onObjectLock(packet) // User attempts to lock an object
+				is TouchUpEvent -> tabletop.onTouchUp(packet)
+				is ObjectLockEvent -> tabletop.onObjectLock(packet) // User attempts to lock an object
 				is ObjectUnlockEvent -> idToGObjectMap[packet.id]?.getModule<Lockable>()?.unlock()
-				is ObjectOwnEvent -> onObjectOwn(packet)
-				is ObjectDisownEvent -> onObjectDisown(packet)
+				is ObjectOwnEvent -> tabletop.onObjectOwn(packet)
+				is ObjectDisownEvent -> tabletop.onObjectDisown(packet)
 				is HandUpdateEvent -> (tabletop.userToHandMap[packet.ownerUsername] as? OpponentHand)?.flatten()
-				is ObjectMoveEvent -> onObjectMove(packet)
-				is ObjectRotateEvent -> onObjectRotate(packet)
-				is CardFlipEvent -> onCardFlip(packet)
-				is CardGroupCreateEvent -> onCardGroupCreate(packet)
-				is CardGroupChangeEvent -> onCardGroupChange(packet)
-				is CardGroupDetachEvent -> onCardGroupDetach(packet)
+				is ObjectMoveEvent -> tabletop.onObjectMove(packet)
+				is ObjectRotateEvent -> tabletop.onObjectRotate(packet)
+				is CardFlipEvent -> tabletop.onCardFlip(packet)
+				is CardGroupCreateEvent -> tabletop.onCardGroupCreate(packet)
+				is CardGroupChangeEvent -> tabletop.onCardGroupChange(packet)
+				is CardGroupDetachEvent -> tabletop.onCardGroupDetach(packet)
 				is CardGroupDismantleEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
 //				is CardGroupShuffleEvent ->
 //				{
@@ -447,7 +447,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //					val cardGroup = idToGObjectMap[id] as CardGroup
 //					cardGroup.shuffle(seed)
 //				}
-				is NewGameEvent -> onNewGame(packet)
+				is NewGameEvent -> tabletop.onNewGame(packet)
 				is GameState ->
 				{
 					gameState = packet
@@ -460,11 +460,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 						tabletop.playDirectionIndicator += fadeIn(2F)
 					}
 				}
-				is EightsPlayedEvent -> onEightsPlayed(packet)
+				is EightsPlayedEvent -> tabletop.onEightsPlayed(packet)
 				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
-				is DrawTwosPlayedEvent -> onDrawTwosPlayed()
-				is SkipsPlayedEvent -> onSkipsPlayed(packet)
-				is ReversePlayedEvent -> onReversePlayed()
+				is DrawTwosPlayedEvent -> tabletop.onDrawTwosPlayed()
+				is SkipsPlayedEvent -> tabletop.onSkipsPlayed(packet)
+				is ReversePlayedEvent -> tabletop.onReversePlayed()
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

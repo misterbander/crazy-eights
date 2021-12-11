@@ -184,7 +184,7 @@ class Tabletop(val room: Room)
 		users.remove(user.name)
 		userToCursorsMap.remove(user.name)?.apply { values().forEach { it.remove() } }
 		val hand = userToHandMap[user.name]!!
-		if (hand.cardGroup.cards.isEmpty)
+		if (hand.cardGroup.cards.isEmpty && (!room.isGameStarted || user.name !in room.gameState!!.players))
 		{
 			userToHandMap.remove(user.name)
 			hand.remove()

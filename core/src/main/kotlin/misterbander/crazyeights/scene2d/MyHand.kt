@@ -89,5 +89,9 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 		}
 	}
 	
-	fun reset() = cardGroup.clearChildren()
+	fun reset()
+	{
+		cardGroup.clearChildren()
+		touchable = Touchable.enabled
+	}
 }

@@ -4,12 +4,9 @@ import com.badlogic.gdx.utils.IntMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.plusAssign
 import ktx.collections.*
-import misterbander.crazyeights.game.ChangeSuitMove
-import misterbander.crazyeights.game.PlayMove
+import misterbander.crazyeights.game.play
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCard.Rank
-import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.net.CrazyEightsServer
@@ -88,66 +85,23 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 {
 	val (cards, newCardGroupId, changerUsername) = event
 	val newCardGroup = if (newCardGroupId != -1) tabletop.idToObjectMap[newCardGroupId] as ServerCardGroup else null
-	val extraPackets = GdxArray<Any>()
+	
+	if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolderId) // User discards a card
+	{
+		play(event)
+		return
+	}
 	
 	cards.forEachIndexed { index, (id, _, _, rotation) ->
 		val card = tabletop.idToObjectMap[id] as ServerCard
-		if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolderId) // Users discards a card
-		{
-			assert(index == 0) { "Playing more than 1 card: $cards" }
-			val serverGameState = serverGameState!!
-			// Ignore if it's not the user's turn, or if the suit chooser is active and suit has not been declared yet,
-			// or if not all action locks have been released
-			if (changerUsername != serverGameState.currentPlayer.name
-				|| serverGameState.declaredSuit == null && tabletop.suitChooser != null
-				|| actionLocks.isNotEmpty())
-				return
-			val move = if (card.rank == Rank.EIGHT) ChangeSuitMove(card, Suit.DIAMONDS) else PlayMove(card)
-			if (move !in serverGameState.moves)
-				return
-			when
-			{
-				card.rank == Rank.EIGHT ->
-				{
-					tabletop.suitChooser = changerUsername
-					extraPackets += serverGameState.toGameState(EightsPlayedEvent(changerUsername))
-				}
-				serverGameState.ruleset.drawTwos && card.rank == Rank.TWO ->
-				{
-					serverGameState.doMove(move)
-					extraPackets += serverGameState.toGameState(DrawTwosPlayedEvent(serverGameState.drawTwoEffectCardCount))
-				}
-				serverGameState.ruleset.skips && card.rank == Rank.QUEEN ->
-				{
-					val skipsPlayedEvent = SkipsPlayedEvent(serverGameState.nextPlayer.name)
-					serverGameState.doMove(move)
-					extraPackets += serverGameState.toGameState(skipsPlayedEvent)
-				}
-				serverGameState.ruleset.reverses && card.rank == Rank.ACE && serverGameState.playerCount > 2 ->
-				{
-					serverGameState.doMove(move)
-					extraPackets += serverGameState.toGameState(ReversePlayedEvent)
-				}
-				else ->
-				{
-					serverGameState.doMove(move)
-					extraPackets += serverGameState.toGameState()
-				}
-			}
-			if (card.rank != Rank.EIGHT)
-				tabletop.suitChooser = null
-			if (tabletop.hands[changerUsername]!!.removeValue(card, true))
-				extraPackets += CardSlideSoundEvent
-		}
 		card.rotation = rotation
 		card.setServerCardGroup(newCardGroup, tabletop)
 		cards[index] = card
-		if (isGameStarted)
+		if (isGameStarted) // Cancel the run later which would send the card back to its original owner
 			runLater.getOrPut(changerUsername) { IntMap() }.remove(id)?.onCancel?.invoke()
 	}
 	newCardGroup?.arrange()
 	server.sendToAllTCP(event)
-	extraPackets.forEach { server.sendToAllTCP(it) }
 }
 
 @NoArg

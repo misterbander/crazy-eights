@@ -158,6 +158,18 @@ class CrazyEightsServer
 			if (!user!!.isAi)
 				actionLocks += username
 		}
+		debug("Server | DEBUG") { "Acquired action locks: $actionLocks" }
+	}
+	
+	suspend fun waitForActionLocks()
+	{
+		debug("Server | DEBUG") { "Waiting for action locks: remaining = $actionLocks" }
+		while (true)
+		{
+			if (actionLocks.isEmpty)
+				break
+			delay(1000/60)
+		}
 	}
 	
 	fun onPlayerChanged(player: Player)
@@ -172,6 +184,8 @@ class CrazyEightsServer
 			var justDrew = false
 			do
 			{
+				waitForActionLocks()
+				
 				val moveDeferred = async(asyncContext) { (player as IsmctsAgent).getMove(serverGameState) }
 				delay(if (justDrew) 800 else lastPowerCardPlayedEvent?.delayMillis ?: 1000)
 				justDrew = false
@@ -195,8 +209,8 @@ class CrazyEightsServer
 					is DrawMove ->
 					{
 						val drawnCard: ServerCard = drawStack.cards.peek()
-						draw(drawnCard, player.name, fireOwnEvent = true, playSound = true)
 						serverGameState.doMove(move)
+						draw(drawnCard, player.name, fireOwnEvent = true, playSound = true)
 						justDrew = true
 					}
 					is DrawTwoEffectPenalty -> drawTwoPenalty(player.name)

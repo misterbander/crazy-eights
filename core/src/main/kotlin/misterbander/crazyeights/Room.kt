@@ -35,6 +35,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
@@ -58,6 +59,7 @@ import misterbander.crazyeights.net.packets.onCardFlip
 import misterbander.crazyeights.net.packets.onCardGroupChange
 import misterbander.crazyeights.net.packets.onCardGroupCreate
 import misterbander.crazyeights.net.packets.onCardGroupDetach
+import misterbander.crazyeights.net.packets.onDrawStackRefill
 import misterbander.crazyeights.net.packets.onDrawTwoPenalty
 import misterbander.crazyeights.net.packets.onDrawTwosPlayed
 import misterbander.crazyeights.net.packets.onEightsPlayed
@@ -460,6 +462,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is DrawTwoPenaltyEvent -> tabletop.onDrawTwoPenalty(packet)
 				is SkipsPlayedEvent -> tabletop.onSkipsPlayed(packet)
 				is ReversePlayedEvent -> tabletop.onReversePlayed()
+				is DrawStackRefillEvent -> tabletop.onDrawStackRefill(packet)
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

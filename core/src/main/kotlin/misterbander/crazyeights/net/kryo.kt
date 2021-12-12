@@ -25,6 +25,7 @@ import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardGroupShuffleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
@@ -100,5 +101,6 @@ fun Kryo.registerClasses()
 	register(DrawTwoPenaltyEvent::class.java)
 	register(SkipsPlayedEvent::class.java)
 	register(ReversePlayedEvent::class.java)
+	register(DrawStackRefillEvent::class.java)
 	register(CrazyEightsClient.BufferEnd::class.java)
 }

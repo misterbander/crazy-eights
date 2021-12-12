@@ -26,7 +26,7 @@ class ServerGameState(
 	val ruleset: Ruleset = Ruleset(),
 	val playerHands: OrderedMap<Player, GdxArray<ServerCard>>,
 	val drawStack: GdxArray<ServerCard>,
-	private val discardPile: GdxArray<ServerCard>,
+	val discardPile: GdxArray<ServerCard>,
 	currentPlayer: Player = playerHands.orderedKeys()[0],
 	var isPlayReversed: Boolean = false,
 	drawCount: Int = 0,
@@ -124,21 +124,21 @@ class ServerGameState(
 					if (drawStack.isNotEmpty())
 						drawOne()
 					if (drawStack.isEmpty)
-						refillDrawingStack()
+						refillDrawStack()
 				}
 				drawTwoEffectCardCount = 0
 				advanceToNextPlayer()
 			}
 		}
 		if (drawStack.isEmpty)
-			refillDrawingStack()
+			refillDrawStack()
 		
 		updateMoves()
 		
 		val allPlayerCardCount = playerHands.values().sumOf { it.size }
 		val discardedCardCount = discardPile.size
-		val drawingStackCardCount = drawStack.size
-		val totalCardCount = allPlayerCardCount + discardedCardCount + drawingStackCardCount
+		val drawStackCardCount = drawStack.size
+		val totalCardCount = allPlayerCardCount + discardedCardCount + drawStackCardCount
 		assert(totalCardCount == 52) { "Cards magically appeared/disappeared! $totalCardCount" }
 		
 		if (hasPlayerChanged)
@@ -199,7 +199,7 @@ class ServerGameState(
 		drawCount++
 	}
 	
-	private fun refillDrawingStack()
+	private fun refillDrawStack()
 	{
 		val topCard = this.topCard
 		discardPile -= topCard
@@ -233,10 +233,10 @@ class ServerGameState(
 			}
 			unseenCards.shuffle()
 			val observedHands = OrderedMap<Player, GdxArray<ServerCard>>()
-			val observedDrawingStack = GdxArray<ServerCard>()
+			val observedDrawStack = GdxArray<ServerCard>()
 			
 			// Deal the unseen cards to the other players
-			repeat(drawStack.size) { observedDrawingStack += unseenCards.pop() }
+			repeat(drawStack.size) { observedDrawStack += unseenCards.pop() }
 			for ((player, cards) in playerHands)
 			{
 				if (player == currentPlayer)
@@ -253,7 +253,7 @@ class ServerGameState(
 			return ServerGameState(
 				ruleset,
 				observedHands,
-				observedDrawingStack,
+				observedDrawStack,
 				GdxArray(discardPile),
 				currentPlayer,
 				isPlayReversed,

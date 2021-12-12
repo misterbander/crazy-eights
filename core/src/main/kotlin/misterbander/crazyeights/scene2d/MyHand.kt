@@ -82,6 +82,15 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 		}
 	}
 	
+	inline fun setDarkened(predicate: (Card) -> Boolean)
+	{
+		for (groupable: Groupable<CardGroup> in cardGroup.cards)
+		{
+			if (groupable is Card)
+				groupable.isDarkened = predicate(groupable)
+		}
+	}
+	
 	fun sendUpdates()
 	{
 		game.client?.apply {

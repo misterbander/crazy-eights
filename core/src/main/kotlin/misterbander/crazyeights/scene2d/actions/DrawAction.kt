@@ -9,8 +9,9 @@ import misterbander.crazyeights.Room
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.MyHand
+import kotlin.math.min
 
-class DealAction(private val room: Room, private val hands: Array<Hand>) : RunnableAction()
+class DrawAction(private val room: Room, private val hand: Hand, private val drawCount: Int) : RunnableAction()
 {
 	private var finished = false
 	
@@ -23,34 +24,19 @@ class DealAction(private val room: Room, private val hands: Array<Hand>) : Runna
 	override fun run()
 	{
 		val drawStack = room.tabletop.drawStack!!
-		val discardPile = room.tabletop.discardPile!!
-		val size = hands.size
-		var i = 0
-		
-		actor!! += repeat(size*if (size > 2) 5 else 7, delay(0.1F, Actions.run {
+		actor!! += repeat(min(drawCount, drawStack.cards.size), delay(0.1F, Actions.run {
 			room.cardSlide.play()
 			val card = drawStack.cards.peek() as Card
-			val hand = hands[i%size]
 			card.cardGroup = hand.cardGroup
 			if (hand is MyHand)
 			{
 				hand.arrange(false)
 				card.isFaceUp = true
 				card.ownable.wasInHand = true
+				card.isDarkened = true
 			}
 			else
 				hand.arrange()
-			i++
-		})) then delay(0.1F, Actions.run {
-			room.cardSlide.play()
-			val topCard = drawStack.cards.peek() as Card
-			topCard.cardGroup = discardPile
-			topCard.smoothMovable.setPosition(0F, 0F)
-			topCard.smoothMovable.rotation = 0F
-			topCard.isFaceUp = true
-			discardPile.arrange()
-			finished = true
-			room.tabletop.myHand.setDarkened { room.gameState!!.currentPlayer != room.game.user.name }
-		})
+		})) then Actions.run { finished = true }
 	}
 }

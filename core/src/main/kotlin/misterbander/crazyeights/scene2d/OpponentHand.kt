@@ -11,6 +11,7 @@ import ktx.actors.onClick
 import ktx.actors.plusAssign
 import ktx.actors.txt
 import ktx.collections.*
+import ktx.graphics.copy
 import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
@@ -20,6 +21,9 @@ import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.gframework.util.tempVec
+import space.earlygrey.shapedrawer.ShapeDrawer
+import space.earlygrey.shapedrawer.scene2d.ShapeDrawerDrawable
+import kotlin.math.max
 import kotlin.math.min
 
 class OpponentHand(
@@ -39,13 +43,24 @@ class OpponentHand(
 	private val nameLabel = scene2d.label(user.name, PLAYER_NAMETAG_LABEL_STYLE_S) {
 		color = user.color
 		pack()
+	}
+	private val nameLabelContainer = scene2d.container(nameLabel) {
+		background = object : ShapeDrawerDrawable(game.shapeDrawer)
+		{
+			override fun drawShapes(shapeDrawer: ShapeDrawer, x: Float, y: Float, width: Float, height: Float) =
+				shapeDrawer.rectangle(x - 2.5F, y - 2.5F, width + 5, height + 5, yellow, 5F)
+		}
+		pack()
 		setPosition(0F, 0F, Align.center)
 	}
 	private val nameGroup = Group().apply {
-		this += nameLabel
-		setPosition(0F, 0F, Align.center)
+		this += nameLabelContainer
 		this.rotation = -rotation
 	}
+	
+	private val yellow = Color.YELLOW.copy(alpha = 0F)
+	private var yellowTargetAlpha = 1F
+	private var time = 0F
 	
 	var user: User = user
 		set(value)
@@ -53,8 +68,8 @@ class OpponentHand(
 			field = value
 			nameLabel.txt = value.name
 			nameLabel.color = value.color
-			nameLabel.pack()
-			nameLabel.setPosition(0F, 0F, Align.center)
+			nameLabelContainer.pack()
+			nameLabelContainer.setPosition(0F, 0F, Align.center)
 		}
 	
 	// Modules
@@ -91,6 +106,15 @@ class OpponentHand(
 		setPosition(adjustedX, adjustedY)
 		val viewport = stage.viewport as ExtendViewport
 		yAdjustFactor = min(viewport.worldHeight/viewport.minWorldWidth, 1F)
+		
+		// Turn indicator
+		time += delta
+		time = time.mod(1F)
+		yellowTargetAlpha = min(0.75F - time*(time - 1), 1F)
+		yellow.a = if (room.gameState?.currentPlayer == user.name)
+			yellowTargetAlpha
+		else
+			max(yellow.a - 1.5F*delta, 0F)
 	}
 	
 	override fun hit(x: Float, y: Float, touchable: Boolean): Actor?

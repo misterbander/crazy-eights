@@ -26,16 +26,17 @@ import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.ServerTabletop
 import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.packets.ActionLockReleaseEvent
 import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
-import misterbander.crazyeights.net.packets.NewGameActionFinishedEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
@@ -43,6 +44,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
@@ -62,6 +64,7 @@ import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
 import misterbander.crazyeights.net.packets.onObjectUnlock
+import misterbander.crazyeights.net.packets.onPass
 import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
 
@@ -69,13 +72,6 @@ class CrazyEightsServer
 {
 	private var maxId = 0
 	val tabletop = ServerTabletop()
-	/**
-	 * Some actions play a client-side animation which takes some time. While the animation is playing, we must ensure
-	 * that no other events take place to prevent events from overlapping, causing strange behavior. This is achieved
-	 * using action locks.
-	 * If an event that plays a client-side animation occurs, each currently online user will obtain an action lock.
-	 * Action locks will only be released once the client-side animation finishes, or the user leaves the room.
-	 */
 	val actionLocks = GdxSet<String>()
 	val runLater = GdxMap<String, IntMap<CancellableRunnable>>()
 	val aiNames = gdxArrayOf("Shark (AI)", "Queenpin (AI)", "Watson (AI)", "Ning (AI)")
@@ -138,6 +134,22 @@ class CrazyEightsServer
 		val card: ServerCard = cards.peek()
 		card.isFaceUp = true
 		card.setOwner(ownerUsername, tabletop)
+	}
+	
+	/**
+	 * Some actions play a client-side animation which takes some time. While the animation is playing, we must ensure
+	 * that no other events take place to prevent events from overlapping, causing strange behavior. This is achieved
+	 * using action locks.
+	 * If an event that plays a client-side animation occurs, each currently online user will obtain an action lock.
+	 * Action locks will only be released once the client-side animation finishes, or the user leaves the room.
+	 */
+	fun acquireActionLocks()
+	{
+		for ((username, user) in tabletop.users)
+		{
+			if (!user!!.isAi)
+				actionLocks += username
+		}
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
@@ -245,7 +257,9 @@ class CrazyEightsServer
 					tabletop.hands.getOrPut(`object`.name) { GdxArray() }
 					connection.sendTCP(tabletop)
 					if (isGameStarted)
-						connection.sendTCP(serverGameState!!.toGameState())
+						connection.sendTCP(serverGameState!!.toGameState(
+							if (tabletop.suitChooser != null) EightsPlayedEvent(tabletop.suitChooser!!) else null
+						))
 					server.sendToAllTCP(UserJoinedEvent(`object`))
 					info("Server | INFO") { "${`object`.name} joined the game" }
 				}
@@ -271,8 +285,9 @@ class CrazyEightsServer
 				is CardGroupDetachEvent -> onCardGroupDetach(`object`)
 				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
 				is NewGameEvent -> onNewGame()
-				is NewGameActionFinishedEvent -> actionLocks -= (connection.arbitraryData as User).name
-				is SuitDeclareEvent -> onSuitDeclare(`object`)
+				is PassEvent -> onPass()
+				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
+				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name
 				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {
 					it.runnable()
 				}

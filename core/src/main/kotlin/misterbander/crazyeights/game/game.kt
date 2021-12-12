@@ -2,8 +2,6 @@ package misterbander.crazyeights.game
 
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.utils.IntMap
-import kotlinx.coroutines.launch
-import ktx.async.KtxAsync
 import ktx.collections.*
 import ktx.log.debug
 import misterbander.crazyeights.model.ServerCard
@@ -17,13 +15,11 @@ import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
 import misterbander.crazyeights.net.packets.DrawStackRefillEvent
-import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
-import kotlin.math.min
 import kotlin.math.round
 
 fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
@@ -114,26 +110,11 @@ fun CrazyEightsServer.draw(
 		refillDrawStack()
 }
 
-fun CrazyEightsServer.drawTwoPenalty(drawerUsername: String)
+fun CrazyEightsServer.pass()
 {
 	val serverGameState = serverGameState!!
-	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
-	
-	KtxAsync.launch {
-		if (drawStack.cards.size < serverGameState.drawTwoEffectCardCount)
-			refillDrawStack()
-		waitForActionLocks()
-		
-		acquireActionLocks()
-		val drawCount = min(drawStack.cards.size, serverGameState.drawTwoEffectCardCount)
-		repeat(drawCount) { draw(drawStack.cards.peek(), drawerUsername) }
-		server.sendToAllTCP(DrawTwoPenaltyEvent(drawerUsername, drawCount))
-		lastPowerCardPlayedEvent = null
-		
-		waitForActionLocks()
-		serverGameState.doMove(DrawTwoEffectPenalty(drawCount))
-		server.sendToAllTCP(serverGameState.toGameState())
-	}
+	serverGameState.doMove(PassMove)
+	server.sendToAllTCP(serverGameState.toGameState())
 }
 
 fun CrazyEightsServer.refillDrawStack()

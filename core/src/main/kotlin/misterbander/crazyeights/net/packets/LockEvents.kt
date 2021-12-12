@@ -5,7 +5,6 @@ import ktx.collections.*
 import ktx.log.debug
 import misterbander.crazyeights.game.DrawMove
 import misterbander.crazyeights.game.draw
-import misterbander.crazyeights.game.drawTwoPenalty
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
@@ -53,7 +52,7 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 					return
 				if (serverGameState.drawTwoEffectCardCount > 0)
 				{
-					drawTwoPenalty(lockerUsername)
+					acceptDrawTwoPenalty(lockerUsername)
 					return
 				}
 				serverGameState.doMove(DrawMove)

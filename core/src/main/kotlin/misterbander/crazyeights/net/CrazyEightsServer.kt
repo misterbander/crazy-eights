@@ -25,7 +25,7 @@ import misterbander.crazyeights.game.Player
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.game.draw
-import misterbander.crazyeights.game.drawTwoPenalty
+import misterbander.crazyeights.game.pass
 import misterbander.crazyeights.game.play
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
@@ -63,6 +63,7 @@ import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
+import misterbander.crazyeights.net.packets.acceptDrawTwoPenalty
 import misterbander.crazyeights.net.packets.onAiAdd
 import misterbander.crazyeights.net.packets.onAiRemove
 import misterbander.crazyeights.net.packets.onCardGroupChange
@@ -77,7 +78,6 @@ import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
 import misterbander.crazyeights.net.packets.onObjectUnlock
-import misterbander.crazyeights.net.packets.onPass
 import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
 
@@ -213,8 +213,8 @@ class CrazyEightsServer
 						draw(drawnCard, player.name, fireOwnEvent = true, playSound = true)
 						justDrew = true
 					}
-					is DrawTwoEffectPenalty -> drawTwoPenalty(player.name)
-					is PassMove -> onPass()
+					is DrawTwoEffectPenalty -> acceptDrawTwoPenalty(player.name)
+					is PassMove -> pass()
 				}
 			}
 			while (justDrew)
@@ -355,7 +355,7 @@ class CrazyEightsServer
 				is CardGroupDetachEvent -> onCardGroupDetach(`object`)
 				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
 				is NewGameEvent -> onNewGame()
-				is PassEvent -> onPass()
+				is PassEvent -> pass()
 				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
 				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name
 				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {

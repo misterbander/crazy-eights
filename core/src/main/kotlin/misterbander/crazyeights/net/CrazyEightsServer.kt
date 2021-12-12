@@ -8,13 +8,25 @@ import com.esotericsoftware.kryonet.Server
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.VERSION_STRING
+import misterbander.crazyeights.game.ChangeSuitMove
+import misterbander.crazyeights.game.DrawMove
+import misterbander.crazyeights.game.DrawTwoEffectPenalty
+import misterbander.crazyeights.game.PassMove
+import misterbander.crazyeights.game.PlayMove
+import misterbander.crazyeights.game.Player
 import misterbander.crazyeights.game.ServerGameState
+import misterbander.crazyeights.game.ai.IsmctsAgent
+import misterbander.crazyeights.game.draw
+import misterbander.crazyeights.game.drawTwoPenalty
+import misterbander.crazyeights.game.play
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.ServerCard
@@ -45,6 +57,7 @@ import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
+import misterbander.crazyeights.net.packets.PowerCardPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
@@ -85,11 +98,13 @@ class CrazyEightsServer
 		}
 	}
 	private val startServerJob = Job()
+	private var aiJob: Job? = null
 	@Volatile private var isStopped = false
 	
 	var serverGameState: ServerGameState? = null
 	val isGameStarted: Boolean
 		get() = serverGameState != null
+	var lastPowerCardPlayedEvent: PowerCardPlayedEvent? = null
 	
 	init
 	{
@@ -129,13 +144,6 @@ class CrazyEightsServer
 		}
 	}
 	
-	fun ServerCardGroup.draw(ownerUsername: String)
-	{
-		val card: ServerCard = cards.peek()
-		card.isFaceUp = true
-		card.setOwner(ownerUsername, tabletop)
-	}
-	
 	/**
 	 * Some actions play a client-side animation which takes some time. While the animation is playing, we must ensure
 	 * that no other events take place to prevent events from overlapping, causing strange behavior. This is achieved
@@ -152,12 +160,60 @@ class CrazyEightsServer
 		}
 	}
 	
+	fun onPlayerChanged(player: Player)
+	{
+		val serverGameState = serverGameState!!
+		val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+		val discardPile = (tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup
+		if (!tabletop.users[player.name]!!.isAi)
+			return
+		
+		aiJob = KtxAsync.launch {
+			var justDrew = false
+			do
+			{
+				val moveDeferred = async(asyncContext) { (player as IsmctsAgent).getMove(serverGameState) }
+				delay(if (justDrew) 800 else lastPowerCardPlayedEvent?.delayMillis ?: 1000)
+				justDrew = false
+				lastPowerCardPlayedEvent = null
+				val move = moveDeferred.await()
+				info("Server | INFO") { "${player.name} best move = $move" }
+				when (move)
+				{
+					is PlayMove ->
+					{
+						val card = tabletop.idToObjectMap[move.card.id] as ServerCard
+						play(CardGroupChangeEvent(gdxArrayOf(card), discardPile.id, player.name))
+					}
+					is ChangeSuitMove ->
+					{
+						val card = tabletop.idToObjectMap[move.card.id] as ServerCard
+						play(CardGroupChangeEvent(gdxArrayOf(card), discardPile.id, player.name))
+						delay(3000)
+						onSuitDeclare(event = SuitDeclareEvent(move.declaredSuit))
+					}
+					is DrawMove ->
+					{
+						val drawnCard: ServerCard = drawStack.cards.peek()
+						draw(drawnCard, player.name, fireOwnEvent = true, playSound = true)
+						serverGameState.doMove(move)
+						justDrew = true
+					}
+					is DrawTwoEffectPenalty -> drawTwoPenalty(player.name)
+					is PassMove -> onPass()
+				}
+			}
+			while (justDrew)
+		}
+	}
+	
 	@Suppress("BlockingMethodInNonBlockingContext")
 	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
 		if (!isStopped)
 		{
 			startServerJob.join()
 			isStopped = true
+			aiJob?.cancel()
 			server.stop()
 			server.dispose()
 		}

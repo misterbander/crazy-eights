@@ -13,6 +13,7 @@ import ktx.actors.alpha
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.KtxAsync
+import ktx.async.skipFrame
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
@@ -23,6 +24,7 @@ import misterbander.crazyeights.game.Player
 import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
+import misterbander.crazyeights.game.draw
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.NoArg
@@ -150,7 +152,7 @@ fun CrazyEightsServer.onNewGame()
 	// Deal
 	repeat(if (tabletop.hands.size > 2) 5 else 7) {
 		for (username: String in tabletop.hands.orderedKeys())
-			drawStack.draw(username)
+			draw(drawStack.cards.peek(), username)
 	}
 	val topCard: ServerCard = drawStack.cards.peek()
 	topCard.setServerCardGroup(discardPile, tabletop)
@@ -173,9 +175,23 @@ fun CrazyEightsServer.onNewGame()
 		GdxArray(drawStack.cards),
 		GdxArray(discardPile.cards)
 	)
+	serverGameState!!.onPlayerChanged = ::onPlayerChanged
 	
 	server.sendToAllTCP(Chat(message = "Game started", isSystemMessage = true))
 	server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState!!.toGameState()))
+	
+	if (tabletop.users[serverGameState!!.currentPlayer.name].isAi)
+	{
+		KtxAsync.launch {
+			while (true)
+			{
+				if (actionLocks.isEmpty)
+					break
+				skipFrame()
+			}
+			onPlayerChanged(serverGameState!!.currentPlayer)
+		}
+	}
 }
 
 fun Tabletop.onGameStateUpdated(gameState: GameState)
@@ -254,6 +270,10 @@ fun CrazyEightsServer.onPass()
 
 @NoArg
 data class EightsPlayedEvent(val playerUsername: String) : PowerCardPlayedEvent
+{
+	override val delayMillis: Long
+		get() = 0
+}
 
 fun Tabletop.onEightsPlayed(event: EightsPlayedEvent)
 {
@@ -270,7 +290,7 @@ fun Tabletop.onEightsPlayed(event: EightsPlayedEvent)
 @NoArg
 data class SuitDeclareEvent(val suit: Suit)
 
-fun CrazyEightsServer.onSuitDeclare(connection: Connection, event: SuitDeclareEvent)
+fun CrazyEightsServer.onSuitDeclare(connection: Connection? = null, event: SuitDeclareEvent)
 {
 	info("Server | INFO") { "Suit changed to ${event.suit.name}" }
 	KtxAsync.launch {
@@ -281,11 +301,18 @@ fun CrazyEightsServer.onSuitDeclare(connection: Connection, event: SuitDeclareEv
 		serverGameState.doMove(ChangeSuitMove(topCard, event.suit))
 		server.sendToAllTCP(serverGameState.toGameState())
 	}
-	server.sendToAllExceptTCP(connection.id, event)
+	if (connection == null)
+		server.sendToAllTCP(event)
+	else
+		server.sendToAllExceptTCP(connection.id, event)
 }
 
 @NoArg
 data class DrawTwosPlayedEvent(val drawCardCount: Int) : PowerCardPlayedEvent
+{
+	override val delayMillis: Long
+		get() = 2000
+}
 
 fun Tabletop.onDrawTwosPlayed(packet: DrawTwosPlayedEvent)
 {
@@ -313,15 +340,19 @@ fun Tabletop.onDrawTwoPenalty(event: DrawTwoPenaltyEvent)
 		drawStackHolder.isFlashing = false
 		drawStackHolder.touchable = Touchable.disabled
 		myHand.touchable = Touchable.disabled
-	} then (delay(1.5F, DrawAction(room, hand, drawCardCount)) along delay(2F, Actions.run {
+	} then delay(1.5F, DrawAction(room, hand, drawCardCount)) then Actions.run {
 		drawStackHolder.touchable = Touchable.enabled
 		myHand.touchable = Touchable.enabled
 		game.client?.sendTCP(ActionLockReleaseEvent)
-	}))
+	}
 }
 
 @NoArg
 data class SkipsPlayedEvent(val victimUsername: String) : PowerCardPlayedEvent
+{
+	override val delayMillis: Long
+		get() = 2500
+}
 
 fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 {
@@ -336,6 +367,10 @@ fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 }
 
 object ReversePlayedEvent : PowerCardPlayedEvent
+{
+	override val delayMillis: Long
+		get() = 2000
+}
 
 fun Tabletop.onReversePlayed()
 {

@@ -74,6 +74,9 @@ class ServerGameState(
 	/** All possible moves from this state. */
 	val moves = GdxArray<Move>()
 	
+	var hasPlayerChanged = false
+	var onPlayerChanged: (Player) -> Unit = {}
+	
 	init
 	{
 		updateMoves()
@@ -137,6 +140,12 @@ class ServerGameState(
 		val drawingStackCardCount = drawStack.size
 		val totalCardCount = allPlayerCardCount + discardedCardCount + drawingStackCardCount
 		assert(totalCardCount == 52) { "Cards magically appeared/disappeared! $totalCardCount" }
+		
+		if (hasPlayerChanged)
+		{
+			onPlayerChanged(currentPlayer)
+			hasPlayerChanged = false
+		}
 	}
 	
 	private fun updateMoves()
@@ -207,6 +216,7 @@ class ServerGameState(
 	{
 		currentPlayer = nextPlayer
 		drawCount = 0
+		hasPlayerChanged = true
 	}
 	
 	val observedState: ServerGameState

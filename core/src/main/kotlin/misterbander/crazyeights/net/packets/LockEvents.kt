@@ -1,13 +1,11 @@
 package misterbander.crazyeights.net.packets
 
 import com.badlogic.gdx.utils.IntMap
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import ktx.async.KtxAsync
 import ktx.collections.*
 import ktx.log.debug
 import misterbander.crazyeights.game.DrawMove
-import misterbander.crazyeights.game.DrawTwoEffectPenalty
+import misterbander.crazyeights.game.draw
+import misterbander.crazyeights.game.drawTwoPenalty
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
@@ -55,22 +53,15 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 					return
 				if (serverGameState.drawTwoEffectCardCount > 0)
 				{
-					acquireActionLocks()
-					repeat(serverGameState.drawTwoEffectCardCount) { cardGroup.draw(lockerUsername) }
-					server.sendToAllTCP(DrawTwoPenaltyEvent(lockerUsername, serverGameState.drawTwoEffectCardCount))
-					KtxAsync.launch {
-						delay(2000)
-						serverGameState.doMove(DrawTwoEffectPenalty(serverGameState.drawTwoEffectCardCount))
-						server.sendToAllTCP(serverGameState.toGameState())
-					}
+					drawTwoPenalty(lockerUsername)
 					return
 				}
 				serverGameState.doMove(DrawMove)
 			}
-			else if (cardGroup.cardHolderId == tabletop.discardPileHolderId)
+			else if (cardGroup.cardHolderId == tabletop.discardPileHolderId) // Discard pile cannot be locked
 				return
 		}
-		else if (toLock is ServerCardGroup)
+		else if (toLock is ServerCardGroup) // Card groups can't be locked during games
 			return
 	}
 	debug("Server | DEBUG") { "$lockerUsername locks $toLock" }
@@ -94,26 +85,24 @@ fun CrazyEightsServer.onObjectUnlock(event: ObjectUnlockEvent)
 			val cardGroup = tabletop.idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup
 			if (isGameStarted && cardGroup.cardHolderId == tabletop.drawStackHolderId)
 			{
-				cardGroup.draw(unlockerUsername)
 				server.sendToAllTCP(event)
-				server.sendToAllTCP(ObjectOwnEvent(id, unlockerUsername))
-				server.sendToAllTCP(CardSlideSoundEvent)
+				draw(cardGroup.cards.peek(), unlockerUsername, fireOwnEvent = true, playSound = true)
 				return
 			}
 			else
 				cardGroup.arrange()
 		}
-		else if (isGameStarted) // Restrict
+		else if (isGameStarted)
 		{
+			// If the card is left on the table without being in someone's hand or in a card group, then it will be
+			// returned to its original owner
 			toUnlock.lockHolder = ""
 			runLater.getOrPut(unlockerUsername) { IntMap() }.put(
 				toUnlock.id,
 				CrazyEightsServer.CancellableRunnable(
 					runnable = {
-						toUnlock.isFaceUp = true
 						toUnlock.lockHolder = null
-						toUnlock.setOwner(unlockerUsername, tabletop)
-						server.sendToAllTCP(ObjectOwnEvent(id, unlockerUsername))
+						draw(toUnlock, unlockerUsername, fireOwnEvent = true)
 					},
 					onCancel = { toUnlock.lockHolder = null }
 				)

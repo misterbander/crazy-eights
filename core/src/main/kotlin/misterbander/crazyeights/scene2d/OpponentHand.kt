@@ -71,6 +71,7 @@ class OpponentHand(
 			nameLabelContainer.pack()
 			nameLabelContainer.setPosition(0F, 0F, Align.center)
 		}
+	var isHandOpen = false
 	
 	// Modules
 	private val highlightable = Highlightable(this)

@@ -39,6 +39,7 @@ import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
+import misterbander.crazyeights.net.packets.GameEndedEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
@@ -63,6 +64,7 @@ import misterbander.crazyeights.net.packets.onDrawStackRefill
 import misterbander.crazyeights.net.packets.onDrawTwoPenalty
 import misterbander.crazyeights.net.packets.onDrawTwosPlayed
 import misterbander.crazyeights.net.packets.onEightsPlayed
+import misterbander.crazyeights.net.packets.onGameEnded
 import misterbander.crazyeights.net.packets.onGameStateUpdated
 import misterbander.crazyeights.net.packets.onNewGame
 import misterbander.crazyeights.net.packets.onObjectDisown
@@ -334,6 +336,8 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		
 //		if (Gdx.input.isKeyJustPressed(Input.Keys.E))
 //			tabletop.persistentPowerCardEffects += EffectText(this, "+2", tabletop.userToHandMap.values().toArray().random())
+//		if (Gdx.input.isKeyJustPressed(Input.Keys.F))
+//			game.client?.sendTCP(GameEndedEvent(""))
 	}
 	
 	override fun clearScreen()
@@ -456,6 +460,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //				}
 				is NewGameEvent -> tabletop.onNewGame(packet)
 				is GameState -> tabletop.onGameStateUpdated(packet)
+				is GameEndedEvent -> tabletop.onGameEnded(packet)
 				is EightsPlayedEvent -> tabletop.onEightsPlayed(packet)
 				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
 				is DrawTwosPlayedEvent -> tabletop.onDrawTwosPlayed(packet)

@@ -1,11 +1,13 @@
 package misterbander.crazyeights.net.packets
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.OrderedMap
+import com.esotericsoftware.kryonet.Connection
 import kotlinx.coroutines.launch
 import ktx.actors.alpha
 import ktx.actors.plusAssign
@@ -21,15 +23,18 @@ import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.game.draw
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
+import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
+import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.EffectText
 import misterbander.crazyeights.scene2d.Hand
+import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.actions.DealAction
 import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
@@ -58,13 +63,16 @@ fun Tabletop.onNewGame(event: NewGameEvent)
 	drawStack.flip(false)
 	
 	val userToHandMap = userToHandMap
-	for ((username, hand) in userToHandMap.toGdxArray()) // Remove hands of offline users
+	for (username: String in userToHandMap.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
 	{
+		val hand = userToHandMap[username]
 		if (username !in users)
 		{
 			userToHandMap.remove(username)
 			hand!!.remove()
 		}
+		if (hand is OpponentHand)
+			hand.isHandOpen = false
 	}
 	arrangePlayers()
 	
@@ -86,13 +94,16 @@ fun Tabletop.onNewGame(event: NewGameEvent)
 		}
 	
 	if (hands.size > 2)
+	{
 		playDirectionIndicator += fadeIn(2F)
+		playDirectionIndicator.scaleX = 1F
+	}
 	
 	room.gameState = gameState
 }
 
 @Suppress("UNCHECKED_CAST")
-fun CrazyEightsServer.onNewGame()
+fun CrazyEightsServer.onNewGame(connection: Connection)
 {
 	val idToObjectMap = tabletop.idToObjectMap
 	val drawStack = (idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
@@ -104,9 +115,10 @@ fun CrazyEightsServer.onNewGame()
 	{
 		if (serverObject is ServerLockable)
 			serverObject.lockHolder = null
-		if (serverObject is ServerCard && serverObject.cardGroupId != drawStack.id)
+		if (serverObject is ServerCard)
 		{
-			serverObject.setServerCardGroup(drawStack, tabletop)
+			if (serverObject.cardGroupId != drawStack.id)
+				serverObject.setServerCardGroup(drawStack, tabletop)
 			serverObject.isFaceUp = false
 		}
 	}
@@ -164,7 +176,7 @@ fun CrazyEightsServer.onNewGame()
 	)
 	serverGameState!!.onPlayerChanged = ::onPlayerChanged
 	
-	server.sendToAllTCP(Chat(message = "Game started", isSystemMessage = true))
+	server.sendToAllTCP(Chat(message = "${(connection.arbitraryData as User).name} started a new game", isSystemMessage = true))
 	server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState!!.toGameState()))
 	
 	if (tabletop.users[serverGameState!!.currentPlayer.name].isAi)
@@ -238,6 +250,30 @@ fun Tabletop.onGameStateUpdated(gameState: GameState)
 					powerCardEffects += EffectText(room, "+${drawTwoEffectCardCount}")
 			}
 		}
+	}
+}
+
+@NoArg
+data class GameEndedEvent(val winner: String)
+
+fun Tabletop.onGameEnded(event: GameEndedEvent)
+{
+	room.chatBox.chat("Game over! ${event.winner} won the game!", Color.YELLOW)
+	room.passButton.isVisible = false
+	drawStackHolder!!.touchable = Touchable.enabled
+	drawStackHolder!!.isFlashing = false
+	myHand.setDarkened { false }
+	room.gameState = null
+	for (hand: Hand in userToHandMap.values())
+	{
+		if (hand is OpponentHand && hand.user.isAi)
+			hand.isHandOpen = true
+	}
+	playDirectionIndicator += fadeOut(2F)
+	for (actor: Actor in powerCardEffects.children)
+	{
+		actor.clearActions()
+		actor += fadeOut(1F) then removeActor(actor)
 	}
 }
 

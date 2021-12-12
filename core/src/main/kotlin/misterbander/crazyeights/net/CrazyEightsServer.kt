@@ -98,7 +98,7 @@ class CrazyEightsServer
 		}
 	}
 	private val startServerJob = Job()
-	private var aiJob: Job? = null
+	var aiJob: Job? = null
 	@Volatile private var isStopped = false
 	
 	var serverGameState: ServerGameState? = null
@@ -174,6 +174,8 @@ class CrazyEightsServer
 	
 	fun onPlayerChanged(player: Player)
 	{
+		if (!isGameStarted)
+			return
 		val serverGameState = serverGameState!!
 		val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
 		val discardPile = (tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup
@@ -354,7 +356,7 @@ class CrazyEightsServer
 				is CardGroupChangeEvent -> onCardGroupChange(`object`)
 				is CardGroupDetachEvent -> onCardGroupDetach(`object`)
 				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
-				is NewGameEvent -> onNewGame()
+				is NewGameEvent -> onNewGame(connection)
 				is PassEvent -> pass()
 				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
 				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name

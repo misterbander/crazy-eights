@@ -29,6 +29,7 @@ import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
+import misterbander.crazyeights.net.packets.GameEndedEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
@@ -90,6 +91,7 @@ fun Kryo.registerClasses()
 	register(CardGroupDismantleEvent::class.java)
 	register(CardGroupShuffleEvent::class.java)
 	register(NewGameEvent::class.java)
+	register(GameEndedEvent::class.java)
 	register(ActionLockReleaseEvent::class.java)
 	register(Ruleset::class.java)
 	register(GameState::class.java)

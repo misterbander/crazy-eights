@@ -75,7 +75,8 @@ fun Tabletop.onCardGroupChange(event: CardGroupChangeEvent)
 			card.smoothMovable.setPosition(x, y)
 			card.smoothMovable.rotation = rotation
 			card.isFaceUp = isFaceUp
-			oldCardGroup?.arrange()
+			if (oldCardGroup != null)
+				oldCardGroup.ownable.myHand?.arrange() ?: oldCardGroup.arrange()
 		}
 		newCardGroup?.arrange()
 	}

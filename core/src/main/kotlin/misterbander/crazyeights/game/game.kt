@@ -1,24 +1,30 @@
 package misterbander.crazyeights.game
 
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.utils.IntMap
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
 import ktx.collections.*
+import ktx.log.debug
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
+import misterbander.crazyeights.model.ServerLockable
+import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
+import kotlin.math.min
+import kotlin.math.round
 
 fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 {
@@ -83,6 +89,10 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 	discardPile.arrange()
 	server.sendToAllTCP(cardGroupChangeEvent)
 	extraPackets.forEach { server.sendToAllTCP(it) }
+	
+	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	if (drawStack.cards.isEmpty)
+		refillDrawStack()
 }
 
 fun CrazyEightsServer.draw(
@@ -98,6 +108,10 @@ fun CrazyEightsServer.draw(
 		server.sendToAllTCP(ObjectOwnEvent(card.id, ownerUsername))
 	if (playSound)
 		server.sendToAllTCP(CardSlideSoundEvent)
+	
+	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	if (drawStack.cards.isEmpty)
+		refillDrawStack()
 }
 
 fun CrazyEightsServer.drawTwoPenalty(drawerUsername: String)
@@ -105,14 +119,62 @@ fun CrazyEightsServer.drawTwoPenalty(drawerUsername: String)
 	val serverGameState = serverGameState!!
 	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
 	
-	acquireActionLocks()
-	repeat(serverGameState.drawTwoEffectCardCount) { draw(drawStack.cards.peek(), drawerUsername) }
-	server.sendToAllTCP(DrawTwoPenaltyEvent(drawerUsername, serverGameState.drawTwoEffectCardCount))
-	lastPowerCardPlayedEvent = null
-	
 	KtxAsync.launch {
-		delay(1500L + serverGameState.drawTwoEffectCardCount*100)
-		serverGameState.doMove(DrawTwoEffectPenalty(serverGameState.drawTwoEffectCardCount))
+		if (drawStack.cards.size < serverGameState.drawTwoEffectCardCount)
+			refillDrawStack()
+		waitForActionLocks()
+		
+		acquireActionLocks()
+		val drawCount = min(drawStack.cards.size, serverGameState.drawTwoEffectCardCount)
+		repeat(drawCount) { draw(drawStack.cards.peek(), drawerUsername) }
+		server.sendToAllTCP(DrawTwoPenaltyEvent(drawerUsername, drawCount))
+		lastPowerCardPlayedEvent = null
+		
+		waitForActionLocks()
+		serverGameState.doMove(DrawTwoEffectPenalty(drawCount))
 		server.sendToAllTCP(serverGameState.toGameState())
 	}
+}
+
+fun CrazyEightsServer.refillDrawStack()
+{
+	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	val discardPileHolder = tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder
+	val discardPile = discardPileHolder.cardGroup
+	val serverGameState = serverGameState!!
+	
+	// Recall all discards
+	val discards = GdxArray(discardPile.cards)
+	val topCard: ServerCard = discards.pop() // Except the top card
+	for (discard: ServerObject in discards) // Unlock everything and move all cards to the draw stack
+	{
+		if (discard is ServerLockable)
+			discard.lockHolder = null
+		if (discard is ServerCard && discard.cardGroupId != drawStack.id)
+		{
+			discard.setServerCardGroup(drawStack, tabletop)
+			discard.isFaceUp = false
+		}
+	}
+	
+	val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
+	
+	// Shuffle draw stack
+	val seed = MathUtils.random.nextLong()
+	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
+	drawStack.shuffle(seed, tabletop)
+	
+	// Rearrange the top card nicely
+	topCard.x = 0F
+	topCard.y = 0F
+	topCard.rotation = 180*round(topCard.rotation/180)
+	
+	// Set game state and action lock
+	acquireActionLocks()
+	serverGameState.drawStack.clear()
+	serverGameState.drawStack += drawStack.cards
+	serverGameState.discardPile.clear()
+	serverGameState.discardPile += topCard
+	
+	server.sendToAllTCP(DrawStackRefillEvent(cardGroupChangeEvent, seed))
 }

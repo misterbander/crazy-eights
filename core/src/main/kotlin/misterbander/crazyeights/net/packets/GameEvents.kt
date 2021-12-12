@@ -13,7 +13,6 @@ import ktx.actors.alpha
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.KtxAsync
-import ktx.async.skipFrame
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
@@ -37,7 +36,9 @@ import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.Card
+import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.EffectText
+import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.PowerCardEffect
 import misterbander.crazyeights.scene2d.PowerCardEffectRing
@@ -51,6 +52,7 @@ import misterbander.crazyeights.scene2d.actions.ShuffleAction
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.gframework.scene2d.GObject
+import kotlin.math.round
 
 data class NewGameEvent(
 	val cardGroupChangeEvent: CardGroupChangeEvent? = null,
@@ -183,12 +185,7 @@ fun CrazyEightsServer.onNewGame()
 	if (tabletop.users[serverGameState!!.currentPlayer.name].isAi)
 	{
 		KtxAsync.launch {
-			while (true)
-			{
-				if (actionLocks.isEmpty)
-					break
-				skipFrame()
-			}
+			waitForActionLocks()
 			onPlayerChanged(serverGameState!!.currentPlayer)
 		}
 	}
@@ -383,4 +380,43 @@ fun Tabletop.onReversePlayed()
 		}
 	}
 	persistentPowerCardEffects += PowerCardEffectRing(room)
+}
+
+data class DrawStackRefillEvent(val cardGroupChangeEvent: CardGroupChangeEvent? = null, val shuffleSeed: Long = 0)
+
+fun Tabletop.onDrawStackRefill(event: DrawStackRefillEvent)
+{
+	val (cardGroupChangeEvent, shuffleSeed) = event
+	val drawStack = drawStack!!
+	val discardPile = discardPile!!
+	val discards = GdxArray(discardPile.cards)
+	val topCard: Groupable<CardGroup> = discards.pop()
+	
+	for (discard: Groupable<CardGroup> in discards) // Unlock and disown everything in discards
+	{
+		discard.lockable.unlock(false)
+		discard.getModule<Ownable>()?.wasInHand = false
+	}
+	
+	onCardGroupChange(cardGroupChangeEvent!!)
+	drawStack.flip(false)
+	
+	topCard.smoothMovable.apply {
+		x = 0F
+		y = 0F
+		rotation = 180*round(rotation/180)
+	}
+	
+	val prevDrawStackTouchable = drawStackHolder!!.touchable
+	val prevMyHandTouchable = myHand.touchable
+	drawStack += Actions.run {
+		drawStackHolder!!.touchable = Touchable.disabled
+		myHand.touchable = Touchable.disabled
+	} then
+		delay(0.5F,	ShuffleAction(room, shuffleSeed)) then
+		Actions.run {
+			drawStackHolder!!.touchable = prevDrawStackTouchable
+			myHand.touchable = prevMyHandTouchable
+			game.client?.sendTCP(ActionLockReleaseEvent)
+		}
 }

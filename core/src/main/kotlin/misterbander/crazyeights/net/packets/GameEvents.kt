@@ -1,23 +1,33 @@
 package misterbander.crazyeights.net.packets
 
+import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.OrderedMap
+import com.esotericsoftware.kryonet.Connection
+import kotlinx.coroutines.launch
 import ktx.actors.along
+import ktx.actors.alpha
 import ktx.actors.plusAssign
 import ktx.actors.then
+import ktx.async.KtxAsync
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.CrazyEights
+import misterbander.crazyeights.game.ChangeSuitMove
+import misterbander.crazyeights.game.PassMove
 import misterbander.crazyeights.game.Player
+import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
+import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
@@ -32,6 +42,7 @@ import misterbander.crazyeights.scene2d.PowerCardEffectRing
 import misterbander.crazyeights.scene2d.SuitChooser
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.actions.DealAction
+import misterbander.crazyeights.scene2d.actions.DrawAction
 import misterbander.crazyeights.scene2d.actions.HideCenterTitleAction
 import misterbander.crazyeights.scene2d.actions.ShowCenterTitleAction
 import misterbander.crazyeights.scene2d.actions.ShuffleAction
@@ -44,8 +55,6 @@ data class NewGameEvent(
 	val shuffleSeed: Long = 0,
 	val gameState: GameState? = null
 )
-
-object NewGameActionFinishedEvent
 
 fun Tabletop.onNewGame(event: NewGameEvent)
 {
@@ -84,7 +93,7 @@ fun Tabletop.onNewGame(event: NewGameEvent)
 		Actions.run {
 			drawStackHolder!!.touchable = Touchable.enabled
 			myHand.touchable = Touchable.enabled
-			game.client?.sendTCP(NewGameActionFinishedEvent)
+			game.client?.sendTCP(ActionLockReleaseEvent)
 		}
 	
 	if (hands.size > 2)
@@ -130,11 +139,11 @@ fun CrazyEightsServer.onNewGame()
 	val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
 	
 	// Shuffle draw stack
-//	val seed = MathUtils.random.nextLong()
+	val seed = MathUtils.random.nextLong()
 //	val seed = 9020568252116114615 // Starting hand with 8, A
 //	val seed = -5000073366615045381 // Starting hand with 2
 //	val seed = 2212245332158196130 // Starting hand with Q
-	val seed = -3202561125370556140 // Starting hand with A
+//	val seed = -3202561125370556140 // Starting hand with A
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
 	drawStack.shuffle(seed, tabletop)
 	
@@ -155,23 +164,96 @@ fun CrazyEightsServer.onNewGame()
 		if (user.isAi)
 			playerHands[IsmctsAgent(username)] = GdxArray(hand) as GdxArray<ServerCard>
 		else
-		{
 			playerHands[user] = GdxArray(hand) as GdxArray<ServerCard>
-			actionLocks += user.name
-		}
 	}
+	acquireActionLocks()
 	serverGameState = ServerGameState(
-		playerHands = playerHands,
-		drawStack = GdxArray(drawStack.cards),
-		discardPile = GdxArray(discardPile.cards)
+		Ruleset(drawTwos = true, skips = true, reverses = true),
+		playerHands,
+		GdxArray(drawStack.cards),
+		GdxArray(discardPile.cards)
 	)
 	
 	server.sendToAllTCP(Chat(message = "Game started", isSystemMessage = true))
 	server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState!!.toGameState()))
 }
 
+fun Tabletop.onGameStateUpdated(gameState: GameState)
+{
+	val (_, players, currentPlayer, isPlayReversed, drawCount, declaredSuit, drawTwoEffectCardCount, powerCardPlayedEvent) = gameState
+	val drawStackHolder = drawStackHolder!!
+	room.gameState = gameState
+	
+	if (currentPlayer == game.user.name)
+	{
+		room.passButton.isVisible = drawCount >= 3 && powerCardPlayedEvent !is EightsPlayedEvent
+		drawStackHolder.touchable =
+			if (drawCount >= 3 || powerCardPlayedEvent is EightsPlayedEvent && powerCardPlayedEvent.playerUsername == game.user.name)
+				Touchable.disabled
+			else
+				Touchable.enabled
+		drawStackHolder.isFlashing = drawTwoEffectCardCount > 0
+		if (drawTwoEffectCardCount > 0)
+			myHand.setDarkened { it.rank != Rank.TWO }
+		else
+			myHand.setDarkened { powerCardPlayedEvent is EightsPlayedEvent && powerCardPlayedEvent.playerUsername == game.user.name }
+	}
+	else
+	{
+		room.passButton.isVisible = false
+		drawStackHolder.touchable = Touchable.enabled
+		drawStackHolder.isFlashing = false
+		myHand.setDarkened { true }
+	}
+	
+	if (players.size > 2 && MathUtils.isEqual(playDirectionIndicator.alpha, 0F))
+	{
+		playDirectionIndicator.scaleX = if (isPlayReversed) -1F else 1F
+		playDirectionIndicator += fadeIn(2F)
+	}
+	
+	if (declaredSuit != null && powerCardPlayedEvent !is EightsPlayedEvent)
+	{
+		if (suitChooser == null)
+			onEightsPlayed(EightsPlayedEvent(""))
+		if (suitChooser!!.chosenSuit == null)
+			suitChooser!!.chosenSuit = declaredSuit
+	}
+	else
+	{
+		suitChooser = null
+		when (powerCardPlayedEvent)
+		{
+			is EightsPlayedEvent -> onEightsPlayed(powerCardPlayedEvent)
+			is DrawTwosPlayedEvent -> onDrawTwosPlayed(powerCardPlayedEvent)
+			is ReversePlayedEvent -> onReversePlayed()
+			is SkipsPlayedEvent -> onSkipsPlayed(powerCardPlayedEvent)
+			else ->
+			{
+				for (actor: Actor in powerCardEffects.children)
+				{
+					actor.clearActions()
+					actor += fadeOut(1F) then removeActor(actor)
+				}
+				
+				if (drawTwoEffectCardCount > 0)
+					powerCardEffects += EffectText(room, "+${drawTwoEffectCardCount}")
+			}
+		}
+	}
+}
+
+object PassEvent
+
+fun CrazyEightsServer.onPass()
+{
+	val serverGameState = serverGameState!!
+	serverGameState.doMove(PassMove)
+	server.sendToAllTCP(serverGameState.toGameState())
+}
+
 @NoArg
-data class EightsPlayedEvent(val playerUsername: String)
+data class EightsPlayedEvent(val playerUsername: String) : PowerCardPlayedEvent
 
 fun Tabletop.onEightsPlayed(event: EightsPlayedEvent)
 {
@@ -188,27 +270,58 @@ fun Tabletop.onEightsPlayed(event: EightsPlayedEvent)
 @NoArg
 data class SuitDeclareEvent(val suit: Suit)
 
-fun CrazyEightsServer.onSuitDeclare(event: SuitDeclareEvent)
+fun CrazyEightsServer.onSuitDeclare(connection: Connection, event: SuitDeclareEvent)
 {
 	info("Server | INFO") { "Suit changed to ${event.suit.name}" }
-	server.sendToAllTCP(event)
+	KtxAsync.launch {
+		val serverGameState = serverGameState!!
+		val topCard: ServerCard =
+			(tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup.cards.peek()
+		kotlinx.coroutines.delay(1000)
+		serverGameState.doMove(ChangeSuitMove(topCard, event.suit))
+		server.sendToAllTCP(serverGameState.toGameState())
+	}
+	server.sendToAllExceptTCP(connection.id, event)
 }
 
-object DrawTwosPlayedEvent
+@NoArg
+data class DrawTwosPlayedEvent(val drawCardCount: Int) : PowerCardPlayedEvent
 
-fun Tabletop.onDrawTwosPlayed()
+fun Tabletop.onDrawTwosPlayed(packet: DrawTwosPlayedEvent)
 {
 	powerCardEffects.clearChildren()
 	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
-			powerCardEffects += EffectText(room, "+2")
+			powerCardEffects += EffectText(room, "+${packet.drawCardCount}")
 		}
 	}
 	persistentPowerCardEffects += PowerCardEffectRing(room)
 }
 
 @NoArg
-data class SkipsPlayedEvent(val victimUsername: String)
+data class DrawTwoPenaltyEvent(val victimUsername: String, val drawCardCount: Int)
+
+fun Tabletop.onDrawTwoPenalty(event: DrawTwoPenaltyEvent)
+{
+	val (victimUsername, drawCardCount) = event
+	val drawStackHolder = drawStackHolder!!
+	val hand = userToHandMap[victimUsername]!!
+	val drawTwoEffectText = powerCardEffects.children.firstOrNull { it is EffectText } as? EffectText
+	drawTwoEffectText?.moveToHand(hand)
+	
+	drawStack!! += Actions.run {
+		drawStackHolder.isFlashing = false
+		drawStackHolder.touchable = Touchable.disabled
+		myHand.touchable = Touchable.disabled
+	} then (delay(1.5F, DrawAction(room, hand, drawCardCount)) along delay(2F, Actions.run {
+		drawStackHolder.touchable = Touchable.enabled
+		myHand.touchable = Touchable.enabled
+		game.client?.sendTCP(ActionLockReleaseEvent)
+	}))
+}
+
+@NoArg
+data class SkipsPlayedEvent(val victimUsername: String) : PowerCardPlayedEvent
 
 fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 {
@@ -219,9 +332,10 @@ fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 		}
 	}
 	persistentPowerCardEffects += PowerCardEffectRing(room)
+//	isPowerCardJustPlayed = true
 }
 
-object ReversePlayedEvent
+object ReversePlayedEvent : PowerCardPlayedEvent
 
 fun Tabletop.onReversePlayed()
 {

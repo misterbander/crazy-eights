@@ -6,6 +6,7 @@ import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
+import misterbander.crazyeights.net.packets.PowerCardPlayedEvent
 
 /**
  * Mutable state representing a game of Crazy Eights.
@@ -96,6 +97,8 @@ class ServerGameState(
 					drawTwoEffectCardCount = 0
 				if (ruleset.skips && move.card.rank == Rank.QUEEN)
 					advanceToNextPlayer()
+				if (ruleset.reverses && move.card.rank == Rank.ACE && playerCount > 2)
+					isPlayReversed = !isPlayReversed
 				advanceToNextPlayer()
 			}
 			is DrawMove ->
@@ -176,8 +179,9 @@ class ServerGameState(
 	
 	private fun discard(card: ServerCard)
 	{
-		currentPlayerHand -= card
-		discardPile += card
+		val matchingCard = currentPlayerHand.first { it.name == card.name }
+		currentPlayerHand -= matchingCard
+		discardPile += matchingCard
 	}
 	
 	private fun drawOne()
@@ -262,13 +266,14 @@ class ServerGameState(
 	
 	fun getResult(player: Player): Int = if (playerHands[player]!!.isEmpty) 1 else 0
 	
-	fun toGameState(): GameState = GameState(
+	fun toGameState(powerCardPlayedEvent: PowerCardPlayedEvent? = null): GameState = GameState(
 		ruleset,
 		playerHands.orderedKeys().map { it.name },
 		currentPlayer.name,
 		isPlayReversed,
 		drawCount,
 		declaredSuit,
-		drawTwoEffectCardCount
+		drawTwoEffectCardCount,
+		powerCardPlayedEvent
 	)
 }

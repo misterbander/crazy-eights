@@ -18,8 +18,6 @@ import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.ServerTabletop
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.packets.EightsPlayedEvent
-import misterbander.crazyeights.net.packets.onEightsPlayed
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.gframework.scene2d.GObject
@@ -55,8 +53,7 @@ class Tabletop(val room: Room)
 		get() = discardPileHolder?.cardGroup
 	
 	var suitChooser: SuitChooser? = null
-	val isSuitChooserActive: Boolean
-		get() = suitChooser != null
+	var isPowerCardJustPlayed = false
 	
 	@Suppress("UNCHECKED_CAST")
 	fun setState(state: ServerTabletop)
@@ -104,9 +101,6 @@ class Tabletop(val room: Room)
 		
 		val drawStackHolder = drawStackHolder!!
 		room.passButton.setPosition(drawStackHolder.x, drawStackHolder.y, Align.center)
-		
-		if (state.suitChooser != null)
-			room.tabletop.onEightsPlayed(EightsPlayedEvent(state.suitChooser!!))
 		
 		arrangePlayers()
 	}

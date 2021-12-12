@@ -1,7 +1,9 @@
 package misterbander.crazyeights.scene2d
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils
 import com.badlogic.gdx.utils.Align
@@ -47,6 +49,12 @@ class Card(
 	private val cardImage = scene2d.image(if (isFaceUp) faceUpDrawable else faceDownDrawable) {
 		setPosition(0F, 0F, Align.center)
 	}
+	var isDarkened = false
+		set(value)
+		{
+			field = value
+			cardImage += color(if (value) Color.GRAY else Color.WHITE, 0.5F)
+		}
 	
 	var cardGroup: CardGroup?
 		get() = parent as? CardGroup?

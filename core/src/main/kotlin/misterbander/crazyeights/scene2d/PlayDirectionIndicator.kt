@@ -1,7 +1,5 @@
 package misterbander.crazyeights.scene2d
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.math.MathUtils
@@ -37,9 +35,6 @@ class PlayDirectionIndicator(room: GScreen<CrazyEights>) : GObject<CrazyEights>(
 		rotationSpeed = min(rotationSpeed + 10*delta, 20F)
 		if (rotationSpeed > 0)
 			rotation += if (scaleX == 1F) -rotationSpeed*delta else rotationSpeed*delta
-		
-		if (Gdx.input.isKeyJustPressed(Input.Keys.F))
-			flipDirection()
 	}
 	
 	fun flipDirection()

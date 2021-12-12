@@ -1,9 +1,13 @@
 package misterbander.crazyeights.net.packets
 
 import com.badlogic.gdx.utils.IntMap
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import ktx.async.KtxAsync
 import ktx.collections.*
 import ktx.log.debug
 import misterbander.crazyeights.game.DrawMove
+import misterbander.crazyeights.game.DrawTwoEffectPenalty
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
@@ -39,16 +43,29 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 		return
 	if (isGameStarted)
 	{
-		if (tabletop.users[lockerUsername]!! !in serverGameState!!.playerHands)
+		val serverGameState = serverGameState!!
+		if (lockerUsername != serverGameState.currentPlayer.name) // You can't lock anything if it's not your turn
 			return
 		if (toLock is ServerCard && toLock.cardGroupId != -1)
 		{
 			val cardGroup = tabletop.idToObjectMap[toLock.cardGroupId] as ServerCardGroup
 			if (cardGroup.cardHolderId == tabletop.drawStackHolderId)
 			{
-				if (serverGameState!!.drawCount >= 3)
+				if (serverGameState.drawCount >= 3)
 					return
-				serverGameState!!.doMove(DrawMove)
+				if (serverGameState.drawTwoEffectCardCount > 0)
+				{
+					acquireActionLocks()
+					repeat(serverGameState.drawTwoEffectCardCount) { cardGroup.draw(lockerUsername) }
+					server.sendToAllTCP(DrawTwoPenaltyEvent(lockerUsername, serverGameState.drawTwoEffectCardCount))
+					KtxAsync.launch {
+						delay(2000)
+						serverGameState.doMove(DrawTwoEffectPenalty(serverGameState.drawTwoEffectCardCount))
+						server.sendToAllTCP(serverGameState.toGameState())
+					}
+					return
+				}
+				serverGameState.doMove(DrawMove)
 			}
 			else if (cardGroup.cardHolderId == tabletop.discardPileHolderId)
 				return

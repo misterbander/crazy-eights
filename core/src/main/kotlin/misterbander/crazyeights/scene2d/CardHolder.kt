@@ -2,9 +2,14 @@ package misterbander.crazyeights.scene2d
 
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
+import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Align
+import ktx.actors.minusAssign
 import ktx.actors.plusAssign
+import ktx.actors.then
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
@@ -36,6 +41,29 @@ class CardHolder(
 	val cardGroup: CardGroup?
 		get() = if (children.size > 1) children[1] as CardGroup else null
 	
+	private var flashAction: RepeatAction? = null
+	var isFlashing: Boolean
+		get() = flashAction != null
+		set(value)
+		{
+			if (value)
+			{
+				flashAction = forever(
+					Actions.run {
+						highlightable.forceHighlight = true
+					} then delay(
+						0.5F, Actions.run { highlightable.forceHighlight = false }
+					) then delay(0.5F)
+				)
+				this += flashAction!!
+			}
+			else if (flashAction != null)
+			{
+				this -= flashAction!!
+				highlightable.forceHighlight = false
+			}
+		}
+	
 	// Modules
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
 	override val lockable = Lockable(id, lockHolder, smoothMovable)
@@ -48,7 +76,7 @@ class CardHolder(
 	override val highlightable: Highlightable = object : Highlightable(this)
 	{
 		override val shouldHighlight: Boolean
-			get() = super.shouldHighlight && this@CardHolder.cardGroup?.cards?.isEmpty != false
+			get() = super.shouldHighlight && this@CardHolder.cardGroup?.cards?.isEmpty != false || forceHighlight
 		
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked

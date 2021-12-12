@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
@@ -36,6 +35,7 @@ import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.HandUpdateEvent
@@ -46,6 +46,7 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
@@ -57,8 +58,10 @@ import misterbander.crazyeights.net.packets.onCardFlip
 import misterbander.crazyeights.net.packets.onCardGroupChange
 import misterbander.crazyeights.net.packets.onCardGroupCreate
 import misterbander.crazyeights.net.packets.onCardGroupDetach
+import misterbander.crazyeights.net.packets.onDrawTwoPenalty
 import misterbander.crazyeights.net.packets.onDrawTwosPlayed
 import misterbander.crazyeights.net.packets.onEightsPlayed
+import misterbander.crazyeights.net.packets.onGameStateUpdated
 import misterbander.crazyeights.net.packets.onNewGame
 import misterbander.crazyeights.net.packets.onObjectDisown
 import misterbander.crazyeights.net.packets.onObjectLock
@@ -168,6 +171,8 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		addUprightGObject(this)
 		onChange {
 			click.play()
+			game.client?.sendTCP(PassEvent)
+			isVisible = false
 		}
 	}
 	
@@ -448,21 +453,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //					cardGroup.shuffle(seed)
 //				}
 				is NewGameEvent -> tabletop.onNewGame(packet)
-				is GameState ->
-				{
-					gameState = packet
-					if (packet.declaredSuit != null)
-						tabletop.suitChooser!!.chosenSuit = packet.declaredSuit
-					if (packet.players.size > 2)
-					{
-						if (packet.isPlayReversed)
-							tabletop.playDirectionIndicator.scaleX = -1F
-						tabletop.playDirectionIndicator += fadeIn(2F)
-					}
-				}
+				is GameState -> tabletop.onGameStateUpdated(packet)
 				is EightsPlayedEvent -> tabletop.onEightsPlayed(packet)
 				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
-				is DrawTwosPlayedEvent -> tabletop.onDrawTwosPlayed()
+				is DrawTwosPlayedEvent -> tabletop.onDrawTwosPlayed(packet)
+				is DrawTwoPenaltyEvent -> tabletop.onDrawTwoPenalty(packet)
 				is SkipsPlayedEvent -> tabletop.onSkipsPlayed(packet)
 				is ReversePlayedEvent -> tabletop.onReversePlayed()
 				is CardSlideSoundEvent -> cardSlide.play()

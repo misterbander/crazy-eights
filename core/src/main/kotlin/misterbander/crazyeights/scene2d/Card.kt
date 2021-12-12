@@ -148,8 +148,9 @@ class Card(
 	
 	override fun update(delta: Float)
 	{
-		if (firstAscendant(OpponentHand::class.java) != null)
-			cardImage.drawable = faceDownDrawable
+		val opponentHand: OpponentHand? = firstAscendant(OpponentHand::class.java)
+		if (opponentHand != null)
+			cardImage.drawable = if (opponentHand.isHandOpen) faceUpDrawable else faceDownDrawable
 		else
 			cardImage.drawable = if (isFaceUp) faceUpDrawable else faceDownDrawable
 	}

@@ -17,6 +17,7 @@ import misterbander.crazyeights.net.packets.CardSlideSoundEvent
 import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
+import misterbander.crazyeights.net.packets.GameEndedEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
@@ -84,6 +85,23 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 	runLater.getOrPut(playerUsername) { IntMap() }.remove(card.id)?.onCancel?.invoke()
 	discardPile.arrange()
 	server.sendToAllTCP(cardGroupChangeEvent)
+	
+	if (serverGameState.isTerminal)
+	{
+		var winner: Player = serverGameState.playerHands.orderedKeys().first()
+		for (player: Player in serverGameState.playerHands.orderedKeys())
+		{
+			if (serverGameState.getResult(player) == 1)
+				winner = player
+		}
+		this.serverGameState = null
+		aiJob?.cancel()
+		if (CardSlideSoundEvent in extraPackets)
+			server.sendToAllTCP(CardSlideSoundEvent)
+		server.sendToAllTCP(GameEndedEvent(winner.name))
+		return
+	}
+	
 	extraPackets.forEach { server.sendToAllTCP(it) }
 	
 	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup

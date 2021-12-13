@@ -1,11 +1,13 @@
 package misterbander.crazyeights.scene2d.dialogs
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ktx.actors.onChange
 import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
+import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
 import misterbander.crazyeights.INFO_LABEL_STYLE_S
 import misterbander.crazyeights.MainMenu
@@ -14,10 +16,11 @@ import misterbander.crazyeights.TEXT_BUTTON_STYLE
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
+import java.net.ConnectException
 import kotlin.coroutines.cancellation.CancellationException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class JoinRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Join Room")
+class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainMenu, "Join Room")
 {
 	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
 	private val joinButton = scene2d.textButton("Join", TEXT_BUTTON_STYLE) {
@@ -40,24 +43,42 @@ class JoinRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Join Room")
 			}
 			joinRoomJob = KtxAsync.launch {
 				val ip = ipTextField.text
-				val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
+				val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else DEFAULT_TCP_PORT
 				try
 				{
 					val room = game.getScreen<Room>()
 					room.clientListener = room.ClientListener()
 					mainMenu.clientListener = mainMenu.ClientListener()
-					val client = game.network.createAndConnectClient(ip, port)
+					val client = if (isAdvanced)
+						game.network.createAndConnectClient(ip, port)
+					else
+					{
+						info("Client | INFO") { "Finding server with room code ${roomCodeTextField.text}" }
+						game.network.createAndConnectClientByRoomCode(roomCodeTextField.text)
+					}
+					if (!isActive)
+						throw CancellationException()
 					client.addListener(mainMenu.clientListener!!)
 					client.addListener(room.clientListener)
 					// Perform handshake by doing checking version and username availability
 					info("Client | INFO") { "Perform handshake" }
-					client.sendTCP(Handshake(data = arrayOf(game.user.name)))
+					client.sendTCP(Handshake(data = arrayOf(game.user.name, roomCodeTextField.text)))
 				}
 				catch (e: Exception)
 				{
 					if (e !is CancellationException && joinRoomJob?.isCancelled == false)
 					{
-						mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
+						if (e is ConnectException && e.message?.startsWith("Couldn't find server with room code:") == true)
+							mainMenu.messageDialog.show(
+								"Error",
+								"Couldn't find room with room code: ${roomCodeTextField.text}\n" +
+									"Either the room code is incorrect, the server is not discoverable under your " +
+									"network, or the server failed to respond in time.",
+								"OK",
+								this@JoinRoomDialog::show
+							)
+						else
+							mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
 						game.network.stop()
 					}
 				}
@@ -72,17 +93,33 @@ class JoinRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Join Room")
 		contentTable.apply {
 			defaults().left().space(16F)
 			add(scene2d.label("Username:", INFO_LABEL_STYLE_S))
-			add(usernameTextField).prefWidth(288F)
+			add(usernameTextField).prefWidth(416F)
 			add(colorButton)
 			row()
-			add(scene2d.label("Server IP Address:", INFO_LABEL_STYLE_S))
-			add(ipTextField).prefWidth(288F)
-			row()
-			add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
-			add(portTextField).prefWidth(288F)
+			if (isAdvanced)
+			{
+				add(scene2d.label("Server IP Address:", INFO_LABEL_STYLE_S))
+				add(ipTextField).prefWidth(416F)
+				row()
+				add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
+				add(portTextField).prefWidth(416F)
+				row()
+			}
+			add(scene2d.label("Room Code:", INFO_LABEL_STYLE_S))
+			add(roomCodeTextField).prefWidth(416F)
 		}
 		buttonTable.apply {
-			add(joinButton).prefWidth(224F)
+			add(joinButton).prefWidth(248F)
+			add(scene2d.textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
+				onChange {
+					mainMenu.click.play()
+					hide()
+					if (isAdvanced)
+						mainMenu.joinRoomDialog.show()
+					else
+						mainMenu.advancedJoinRoomDialog.show()
+				}
+			}).prefWidth(224F)
 			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { mainMenu.click.play(); hide() }
 			})

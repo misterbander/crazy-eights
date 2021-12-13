@@ -2,14 +2,20 @@ package misterbander.crazyeights.net
 
 import com.badlogic.gdx.utils.OrderedSet
 import com.esotericsoftware.kryonet.Client
+import com.esotericsoftware.kryonet.ClientDiscoveryHandler
 import com.esotericsoftware.kryonet.Listener
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
+import misterbander.crazyeights.DEFAULT_TCP_PORT
+import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
+import java.net.ConnectException
+import java.net.DatagramPacket
+import java.security.MessageDigest
 
 class CrazyEightsClient
 {
@@ -30,7 +36,36 @@ class CrazyEightsClient
 		// Temporary workaround to avoid crashing the application by catching the annoying
 		// java.nio.channels.ClosedSelectorException caused when closing the server
 		client.updateThread.setUncaughtExceptionHandler { _, e: Throwable -> e.printStackTrace() }
-		client.connect(hostAddress, port)
+		client.connect(500, hostAddress, port, DEFAULT_UDP_PORT)
+	}
+	
+	fun discoverHostByRoomCode(roomCode: String)
+	{
+		var found = false
+		client.setDiscoveryHandler(object : ClientDiscoveryHandler
+		{
+			override fun onRequestNewDatagramPacket(): DatagramPacket = DatagramPacket(ByteArray(32), 32)
+			
+			override fun onDiscoveredHost(datagramPacket: DatagramPacket)
+			{
+				if (found || isStopped)
+					return
+				val bytes = roomCode.toByteArray()
+				val md = MessageDigest.getInstance("SHA-256")
+				val digest: ByteArray = md.digest(bytes)
+				if (digest.contentEquals(datagramPacket.data))
+				{
+					found = true
+					connect(datagramPacket.address.hostAddress, DEFAULT_TCP_PORT)
+				}
+			}
+		})
+		repeat(4) {
+			client.discoverHosts(DEFAULT_UDP_PORT, 5000)
+			if (found || isStopped)
+				return
+		}
+		throw ConnectException("Couldn't find server with room code: $roomCode")
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")

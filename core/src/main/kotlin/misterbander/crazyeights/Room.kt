@@ -396,10 +396,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	
 	inner class ClientListener : BufferedListener()
 	{
-		override fun connected(connection: Connection)
-		{
-			connection.setTimeout(0)
-		}
+//		override fun connected(connection: Connection) = connection.setTimeout(0)
 		
 		override fun disconnected(connection: Connection)
 		{

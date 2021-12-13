@@ -8,7 +8,7 @@ import misterbander.crazyeights.MainMenu
 import misterbander.gframework.scene2d.GTextField
 import misterbander.gframework.scene2d.gTextField
 
-abstract class RoomSettingsDialog(mainMenu: MainMenu, title: String) : CrazyEightsDialog(mainMenu, title)
+abstract class PlayDialog(mainMenu: MainMenu, title: String) : CrazyEightsDialog(mainMenu, title)
 {
 	val usernameTextField by lazy {
 		scene2d.gTextField(this, "", FORM_TEXT_FIELD_STYLE) { maxLength = 20 }

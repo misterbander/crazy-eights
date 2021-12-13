@@ -17,7 +17,7 @@ import misterbander.gframework.scene2d.gTextField
 import kotlin.coroutines.cancellation.CancellationException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class JoinRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Join Room")
+class JoinRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Join Room")
 {
 	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
 	private var joinRoomJob: Job? = null

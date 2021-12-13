@@ -42,10 +42,10 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 		}
 	}
 	
-	override fun show()
+	override fun act(delta: Float)
 	{
-		super.show()
-		newGameButton.isDisabled = room.isGameStarted
-		addAiButton.isDisabled = room.isGameStarted
+		super.act(delta)
+		newGameButton.isDisabled = room.isGameStarted || room.tabletop.users.size == 1
+		addAiButton.isDisabled = room.isGameStarted || room.tabletop.users.size >= 6
 	}
 }

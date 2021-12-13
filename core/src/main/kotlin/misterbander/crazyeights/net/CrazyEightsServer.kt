@@ -301,10 +301,20 @@ class CrazyEightsServer
 						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 1 argument but found ${data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
 						return
 					}
+					if (tabletop.users.size >= 6) // Capacity check
+					{
+						connection.sendTCP(HandshakeReject("Room is already full (Max 6 players)."))
+						return
+					}
 					val username = data[0]
 					if (tabletop.users[username] != null) // Check username collision
 					{
 						connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))
+						return
+					}
+					if (username.isBlank())
+					{
+						connection.sendTCP(HandshakeReject("Illegal username \"\"."))
 						return
 					}
 					

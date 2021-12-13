@@ -5,6 +5,7 @@ import com.badlogic.gdx.utils.IntSet
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import com.esotericsoftware.kryonet.ServerDiscoveryHandler
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -15,6 +16,7 @@ import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
+import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.VERSION_STRING
 import misterbander.crazyeights.game.ChangeSuitMove
 import misterbander.crazyeights.game.DrawMove
@@ -83,8 +85,12 @@ import misterbander.crazyeights.net.packets.onObjectUnlock
 import misterbander.crazyeights.net.packets.onRulesetUpdate
 import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.DatagramChannel
+import java.security.MessageDigest
 
-class CrazyEightsServer
+class CrazyEightsServer(private val roomCode: String)
 {
 	private var maxId = 0
 	val tabletop = ServerTabletop()
@@ -98,6 +104,19 @@ class CrazyEightsServer
 		Server().apply {
 			kryo.registerClasses()
 			addListener(ServerListener())
+			setDiscoveryHandler(object : ServerDiscoveryHandler
+			{
+				override fun onDiscoverHost(datagramChannel: DatagramChannel, fromAddress: InetSocketAddress): Boolean
+				{
+					// Client discovery. Send back hashed room code.
+					val bytes = roomCode.toByteArray()
+					val md = MessageDigest.getInstance("SHA-256")
+					val digest: ByteArray = md.digest(bytes)
+					datagramChannel.send(ByteBuffer.wrap(digest), fromAddress)
+					println(digest.contentToString())
+					return true
+				}
+			})
 		}
 	}
 	private val startServerJob = Job()
@@ -140,7 +159,7 @@ class CrazyEightsServer
 		try
 		{
 			server.start()
-			server.bind(port)
+			server.bind(port, DEFAULT_UDP_PORT)
 		}
 		finally
 		{
@@ -247,7 +266,7 @@ class CrazyEightsServer
 		override fun connected(connection: Connection)
 		{
 			connection.setName("Server-side client connection ${connection.id}")
-			connection.setTimeout(0)
+//			connection.setTimeout(0)
 		}
 		
 		override fun disconnected(connection: Connection)
@@ -300,9 +319,15 @@ class CrazyEightsServer
 						connection.sendTCP(HandshakeReject("Incorrect version! Your Crazy Eights version is $versionString. Server version is $VERSION_STRING."))
 						return
 					}
-					if (data?.size != 1) // Data integrity check
+					if (data?.size != 2) // Data integrity check
 					{
-						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 1 argument but found ${data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
+						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 2 arguments but found ${data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
+						return
+					}
+					val (username, roomCode) = data
+					if (roomCode != this@CrazyEightsServer.roomCode) // Verify room code
+					{
+						connection.sendTCP(HandshakeReject("Incorrect room code."))
 						return
 					}
 					if (tabletop.users.size >= 6) // Capacity check
@@ -310,7 +335,6 @@ class CrazyEightsServer
 						connection.sendTCP(HandshakeReject("Room is already full (Max 6 players)."))
 						return
 					}
-					val username = data[0]
 					if (tabletop.users[username] != null) // Check username collision
 					{
 						connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))

@@ -16,12 +16,12 @@ class Network
 		private set
 	private var stopNetworkJob: Job? = null
 	
-	suspend fun createAndStartServer(port: Int): CrazyEightsServer
+	suspend fun createAndStartServer(roomCode: String, port: Int): CrazyEightsServer
 	{
 		stopNetworkJob?.join()
 		info("Network | INFO") { "Starting server on port $port..." }
 		// Create the server in a separate thread to avoid nasty lag spike
-		server = CrazyEightsServer()
+		server = CrazyEightsServer(roomCode)
 		withContext(asyncContext) { server!!.start(port) }
 		return server!!
 	}
@@ -31,6 +31,14 @@ class Network
 		stopNetworkJob?.join()
 		client = CrazyEightsClient()
 		withContext(asyncContext) { client!!.connect(ip, port) }
+		return client!!
+	}
+	
+	suspend fun createAndConnectClientByRoomCode(roomCode: String): CrazyEightsClient
+	{
+		stopNetworkJob?.join()
+		client = CrazyEightsClient()
+		withContext(asyncContext) { client!!.discoverHostByRoomCode(roomCode) }
 		return client!!
 	}
 	

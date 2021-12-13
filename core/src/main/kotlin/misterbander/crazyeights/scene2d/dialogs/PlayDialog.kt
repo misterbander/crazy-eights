@@ -17,9 +17,12 @@ abstract class PlayDialog(mainMenu: MainMenu, title: String) : CrazyEightsDialog
 		onChange { mainMenu.click.play(); colorPickerDialog.show() }
 	}
 	val portTextField by lazy {
-		scene2d.gTextField(this, "", FORM_TEXT_FIELD_STYLE) {
+		scene2d.gTextField(this, "11530", FORM_TEXT_FIELD_STYLE) {
 			textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
 		}
+	}
+	val roomCodeTextField by lazy {
+		scene2d.gTextField(this, "", FORM_TEXT_FIELD_STYLE)
 	}
 	
 	private val colorPickerDialog by lazy { ColorPickerDialog(mainMenu, this) }

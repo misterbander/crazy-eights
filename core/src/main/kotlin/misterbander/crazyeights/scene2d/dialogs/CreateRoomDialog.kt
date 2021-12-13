@@ -8,6 +8,7 @@ import ktx.actors.onChange
 import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
+import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.INFO_LABEL_STYLE_S
 import misterbander.crazyeights.MainMenu
 import misterbander.crazyeights.Room
@@ -17,7 +18,7 @@ import misterbander.gframework.scene2d.UnfocusListener
 import java.net.BindException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class CreateRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Create Room")
+class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainMenu, "Create Room")
 {
 	private val createButton = scene2d.textButton("Create", TEXT_BUTTON_STYLE) {
 		usernameTextField.setTextFieldListener { textField, _ -> isDisabled = textField.text.isBlank() }
@@ -38,10 +39,10 @@ class CreateRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Create Room")
 				show()
 			}
 			createRoomJob = KtxAsync.launch {
-				val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else 11530
+				val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else DEFAULT_TCP_PORT
 				try
 				{
-					game.network.createAndStartServer(port)
+					game.network.createAndStartServer(roomCodeTextField.text, port)
 					if (!isActive)
 						throw CancellationException()
 					val room = game.getScreen<Room>()
@@ -51,7 +52,7 @@ class CreateRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Create Room")
 					client.addListener(room.clientListener)
 					// Perform handshake by doing checking version and username availability
 					info("Client | INFO") { "Perform handshake" }
-					client.sendTCP(Handshake(data = arrayOf(game.user.name)))
+					client.sendTCP(Handshake(data = arrayOf(game.user.name, roomCodeTextField.text)))
 				}
 				catch (e: Exception)
 				{
@@ -74,14 +75,32 @@ class CreateRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Create Room")
 		contentTable.apply {
 			defaults().left().space(16F)
 			add(scene2d.label("Username:", INFO_LABEL_STYLE_S))
-			add(usernameTextField).prefWidth(288F)
+			add(usernameTextField).prefWidth(416F)
 			add(colorButton)
 			row()
-			add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
-			add(portTextField).prefWidth(288F)
+			if (isAdvanced)
+			{
+				add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
+				add(portTextField).prefWidth(416F)
+				row()
+			}
+			add(scene2d.label("Room Code:", INFO_LABEL_STYLE_S))
+			add(roomCodeTextField).prefWidth(416F)
+			val chars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+			roomCodeTextField.text = (1..6).map { chars.random() }.joinToString("")
 		}
 		buttonTable.apply {
-			add(createButton).prefWidth(224F)
+			add(createButton).prefWidth(248F)
+			add(scene2d.textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
+				onChange {
+					mainMenu.click.play()
+					hide()
+					if (isAdvanced)
+						mainMenu.createRoomDialog.show()
+					else
+						mainMenu.advancedCreateRoomDialog.show()
+				}
+			}).prefWidth(224F)
 			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { mainMenu.click.play(); hide() }
 			})

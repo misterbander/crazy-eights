@@ -31,8 +31,10 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
 	}
 	
-	private val createRoomDialog = CreateRoomDialog(this)
-	private val joinRoomDialog = JoinRoomDialog(this)
+	val createRoomDialog = CreateRoomDialog(this, false)
+	val advancedCreateRoomDialog = CreateRoomDialog(this, true)
+	val joinRoomDialog = JoinRoomDialog(this, false)
+	val advancedJoinRoomDialog = JoinRoomDialog(this, true)
 	val messageDialog = MessageDialog(this)
 	
 	private val mainTable: Table by lazy {
@@ -83,7 +85,9 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 		playTable.isVisible = false
 		
 		keyboardHeightObservers += createRoomDialog
+		keyboardHeightObservers += advancedCreateRoomDialog
 		keyboardHeightObservers += joinRoomDialog
+		keyboardHeightObservers += advancedJoinRoomDialog
 	}
 	
 	private fun showTable(table: Table)

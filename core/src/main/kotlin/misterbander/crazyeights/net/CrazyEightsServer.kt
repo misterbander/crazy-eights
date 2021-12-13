@@ -2,14 +2,17 @@ package misterbander.crazyeights.net
 
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.IntSet
+import com.badlogic.gdx.utils.Queue
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
 import com.esotericsoftware.kryonet.ServerDiscoveryHandler
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
@@ -120,7 +123,7 @@ class CrazyEightsServer(private val roomCode: String)
 		}
 	}
 	private val startServerJob = Job()
-	var aiJob: Job? = null
+	val aiJobs = Queue<Job>()
 	@Volatile private var isStopped = false
 	
 	var ruleset: Ruleset = Ruleset()
@@ -205,18 +208,19 @@ class CrazyEightsServer(private val roomCode: String)
 		if (!tabletop.users[player.name]!!.isAi)
 			return
 		
-		aiJob = KtxAsync.launch {
+		val firstAiJob = if (!aiJobs.isEmpty) aiJobs.first() else null
+		aiJobs.addFirst(KtxAsync.launch {
+			firstAiJob?.join()
 			var justDrew = false
 			do
 			{
-				waitForActionLocks()
-				
 				val moveDeferred = async(asyncContext) { (player as IsmctsAgent).getMove(serverGameState) }
 				delay(if (justDrew) 800 else lastPowerCardPlayedEvent?.delayMillis ?: 1000)
+				waitForActionLocks()
 				justDrew = false
 				lastPowerCardPlayedEvent = null
 				val move = moveDeferred.await()
-				info("Server | INFO") { "${player.name} best move = $move" }
+				info("Server | DEBUG") { "${player.name} best move = $move" }
 				when (move)
 				{
 					is PlayMove ->
@@ -243,7 +247,10 @@ class CrazyEightsServer(private val roomCode: String)
 				}
 			}
 			while (justDrew)
-		}
+			if (!isActive)
+				throw CancellationException()
+			aiJobs.removeLast()
+		})
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
@@ -252,7 +259,8 @@ class CrazyEightsServer(private val roomCode: String)
 		{
 			startServerJob.join()
 			isStopped = true
-			aiJob?.cancel()
+			aiJobs.forEach { it.cancel() }
+			aiJobs.clear()
 			server.stop()
 			server.dispose()
 		}

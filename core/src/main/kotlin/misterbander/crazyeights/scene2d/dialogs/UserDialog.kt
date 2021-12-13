@@ -58,8 +58,13 @@ class UserDialog(private val room: Room) : CrazyEightsDialog(room, "User Info")
 			horizontalGroup.addActorAfter(swapSeatsButton, removeButton)
 		else
 			horizontalGroup.removeActor(removeButton)
+		show()
+	}
+	
+	override fun act(delta: Float)
+	{
+		super.act(delta)
 		swapSeatsButton.isDisabled = room.isGameStarted
 		removeButton.isDisabled = room.isGameStarted
-		show()
 	}
 }

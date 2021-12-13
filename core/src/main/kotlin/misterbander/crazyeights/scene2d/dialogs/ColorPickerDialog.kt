@@ -6,7 +6,7 @@ import misterbander.crazyeights.HUE_SLIDER_STYLE
 import misterbander.crazyeights.MainMenu
 import misterbander.crazyeights.TEXT_BUTTON_STYLE
 
-class ColorPickerDialog(mainMenu: MainMenu, parent: RoomSettingsDialog) : CrazyEightsDialog(mainMenu, "Choose Your Color")
+class ColorPickerDialog(mainMenu: MainMenu, parent: PlayDialog) : CrazyEightsDialog(mainMenu, "Choose Your Color")
 {
 	private val colorCircle = scene2d.image("colorcircle")
 	private val hueSlider = scene2d.slider(min = 0F, max = 360F, step = 1F, style = HUE_SLIDER_STYLE) {

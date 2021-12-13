@@ -17,7 +17,7 @@ import misterbander.gframework.scene2d.UnfocusListener
 import java.net.BindException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class CreateRoomDialog(mainMenu: MainMenu) : RoomSettingsDialog(mainMenu, "Create Room")
+class CreateRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Create Room")
 {
 	private var createRoomJob: Job? = null
 	

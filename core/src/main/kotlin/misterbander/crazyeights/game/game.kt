@@ -95,7 +95,8 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 				winner = player
 		}
 		this.serverGameState = null
-		aiJob?.cancel()
+		aiJobs.forEach { it.cancel() }
+		aiJobs.clear()
 		if (CardSlideSoundEvent in extraPackets)
 			server.sendToAllTCP(CardSlideSoundEvent)
 		server.sendToAllTCP(GameEndedEvent(winner.name))
@@ -133,6 +134,7 @@ fun CrazyEightsServer.pass()
 	val serverGameState = serverGameState!!
 	serverGameState.doMove(PassMove)
 	server.sendToAllTCP(serverGameState.toGameState())
+	lastPowerCardPlayedEvent = null
 }
 
 fun CrazyEightsServer.refillDrawStack()

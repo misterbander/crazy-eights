@@ -398,6 +398,8 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		
 		override fun disconnected(connection: Connection)
 		{
+			if (game.shownScreen != this@Room)
+				return
 			val mainMenu = game.getScreen<MainMenu>()
 			if (!selfDisconnect)
 			{

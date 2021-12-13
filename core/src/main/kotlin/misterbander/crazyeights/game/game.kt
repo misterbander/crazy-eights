@@ -49,19 +49,19 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 			lastPowerCardPlayedEvent = EightsPlayedEvent(playerUsername)
 			extraPackets += serverGameState.toGameState(lastPowerCardPlayedEvent)
 		}
-		serverGameState.ruleset.drawTwos && card.rank == Rank.TWO ->
+		card.rank == serverGameState.ruleset.drawTwos ->
 		{
 			serverGameState.doMove(move)
 			lastPowerCardPlayedEvent = DrawTwosPlayedEvent(serverGameState.drawTwoEffectCardCount)
 			extraPackets += serverGameState.toGameState(lastPowerCardPlayedEvent)
 		}
-		serverGameState.ruleset.skips && card.rank == Rank.QUEEN ->
+		card.rank == serverGameState.ruleset.skips ->
 		{
 			lastPowerCardPlayedEvent = SkipsPlayedEvent(serverGameState.nextPlayer.name)
 			serverGameState.doMove(move)
 			extraPackets += serverGameState.toGameState(lastPowerCardPlayedEvent)
 		}
-		serverGameState.ruleset.reverses && card.rank == Rank.ACE && serverGameState.playerCount > 2 ->
+		card.rank == serverGameState.ruleset.reverses && serverGameState.playerCount > 2 ->
 		{
 			serverGameState.doMove(move)
 			lastPowerCardPlayedEvent = ReversePlayedEvent

@@ -65,7 +65,7 @@ class PruningRLAgentObservation(
 		}
 		else
 		{
-			moves += if (drawCount < 3 && drawStackCardCount > 0) DrawMove else PassMove
+			moves += if (drawCount < ruleset.maxDrawCount && drawStackCardCount > 0) DrawMove else PassMove
 			for (card: ServerCard in cards)
 			{
 				if (card.rank == Rank.EIGHT)
@@ -131,7 +131,7 @@ class PruningRLAgentObservation(
 					currentPlayer = nextPlayer,
 					drawCount = 0,
 					declaredSuit = null,
-					drawTwoEffectCardCount = if (ruleset.drawTwos && move.card.rank == Rank.TWO) drawTwoEffectCardCount + 2 else 0
+					drawTwoEffectCardCount = if (move.card.rank == ruleset.drawTwos) drawTwoEffectCardCount + 2 else 0
 				)
 			}
 			is DrawMove ->

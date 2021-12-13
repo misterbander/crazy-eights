@@ -24,6 +24,7 @@ import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
+import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.GameState
@@ -50,6 +51,7 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
+import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
@@ -73,6 +75,7 @@ import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
 import misterbander.crazyeights.net.packets.onReversePlayed
+import misterbander.crazyeights.net.packets.onRulesetUpdate
 import misterbander.crazyeights.net.packets.onSkipsPlayed
 import misterbander.crazyeights.net.packets.onSwapSeats
 import misterbander.crazyeights.net.packets.onTouchUp
@@ -81,7 +84,6 @@ import misterbander.crazyeights.net.packets.onUserLeft
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.ChatBox
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
-import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
@@ -183,6 +185,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private val cursorPositions = IntMap<CursorPosition>()
+	var ruleset = Ruleset()
 	var gameState: GameState? = null
 	val isGameStarted: Boolean
 		get() = gameState != null
@@ -242,12 +245,14 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += tabletop.cursors
 		stage += tabletop.myCursors
 		
-		stage += gizmo1
-		stage += gizmo2
-		stage += gizmo3
-		stage += gizmo4
-		stage += gizmo5
-		stage += Debug(this)
+//		stage += gizmo1
+//		stage += gizmo2
+//		stage += gizmo3
+//		stage += gizmo4
+//		stage += gizmo5
+//		stage += Debug(this)
+		
+		keyboardHeightObservers += gameSettingsDialog
 	}
 	
 	override fun show()
@@ -461,6 +466,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //					cardGroup.shuffle(seed)
 //				}
 				is NewGameEvent -> tabletop.onNewGame(packet)
+				is RulesetUpdateEvent -> onRulesetUpdate(packet)
 				is GameState -> tabletop.onGameStateUpdated(packet)
 				is GameEndedEvent -> tabletop.onGameEnded(packet)
 				is EightsPlayedEvent -> tabletop.onEightsPlayed(packet)

@@ -6,7 +6,7 @@ filter: Linear,Linear
 repeat: none
 button
   rotate: false
-  xy: 1790, 552
+  xy: 1706, 384
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -24,7 +24,7 @@ buttondisabled
   index: -1
 buttondown
   rotate: false
-  xy: 1706, 384
+  xy: 1790, 416
   size: 80, 80
   split: 38, 38, 38, 38
   pad: 15, 17, 15, 17
@@ -483,7 +483,7 @@ clubs
   index: -1
 colorcircle
   rotate: false
-  xy: 1298, 64
+  xy: 1442, 255
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -550,37 +550,71 @@ hueslider
   index: -1
 huesliderknob
   rotate: false
-  xy: 1603, 304
+  xy: 1958, 500
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobdown
   rotate: false
-  xy: 1567, 304
+  xy: 1990, 568
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 huesliderknobover
   rotate: false
-  xy: 1639, 304
+  xy: 1942, 432
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
+list
+  rotate: false
+  xy: 1635, 304
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
 menuicon
   rotate: false
-  xy: 1350, 80
+  xy: 1494, 271
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 menuicondown
   rotate: false
-  xy: 1442, 271
+  xy: 758, 18
   size: 32, 32
   orig: 32, 32
+  offset: 0, 0
+  index: -1
+selectbox
+  rotate: false
+  xy: 1790, 500
+  size: 96, 64
+  split: 31, 39, 0, 0
+  pad: 19, 38, 15, 17
+  orig: 96, 64
+  offset: 0, 0
+  index: -1
+selectboxdisabled
+  rotate: false
+  xy: 1790, 568
+  size: 96, 64
+  split: 31, 39, 0, 0
+  pad: 19, 38, 15, 17
+  orig: 96, 64
+  offset: 0, 0
+  index: -1
+selectboxopen
+  rotate: false
+  xy: 1890, 568
+  size: 96, 64
+  split: 31, 39, 0, 0
+  pad: 19, 38, 15, 17
+  orig: 96, 64
   offset: 0, 0
   index: -1
 shine
@@ -606,7 +640,16 @@ textcursor
   index: -1
 textfield
   rotate: false
-  xy: 1790, 416
+  xy: 1298, 48
+  size: 64, 64
+  split: 30, 30, 30, 30
+  pad: 15, 16, 15, 17
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+textfielddisabled
+  rotate: false
+  xy: 1890, 500
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 16, 15, 17
@@ -615,7 +658,7 @@ textfield
   index: -1
 textfieldfocused
   rotate: false
-  xy: 1790, 484
+  xy: 1874, 432
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 17, 15, 17
@@ -624,14 +667,14 @@ textfieldfocused
   index: -1
 textselection
   rotate: false
-  xy: 1874, 568
+  xy: 1567, 304
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 window
   rotate: false
-  xy: 1942, 568
+  xy: 1366, 48
   size: 64, 64
   split: 2, 2, 50, 2
   pad: 0, 0, 50, 0

@@ -20,7 +20,7 @@ import java.net.BindException
 class CreateRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Create Room")
 {
 	private val createButton = scene2d.textButton("Create", TEXT_BUTTON_STYLE) {
-		usernameTextField.setTextFieldListener { textField, c -> isDisabled = textField.text.isBlank() }
+		usernameTextField.setTextFieldListener { textField, _ -> isDisabled = textField.text.isBlank() }
 		onChange {
 			mainMenu.click.play()
 			hide()

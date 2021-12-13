@@ -22,6 +22,7 @@ import misterbander.crazyeights.game.DrawTwoEffectPenalty
 import misterbander.crazyeights.game.PassMove
 import misterbander.crazyeights.game.PlayMove
 import misterbander.crazyeights.game.Player
+import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.game.draw
@@ -58,6 +59,7 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.PowerCardPlayedEvent
+import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
@@ -78,6 +80,7 @@ import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
 import misterbander.crazyeights.net.packets.onObjectUnlock
+import misterbander.crazyeights.net.packets.onRulesetUpdate
 import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
 
@@ -101,6 +104,7 @@ class CrazyEightsServer
 	var aiJob: Job? = null
 	@Volatile private var isStopped = false
 	
+	var ruleset: Ruleset = Ruleset()
 	var serverGameState: ServerGameState? = null
 	val isGameStarted: Boolean
 		get() = serverGameState != null
@@ -338,6 +342,7 @@ class CrazyEightsServer
 					tabletop.users[`object`.name] = `object`
 					tabletop.hands.getOrPut(`object`.name) { GdxArray() }
 					connection.sendTCP(tabletop)
+					connection.sendTCP(RulesetUpdateEvent(ruleset))
 					if (isGameStarted)
 						connection.sendTCP(serverGameState!!.toGameState(
 							if (tabletop.suitChooser != null) EightsPlayedEvent(tabletop.suitChooser!!) else null
@@ -367,6 +372,7 @@ class CrazyEightsServer
 				is CardGroupDetachEvent -> onCardGroupDetach(`object`)
 				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
 				is NewGameEvent -> onNewGame(connection)
+				is RulesetUpdateEvent -> onRulesetUpdate(`object`)
 				is PassEvent -> pass()
 				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
 				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name

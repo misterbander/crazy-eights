@@ -75,10 +75,12 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 			if ((cardGroup.cards.size - 1)*defaultSeparation < max) defaultSeparation else max/(cardGroup.cards.size - 1)
 		cardGroup.arrange(sort)
 		
-		if (room.isGameStarted && room.gameState!!.drawCount >= 3 && room.gameState!!.currentPlayer == game.user.name)
-		{
-			room.passButton.isVisible = true
-			room.tabletop.drawStackHolder!!.touchable = Touchable.disabled
+		room.apply {
+			if (isGameStarted && gameState!!.drawCount >= gameState!!.ruleset.maxDrawCount && gameState!!.currentPlayer == game.user.name)
+			{
+				passButton.isVisible = true
+				tabletop.drawStackHolder!!.touchable = Touchable.disabled
+			}
 		}
 	}
 	

@@ -48,7 +48,7 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 			val cardGroup = tabletop.idToObjectMap[toLock.cardGroupId] as ServerCardGroup
 			if (cardGroup.cardHolderId == tabletop.drawStackHolderId)
 			{
-				if (serverGameState.drawCount >= 3)
+				if (serverGameState.drawCount >= serverGameState.ruleset.maxDrawCount)
 					return
 				if (serverGameState.drawTwoEffectCardCount > 0)
 				{

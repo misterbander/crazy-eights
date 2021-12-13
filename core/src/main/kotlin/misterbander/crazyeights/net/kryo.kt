@@ -42,6 +42,7 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
+import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
@@ -94,6 +95,7 @@ fun Kryo.registerClasses()
 	register(GameEndedEvent::class.java)
 	register(ActionLockReleaseEvent::class.java)
 	register(Ruleset::class.java)
+	register(RulesetUpdateEvent::class.java)
 	register(GameState::class.java)
 	register(CardSlideSoundEvent::class.java)
 	register(PassEvent::class.java)

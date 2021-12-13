@@ -178,10 +178,21 @@ class Tabletop(val room: Room)
 		users.remove(user.name)
 		userToCursorsMap.remove(user.name)?.apply { values().forEach { it.remove() } }
 		val hand = userToHandMap[user.name]!!
-		if (hand.cardGroup.cards.isEmpty && (!room.isGameStarted || user.name !in room.gameState!!.players))
+		if (hand.cardGroup.cards.isEmpty && (!room.isGameStarted || user.name !in room.gameState!!.players) || user.isAi)
 		{
 			userToHandMap.remove(user.name)
 			hand.remove()
+			if (user.isAi)
+			{
+				for (groupable: Groupable<CardGroup> in GdxArray(hand.cardGroup.cards))
+				{
+					if (groupable is Card)
+					{
+						groupable.cardGroup = null
+						groupable.isFaceUp = true
+					}
+				}
+			}
 		}
 		else if (hand is OpponentHand)
 			hand.user = hand.user.copy(color = Color.LIGHT_GRAY)

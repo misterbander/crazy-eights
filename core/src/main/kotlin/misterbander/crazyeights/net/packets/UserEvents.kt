@@ -5,6 +5,8 @@ import ktx.actors.plusAssign
 import ktx.collections.*
 import ktx.log.info
 import misterbander.crazyeights.model.NoArg
+import misterbander.crazyeights.model.ServerCard
+import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.OpponentHand
@@ -87,8 +89,10 @@ fun CrazyEightsServer.onAiAdd()
 fun CrazyEightsServer.onAiRemove(event: AiRemoveEvent)
 {
 	aiCount--
-	val ai = tabletop.users.remove(event.username)
-	tabletop.hands.remove(event.username)
+	val ai: User = tabletop.users.remove(event.username)
+	val hand: GdxArray<ServerObject> = tabletop.hands.remove(event.username)
+	for (card: ServerObject in hand)
+		(card as ServerCard).setServerCardGroup(null, tabletop)
 	if (!event.username.startsWith("AI "))
 		aiNames += event.username
 	server.sendToAllTCP(UserLeftEvent(ai))

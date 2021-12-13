@@ -86,20 +86,14 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 	discardPile.arrange()
 	server.sendToAllTCP(cardGroupChangeEvent)
 	
-	if (serverGameState.isTerminal)
+	if (tabletop.hands[playerUsername].isEmpty) // Winner!
 	{
-		var winner: Player = serverGameState.playerHands.orderedKeys().first()
-		for (player: Player in serverGameState.playerHands.orderedKeys())
-		{
-			if (serverGameState.getResult(player) == 1)
-				winner = player
-		}
 		this.serverGameState = null
 		aiJobs.forEach { it.cancel() }
 		aiJobs.clear()
 		if (CardSlideSoundEvent in extraPackets)
 			server.sendToAllTCP(CardSlideSoundEvent)
-		server.sendToAllTCP(GameEndedEvent(winner.name))
+		server.sendToAllTCP(GameEndedEvent(playerUsername))
 		return
 	}
 	

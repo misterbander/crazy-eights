@@ -26,12 +26,12 @@ class OracleAgent(override val name: String = "OracleAgent") : Agent
 		}
 		
 		// Someone played a 2
-		if (state.ruleset.drawTwos && state.drawTwoEffectCardCount > 0)
+		if (state.ruleset.drawTwos != null && state.drawTwoEffectCardCount > 0)
 		{
 			// Counter with another 2 if possible
 			for (card in hand)
 			{
-				if (card.rank == Rank.TWO)
+				if (card.rank == state.ruleset.drawTwos)
 					return PlayMove(card)
 			}
 			return state.moves[0]
@@ -76,7 +76,7 @@ class OracleAgent(override val name: String = "OracleAgent") : Agent
 			return PlayMove(card)
 		}
 		
-		if (state.drawCount < 3)
+		if (state.drawCount < state.ruleset.maxDrawCount)
 			return DrawMove
 		return PassMove
 	}

@@ -21,7 +21,7 @@ class JoinRoomDialog(mainMenu: MainMenu) : PlayDialog(mainMenu, "Join Room")
 {
 	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
 	private val joinButton = scene2d.textButton("Join", TEXT_BUTTON_STYLE) {
-		usernameTextField.setTextFieldListener { textField, c -> isDisabled = textField.text.isBlank() }
+		usernameTextField.setTextFieldListener { textField, _ -> isDisabled = textField.text.isBlank() }
 		onChange {
 			mainMenu.click.play()
 			hide()

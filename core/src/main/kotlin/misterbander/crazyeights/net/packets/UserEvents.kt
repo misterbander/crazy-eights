@@ -77,6 +77,8 @@ data class AiRemoveEvent(val username: String)
 
 fun CrazyEightsServer.onAiAdd()
 {
+	if (aiCount >= 6)
+		return
 	aiCount++
 	val name = aiNames.random() ?: "AI $aiCount"
 	aiNames -= name

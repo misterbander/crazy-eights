@@ -146,11 +146,12 @@ fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 	powerCardEffects.clearChildren()
 	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
-			powerCardEffects += EffectText(room, "Q", userToHandMap[event.victimUsername]!!)
+			powerCardEffects += EffectText(
+				room, room.gameState!!.ruleset.skips?.toString() ?: "Q", userToHandMap[event.victimUsername]!!
+			)
 		}
 	}
 	persistentPowerCardEffects += PowerCardEffectRing(room)
-//	isPowerCardJustPlayed = true
 }
 
 object ReversePlayedEvent : PowerCardPlayedEvent

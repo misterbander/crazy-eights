@@ -94,13 +94,13 @@ class ServerGameState(
 			{
 				discard(move.card)
 				declaredSuit = null
-				if (ruleset.drawTwos && move.card.rank == Rank.TWO)
+				if (move.card.rank == ruleset.drawTwos)
 					drawTwoEffectCardCount += 2
 				else
 					drawTwoEffectCardCount = 0
-				if (ruleset.skips && move.card.rank == Rank.QUEEN)
+				if (move.card.rank == ruleset.skips)
 					advanceToNextPlayer()
-				if (ruleset.reverses && move.card.rank == Rank.ACE && playerCount > 2)
+				if (move.card.rank == ruleset.reverses && playerCount > 2)
 					isPlayReversed = !isPlayReversed
 				advanceToNextPlayer()
 			}
@@ -158,13 +158,13 @@ class ServerGameState(
 			moves += DrawTwoEffectPenalty(drawTwoEffectCardCount)
 			for (card: ServerCard in currentPlayerHand)
 			{
-				if (card.rank == Rank.TWO)
+				if (card.rank == ruleset.drawTwos)
 					moves += PlayMove(card)
 			}
 			return
 		}
 		
-		moves += if (drawCount < 3 && drawStack.isNotEmpty()) DrawMove else PassMove
+		moves += if (drawCount < ruleset.maxDrawCount && drawStack.isNotEmpty()) DrawMove else PassMove
 		for (card: ServerCard in currentPlayerHand)
 		{
 			if (card.rank == Rank.EIGHT)

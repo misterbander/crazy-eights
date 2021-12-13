@@ -119,7 +119,7 @@ class CrazyEights : GFramework()
 				titleFont = jhengheiuis
 				titleFontColor = Color.WHITE
 			}
-			scrollPane(SCROLL_PANE_STYLE) {
+			val scrollPaneStyle = scrollPane(SCROLL_PANE_STYLE) {
 				background = this@skin.newDrawable("chatbackground")
 				vScrollKnob = this@skin["textcursor"]
 			}
@@ -176,12 +176,31 @@ class CrazyEights : GFramework()
 			gTextField(FORM_TEXT_FIELD_STYLE, gTextFieldStyleBase) {
 				background = this@skin["textfield"]
 				focusedBackground = this@skin["textfieldfocused"]
+				disabledBackground = this@skin["textfielddisabled"]
 			}
 			slider(HUE_SLIDER_STYLE) {
 				background = this@skin["hueslider"]
 				knob = this@skin["huesliderknob"]
 				knobOver = this@skin["huesliderknobover"]
 				knobDown = this@skin["huesliderknobdown"]
+			}
+			val listStyle = list(LIST_STYLE) {
+				font = jhengheiuis
+				selection = this@skin["textselection"]
+				selection.topHeight = 8F
+				selection.leftWidth = 16F
+				selection.rightWidth = 16F
+				selection.bottomHeight = 8F
+				background = this@skin["list"]
+			}
+			selectBox(SELECT_BOX_STYLE) {
+				font = jhengheiuis
+				disabledFontColor = Color(0xAAAAAAFF.toInt())
+				background = this@skin["selectbox"]
+				backgroundOpen = this@skin["selectboxopen"]
+				backgroundDisabled = this@skin["selectboxdisabled"]
+				scrollStyle = scrollPaneStyle
+				this.listStyle = listStyle
 			}
 		}
 	}

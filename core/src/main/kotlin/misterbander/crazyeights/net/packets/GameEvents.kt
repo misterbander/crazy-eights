@@ -17,7 +17,6 @@ import ktx.collections.*
 import ktx.log.debug
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.game.Player
-import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.game.draw
@@ -25,7 +24,6 @@ import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerLockable
@@ -168,12 +166,7 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 			playerHands[user] = GdxArray(hand) as GdxArray<ServerCard>
 	}
 	acquireActionLocks()
-	serverGameState = ServerGameState(
-		Ruleset(drawTwos = true, skips = true, reverses = true),
-		playerHands,
-		GdxArray(drawStack.cards),
-		GdxArray(discardPile.cards)
-	)
+	serverGameState = ServerGameState(ruleset, playerHands, GdxArray(drawStack.cards), GdxArray(discardPile.cards))
 	serverGameState!!.onPlayerChanged = ::onPlayerChanged
 	
 	server.sendToAllTCP(Chat(message = "${(connection.arbitraryData as User).name} started a new game", isSystemMessage = true))
@@ -196,15 +189,16 @@ fun Tabletop.onGameStateUpdated(gameState: GameState)
 	
 	if (currentPlayer == game.user.name)
 	{
-		room.passButton.isVisible = drawCount >= 3 && powerCardPlayedEvent !is EightsPlayedEvent
+		room.passButton.isVisible = drawCount >= gameState.ruleset.maxDrawCount && powerCardPlayedEvent !is EightsPlayedEvent
 		drawStackHolder.touchable =
-			if (drawCount >= 3 || powerCardPlayedEvent is EightsPlayedEvent && powerCardPlayedEvent.playerUsername == game.user.name)
+			if (drawCount >= gameState.ruleset.maxDrawCount
+				|| powerCardPlayedEvent is EightsPlayedEvent && powerCardPlayedEvent.playerUsername == game.user.name)
 				Touchable.disabled
 			else
 				Touchable.enabled
 		drawStackHolder.isFlashing = drawTwoEffectCardCount > 0
 		if (drawTwoEffectCardCount > 0)
-			myHand.setDarkened { it.rank != Rank.TWO }
+			myHand.setDarkened { it.rank != gameState.ruleset.drawTwos }
 		else
 			myHand.setDarkened { powerCardPlayedEvent is EightsPlayedEvent && powerCardPlayedEvent.playerUsername == game.user.name }
 	}

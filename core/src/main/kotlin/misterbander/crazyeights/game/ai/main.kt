@@ -9,13 +9,14 @@ import ktx.collections.*
 import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.newGame
+import misterbander.crazyeights.model.ServerCard.Rank
 import java.io.BufferedWriter
 import java.io.FileWriter
 import java.util.concurrent.Executors
 
 val reducedRuleset = Ruleset(passAfterDraw = true, declareSuitsOnEights = false)
 val basicRuleset = Ruleset()
-val variantRuleset = Ruleset(drawTwos = true, skips = true, reverses = true)
+val variantRuleset = Ruleset(drawTwos = Rank.TWO, skips = Rank.QUEEN, reverses = Rank.ACE)
 
 fun main()
 {

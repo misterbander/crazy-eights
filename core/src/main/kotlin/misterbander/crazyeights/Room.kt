@@ -50,6 +50,7 @@ import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
+import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
@@ -74,6 +75,7 @@ import misterbander.crazyeights.net.packets.onObjectLock
 import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
+import misterbander.crazyeights.net.packets.onResetDeck
 import misterbander.crazyeights.net.packets.onReversePlayed
 import misterbander.crazyeights.net.packets.onRulesetUpdate
 import misterbander.crazyeights.net.packets.onSkipsPlayed
@@ -474,6 +476,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is SkipsPlayedEvent -> tabletop.onSkipsPlayed(packet)
 				is ReversePlayedEvent -> tabletop.onReversePlayed(packet)
 				is DrawStackRefillEvent -> tabletop.onDrawStackRefill(packet)
+				is ResetDeckEvent -> tabletop.onResetDeck(packet)
 				is CardSlideSoundEvent -> cardSlide.play()
 			}
 		}

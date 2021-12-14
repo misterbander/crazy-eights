@@ -15,6 +15,7 @@ import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
+import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.gframework.scene2d.GTextField
 import misterbander.gframework.scene2d.UnfocusListener
@@ -69,6 +70,13 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			game.client?.sendTCP(AiAddEvent)
 		}
 	}
+	private val resetDeckButton = scene2d.textButton("Reset deck", TEXT_BUTTON_STYLE) {
+		onChange {
+			room.click.play()
+			hide()
+			game.client?.sendTCP(ResetDeckEvent())
+		}
+	}
 	private val newGameButton = scene2d.textButton("New Game", TEXT_BUTTON_STYLE) {
 		onChange {
 			room.click.play()
@@ -109,7 +117,11 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			})
 			add(reversesSelectBox)
 			row()
-			add(addAiButton).colspan(2).center()
+			add(scene2d.horizontalGroup {
+				space(16F)
+				actor(addAiButton)
+				actor(resetDeckButton)
+			}).colspan(2).center()
 		}
 		buttonTable.apply {
 			add(newGameButton).prefWidth(224F)
@@ -125,6 +137,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 		super.act(delta)
 		newGameButton.isDisabled = room.isGameStarted || room.tabletop.users.size == 1
 		addAiButton.isDisabled = room.isGameStarted || room.tabletop.users.size >= 6
+		resetDeckButton.isDisabled = room.isGameStarted
 		maxDrawCountTextField.isDisabled = room.isGameStarted
 		drawTwosSelectBox.isDisabled = room.isGameStarted
 		skipsSelectBox.isDisabled = room.isGameStarted

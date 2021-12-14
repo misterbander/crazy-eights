@@ -178,3 +178,48 @@ fun CrazyEightsServer.refillDrawStack()
 	
 	server.sendToAllTCP(DrawStackRefillEvent(cardGroupChangeEvent, seed))
 }
+
+fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupChangeEvent
+{
+	val idToObjectMap = tabletop.idToObjectMap
+	val drawStack = (idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	
+	// Recall all cards
+	val serverObjects = idToObjectMap.values().toArray()
+	for (serverObject: ServerObject in serverObjects) // Unlock everything and move all cards to the draw stack
+	{
+		if (serverObject is ServerLockable)
+			serverObject.lockHolder = null
+		if (serverObject is ServerCard)
+		{
+			if (serverObject.cardGroupId != drawStack.id)
+				serverObject.setServerCardGroup(drawStack, tabletop)
+			serverObject.isFaceUp = false
+		}
+	}
+	for (serverObject: ServerObject in serverObjects) // Remove all empty card groups
+	{
+		if (serverObject is ServerCardGroup && serverObject.cardHolderId == -1)
+		{
+			idToObjectMap.remove(serverObject.id)
+			serverObjects.removeValue(serverObject, true)
+		}
+	}
+	if (removeOffline)
+	{
+		for (username in tabletop.hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
+		{
+			if (username !in tabletop.users)
+				tabletop.hands.remove(username)
+		}
+	}
+	tabletop.hands.values().forEach { it.clear() }
+	
+	val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
+	
+	// Shuffle draw stack
+	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
+	drawStack.shuffle(seed, tabletop)
+	
+	return cardGroupChangeEvent
+}

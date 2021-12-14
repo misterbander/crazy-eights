@@ -139,7 +139,13 @@ class ServerGameState(
 		val discardedCardCount = discardPile.size
 		val drawStackCardCount = drawStack.size
 		val totalCardCount = allPlayerCardCount + discardedCardCount + drawStackCardCount
-		assert(totalCardCount == 52) { "Cards magically appeared/disappeared! $totalCardCount" }
+		assert(totalCardCount == 52) {
+			"Cards magically appeared/disappeared! $totalCardCount\n" +
+				"Discards($discardedCardCount) = ${discardPile.joinToString { it.name }}\n" +
+				"Hands = ${playerHands.joinToString(separator = "\n\t") { (player, hand) -> "${player.name}(${hand!!.size}) ${hand.joinToString { it.name }}" }}\n" +
+				"Drawstack($drawStackCardCount) = ${drawStack.joinToString { it.name }}\n" +
+				"currentPlayer = ${currentPlayer.name}"
+		}
 		
 		if (hasPlayerChanged)
 		{

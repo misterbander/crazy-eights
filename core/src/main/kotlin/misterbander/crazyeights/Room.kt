@@ -84,6 +84,7 @@ import misterbander.crazyeights.net.packets.onUserLeft
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.ChatBox
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
+import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.Gizmo
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
@@ -250,7 +251,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 //		stage += gizmo3
 //		stage += gizmo4
 //		stage += gizmo5
-//		stage += Debug(this)
+		stage += Debug(this)
 		
 		keyboardHeightObservers += gameSettingsDialog
 	}

@@ -149,7 +149,7 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 	// Deal
 	repeat(if (tabletop.hands.size > 2) 5 else 7) {
 		for (username: String in tabletop.hands.orderedKeys())
-			draw(drawStack.cards.peek(), username)
+			draw(drawStack.cards.peek(), username, refillIfEmpty = false)
 	}
 	val topCard: ServerCard = drawStack.cards.peek()
 	topCard.setServerCardGroup(discardPile, tabletop)
@@ -189,7 +189,8 @@ fun Tabletop.onGameStateUpdated(gameState: GameState)
 	
 	if (currentPlayer == game.user.name)
 	{
-		room.passButton.isVisible = drawCount >= gameState.ruleset.maxDrawCount && powerCardPlayedEvent !is EightsPlayedEvent
+		room.passButton.isVisible = (drawCount >= gameState.ruleset.maxDrawCount || drawStack!!.cards.isEmpty)
+			&& powerCardPlayedEvent !is EightsPlayedEvent
 		drawStackHolder.touchable =
 			if (drawCount >= gameState.ruleset.maxDrawCount
 				|| powerCardPlayedEvent is EightsPlayedEvent && powerCardPlayedEvent.playerUsername == game.user.name)

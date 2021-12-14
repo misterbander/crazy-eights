@@ -186,7 +186,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private val cursorPositions = IntMap<CursorPosition>()
-	var ruleset = Ruleset()
+	var ruleset = Ruleset(firstDiscardOnDealTriggersPower = true)
 	var gameState: GameState? = null
 	val isGameStarted: Boolean
 		get() = gameState != null

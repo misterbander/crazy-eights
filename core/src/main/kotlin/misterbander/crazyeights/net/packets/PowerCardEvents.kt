@@ -45,6 +45,7 @@ fun Tabletop.onEightsPlayed(event: EightsPlayedEvent)
 	room.dramatic.play()
 	val suitChooser = SuitChooser(room, event.playerUsername == game.user.name)
 	this.suitChooser = suitChooser
+	room.passButton.isVisible = false
 	powerCardEffects.clearChildren()
 	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		targeting(powerLabelGroup, fadeOut(0.5F)) along Actions.run { powerCardEffects += suitChooser }
@@ -64,6 +65,9 @@ fun CrazyEightsServer.onSuitDeclare(connection: Connection? = null, event: SuitD
 			(tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup.cards.peek()
 		kotlinx.coroutines.delay(1000)
 		serverGameState.doMove(ChangeSuitMove(topCard, event.suit))
+		val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+		if (drawStack.cards.isEmpty)
+			refillDrawStack()
 		server.sendToAllTCP(serverGameState.toGameState())
 	}
 	if (connection == null)
@@ -124,12 +128,12 @@ fun CrazyEightsServer.acceptDrawTwoPenalty(acceptorUsername: String)
 		
 		acquireActionLocks()
 		val drawCount = min(drawStack.cards.size, serverGameState.drawTwoEffectCardCount)
-		repeat(drawCount) { draw(drawStack.cards.peek(), acceptorUsername) }
+		repeat(drawCount) { draw(drawStack.cards.peek(), acceptorUsername, refillIfEmpty = false) }
 		server.sendToAllTCP(DrawTwoPenaltyEvent(acceptorUsername, drawCount))
 		lastPowerCardPlayedEvent = null
 		
 		waitForActionLocks()
-		serverGameState.doMove(DrawTwoEffectPenalty(drawCount))
+		serverGameState.doMove(DrawTwoEffectPenalty(serverGameState.drawTwoEffectCardCount))
 		server.sendToAllTCP(serverGameState.toGameState())
 	}
 }
@@ -203,6 +207,8 @@ fun Tabletop.onDrawStackRefill(event: DrawStackRefillEvent)
 	drawStack += Actions.run {
 		drawStackHolder!!.touchable = Touchable.disabled
 		myHand.touchable = Touchable.disabled
+		if (room.gameState?.currentPlayer == game.user.name)
+			room.passButton.isVisible = discardPile.cards.size == 1 && drawStack.cards.isEmpty
 	} then
 		delay(0.5F, ShuffleAction(room, shuffleSeed)) then
 		Actions.run {

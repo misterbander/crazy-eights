@@ -76,7 +76,8 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 		cardGroup.arrange(sort)
 		
 		room.apply {
-			if (isGameStarted && gameState!!.drawCount >= gameState!!.ruleset.maxDrawCount && gameState!!.currentPlayer == game.user.name)
+			if (isGameStarted
+				&& gameState!!.drawCount >= gameState!!.ruleset.maxDrawCount && gameState!!.currentPlayer == game.user.name)
 			{
 				passButton.isVisible = true
 				tabletop.drawStackHolder!!.touchable = Touchable.disabled

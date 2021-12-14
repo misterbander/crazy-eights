@@ -100,7 +100,7 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 	extraPackets.forEach { server.sendToAllTCP(it) }
 	
 	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
-	if (drawStack.cards.isEmpty)
+	if (drawStack.cards.isEmpty && card.rank != Rank.EIGHT)
 		refillDrawStack()
 }
 
@@ -108,7 +108,8 @@ fun CrazyEightsServer.draw(
 	card: ServerCard,
 	ownerUsername: String,
 	fireOwnEvent: Boolean = false,
-	playSound: Boolean = false
+	playSound: Boolean = false,
+	refillIfEmpty: Boolean = true
 )
 {
 	card.isFaceUp = true
@@ -119,7 +120,7 @@ fun CrazyEightsServer.draw(
 		server.sendToAllTCP(CardSlideSoundEvent)
 	
 	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
-	if (drawStack.cards.isEmpty)
+	if (drawStack.cards.isEmpty && refillIfEmpty)
 		refillDrawStack()
 }
 
@@ -170,6 +171,8 @@ fun CrazyEightsServer.refillDrawStack()
 	serverGameState.drawStack += drawStack.cards
 	serverGameState.discardPile.clear()
 	serverGameState.discardPile += topCard
+	serverGameState.currentPlayerHand.clear()
+	tabletop.hands[serverGameState.currentPlayer.name]!!.forEach { serverGameState.currentPlayerHand += it as ServerCard }
 	
 	server.sendToAllTCP(DrawStackRefillEvent(cardGroupChangeEvent, seed))
 }

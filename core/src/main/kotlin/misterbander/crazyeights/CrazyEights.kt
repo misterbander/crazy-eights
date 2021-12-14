@@ -145,6 +145,8 @@ class CrazyEights : GFramework()
 				over = this@skin["buttonover"]
 				down = this@skin["buttondown"]
 			}
+			val checkableImageButtonStyleBase = "checkableimagebuttonstylebase"
+			imageButton(checkableImageButtonStyleBase, imageButtonStyleBase) { checked = down }
 			imageButton(COLOR_BUTTON_STYLE, imageButtonStyleBase) {
 				imageUp = this@skin["colorcircle"]
 			}
@@ -155,6 +157,11 @@ class CrazyEights : GFramework()
 			imageButton(SETTINGS_BUTTON_STYLE, imageButtonStyleBase) {
 				imageUp = this@skin["gearicon"]
 				imageDown = this@skin["gearicondown"]
+			}
+			imageButton(HELP_BUTTON_STYLE, checkableImageButtonStyleBase) {
+				imageUp = this@skin["helpicon"]
+				imageDown = this@skin["helpicondown"]
+				imageChecked = imageDown
 			}
 			val gTextFieldStyleBase = "mbtextfieldstylebase"
 			gTextField(gTextFieldStyleBase) {

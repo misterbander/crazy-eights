@@ -85,7 +85,7 @@ import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.ChatBox
 import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
-import misterbander.crazyeights.scene2d.Gizmo
+import misterbander.crazyeights.scene2d.HelpPanel
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
@@ -162,11 +162,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	}
 	
 	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
-	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED) // TODO ###### remove debug
-	val gizmo2 = Gizmo(game.shapeDrawer, Color.ORANGE)
-	val gizmo3 = Gizmo(game.shapeDrawer, Color.YELLOW)
-	val gizmo4 = Gizmo(game.shapeDrawer, Color.GREEN)
-	val gizmo5 = Gizmo(game.shapeDrawer, Color.CYAN)
+//	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED)
+//	val gizmo2 = Gizmo(game.shapeDrawer, Color.ORANGE)
+//	val gizmo3 = Gizmo(game.shapeDrawer, Color.YELLOW)
+//	val gizmo4 = Gizmo(game.shapeDrawer, Color.GREEN)
+//	val gizmo5 = Gizmo(game.shapeDrawer, Color.CYAN)
 	
 	private val uprightActors = GdxSet<Actor>()
 	private val originalRotationMap = ObjectFloatMap<Actor>()
@@ -219,14 +219,19 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		uiStage += scene2d.table {
 			setFillParent(true)
 			stack {
+				val helpPanel = actor(HelpPanel(this@Room))
 				table {
+					// UI
 					actor(menuButton).cell(pad = 16F).inCell.top()
 					actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
 					row()
-					imageButton(SETTINGS_BUTTON_STYLE) {
-						onChange {
-							click.play()
-							gameSettingsDialog.show()
+					verticalGroup {
+						space(16F)
+						imageButton(HELP_BUTTON_STYLE) {
+							onChange { click.play(); helpPanel.isVisible = isChecked }
+						}
+						imageButton(SETTINGS_BUTTON_STYLE) {
+							onChange { click.play(); gameSettingsDialog.show() }
 						}
 					}.cell(expand = true, colspan = 2, pad = 16F).inCell.bottom().right()
 				}
@@ -339,11 +344,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		if (shouldSyncServer)
 			game.client?.flushOutgoingPacketBuffer()
 		clientListener.processPackets()
-		
-//		if (Gdx.input.isKeyJustPressed(Input.Keys.E))
-//			tabletop.persistentPowerCardEffects += EffectText(this, "+2", tabletop.userToHandMap.values().toArray().random())
-//		if (Gdx.input.isKeyJustPressed(Input.Keys.F))
-//			game.client?.sendTCP(GameEndedEvent(""))
 	}
 	
 	override fun clearScreen()

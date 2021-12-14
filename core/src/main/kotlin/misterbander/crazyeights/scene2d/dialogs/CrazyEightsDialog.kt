@@ -1,5 +1,6 @@
 package misterbander.crazyeights.scene2d.dialogs
 
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Button
@@ -8,6 +9,7 @@ import ktx.actors.along
 import ktx.actors.alpha
 import ktx.actors.centerPosition
 import ktx.actors.onChange
+import ktx.actors.onKeyDown
 import ktx.scene2d.*
 import misterbander.crazyeights.ANIMATION_DURATION
 import misterbander.crazyeights.CLOSE_BUTTON_STYLE
@@ -37,6 +39,11 @@ abstract class CrazyEightsDialog(
 		contentTable.pad(16F)
 		buttonTable.pad(0F, 16F, 16F, 16F)
 		buttonTable.defaults().space(16F)
+		
+		onKeyDown { keyCode ->
+			if (keyCode == Input.Keys.BACK)
+				hide()
+		}
 	}
 	
 	open fun show()

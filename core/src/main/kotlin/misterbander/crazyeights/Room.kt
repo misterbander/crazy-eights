@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
 import ktx.actors.KtxInputListener
 import ktx.actors.onChange
+import ktx.actors.onKeyDown
 import ktx.actors.plusAssign
 import ktx.app.Platform
 import ktx.collections.*
@@ -185,6 +186,33 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 	}
 	
+	val fallbackActor: Actor = object : Actor()
+	{
+		init
+		{
+			apply {
+				addListener(object : KtxInputListener()
+				{
+					override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
+					{
+						uiStage.keyboardFocus = this@apply
+						uiStage.scrollFocus = null
+						Gdx.input.setOnscreenKeyboardVisible(false)
+						return false
+					}
+				})
+				onKeyDown { keyCode ->
+					if (keyCode == Input.Keys.BACK)
+						gameMenuDialog.show()
+					else if (keyCode == Input.Keys.T)
+						Gdx.app.postRunnable { chatBox.setFocused(true) }
+				}
+			}
+		}
+		
+		override fun hit(x: Float, y: Float, touchable: Boolean): Actor = this
+	}
+	
 	// Tabletop states
 	val tabletop = Tabletop(this)
 	private val cursorPositions = IntMap<CursorPosition>()
@@ -196,28 +224,12 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	// Networking
 	var clientListener = ClientListener()
 	var selfDisconnect = false
-	var timeSinceLastSync = 0F
+	private var timeSinceLastSync = 0F
 	
 	init
 	{
-		uiStage += object : Actor()
-		{
-			init
-			{
-				addListener(object : KtxInputListener()
-				{
-					override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
-					{
-						uiStage.keyboardFocus = null
-						uiStage.scrollFocus = null
-						Gdx.input.setOnscreenKeyboardVisible(false)
-						return false
-					}
-				})
-			}
-			
-			override fun hit(x: Float, y: Float, touchable: Boolean): Actor = this
-		}
+		uiStage += fallbackActor
+		uiStage.keyboardFocus = fallbackActor
 		uiStage += scene2d.table {
 			setFillParent(true)
 			stack {

@@ -94,6 +94,8 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 		if (CardSlideSoundEvent in extraPackets)
 			server.sendToAllTCP(CardSlideSoundEvent)
 		server.sendToAllTCP(GameEndedEvent(playerUsername))
+		tabletop.suitChooser = null
+		lastPowerCardPlayedEvent = null
 		return
 	}
 	

@@ -118,7 +118,7 @@ class CrazyEightsServer(private val roomCode: String)
 					val md = MessageDigest.getInstance("SHA-256")
 					val digest: ByteArray = md.digest(bytes)
 					datagramChannel.send(ByteBuffer.wrap(digest), fromAddress)
-					println(digest.contentToString())
+//					println(digest.contentToString())
 					return true
 				}
 			})

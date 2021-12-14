@@ -78,7 +78,10 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 			stack {
 				actor(mainTable)
 				actor(playTable)
-			}.cell(expand = true)
+				container(label(VERSION_STRING, INFO_LABEL_STYLE_S)) {
+					bottom().right().padBottom(8F).padRight(8F)
+				}
+			}.cell(grow = true)
 		}
 		activeTable = mainTable
 		playTable.alpha = 0F

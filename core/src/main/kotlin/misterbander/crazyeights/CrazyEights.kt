@@ -222,7 +222,7 @@ class CrazyEights : GFramework()
 	
 	override fun create()
 	{
-		Gdx.app.logLevel = Application.LOG_DEBUG
+		Gdx.app.logLevel = Application.LOG_ERROR
 //		Log.set(Log.LEVEL_DEBUG)
 		KtxAsync.initiate()
 		

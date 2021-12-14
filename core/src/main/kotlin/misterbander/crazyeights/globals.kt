@@ -2,9 +2,10 @@ package misterbander.crazyeights
 
 import com.badlogic.gdx.graphics.Color
 
-const val MAJOR_VERSION = 0
-const val MINOR_VERSION = 1
-const val VERSION_STRING = "v$MAJOR_VERSION.$MINOR_VERSION"
+const val MAJOR_VERSION = 1
+const val MINOR_VERSION = 0
+const val PATCH_VERSION = 0
+const val VERSION_STRING = "v$MAJOR_VERSION.$MINOR_VERSION.$PATCH_VERSION-alpha"
 
 const val DEFAULT_TCP_PORT = 11530
 const val DEFAULT_UDP_PORT = 11531

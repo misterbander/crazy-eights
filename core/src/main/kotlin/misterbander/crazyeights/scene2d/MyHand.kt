@@ -23,6 +23,8 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 		setPosition(0F, offsetCenterY, Align.bottom)
 	}
 	
+	private val memory = GdxSet<Card>()
+	
 	init
 	{
 		addActor(cardGroup)
@@ -75,24 +77,41 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 			if ((cardGroup.cards.size - 1)*defaultSeparation < max) defaultSeparation else max/(cardGroup.cards.size - 1)
 		cardGroup.arrange(sort)
 		
-		room.apply {
-			if (isGameStarted
-				&& gameState!!.drawCount >= gameState!!.ruleset.maxDrawCount && gameState!!.currentPlayer == game.user.name)
-			{
-				passButton.isVisible = true
-				tabletop.drawStackHolder!!.touchable = Touchable.disabled
+		if (room.isGameStarted)
+		{
+			room.apply {
+				if (gameState!!.drawCount >= gameState!!.ruleset.maxDrawCount && gameState!!.currentPlayer == game.user.name)
+				{
+					passButton.isVisible = true
+					tabletop.drawStackHolder!!.touchable = Touchable.disabled
+				}
 			}
+			rememberCards()
 		}
 	}
 	
-	inline fun setDarkened(predicate: (Card) -> Boolean)
+	fun setDarkened(predicate: (Card) -> Boolean)
 	{
-		for (groupable: Groupable<CardGroup> in cardGroup.cards)
+		for (card in memory.toGdxArray())
 		{
-			if (groupable is Card)
-				groupable.isDarkened = predicate(groupable)
+			if (card.cardGroup == room.tabletop.discardPile)
+			{
+				card.isDarkened = false
+				memory -= card
+			}
+			else
+				card.isDarkened = predicate(card)
 		}
 	}
+	
+	private fun rememberCards()
+	{
+		if (!room.isGameStarted)
+			return
+		cardGroup.cards.forEach { memory += it as Card }
+	}
+	
+	fun clearMemory() = memory.clear()
 	
 	fun sendUpdates()
 	{

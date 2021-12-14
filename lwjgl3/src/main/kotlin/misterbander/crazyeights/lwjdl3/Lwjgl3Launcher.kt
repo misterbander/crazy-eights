@@ -13,7 +13,7 @@ object Lwjgl3Launcher
 		val configuration = Lwjgl3ApplicationConfiguration()
 		configuration.setTitle("Crazy Eights")
 		configuration.setWindowedMode(1280, 720)
-		configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
+		configuration.setWindowIcon("icon128.png", "icon64.png", "icon32.png", "icon16.png")
 		Lwjgl3Application(CrazyEights(args), configuration)
 	}
 }

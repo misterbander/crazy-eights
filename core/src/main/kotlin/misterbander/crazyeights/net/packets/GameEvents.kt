@@ -231,7 +231,7 @@ fun Tabletop.onGameStateUpdated(gameState: GameState)
 		{
 			is EightsPlayedEvent -> onEightsPlayed(powerCardPlayedEvent)
 			is DrawTwosPlayedEvent -> onDrawTwosPlayed(powerCardPlayedEvent)
-			is ReversePlayedEvent -> onReversePlayed()
+			is ReversePlayedEvent -> onReversePlayed(powerCardPlayedEvent)
 			is SkipsPlayedEvent -> onSkipsPlayed(powerCardPlayedEvent)
 			else ->
 			{

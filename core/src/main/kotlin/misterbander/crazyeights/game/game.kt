@@ -64,7 +64,7 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 		card.rank == serverGameState.ruleset.reverses && serverGameState.playerCount > 2 ->
 		{
 			serverGameState.doMove(move)
-			lastPowerCardPlayedEvent = ReversePlayedEvent
+			lastPowerCardPlayedEvent = ReversePlayedEvent(serverGameState.isPlayReversed)
 			extraPackets += serverGameState.toGameState(lastPowerCardPlayedEvent)
 		}
 		else ->

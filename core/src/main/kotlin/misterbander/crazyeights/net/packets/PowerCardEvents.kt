@@ -158,20 +158,21 @@ fun Tabletop.onSkipsPlayed(event: SkipsPlayedEvent)
 	persistentPowerCardEffects += PowerCardEffectRing(room)
 }
 
-object ReversePlayedEvent : PowerCardPlayedEvent
+@NoArg
+data class ReversePlayedEvent(val isReversed: Boolean) : PowerCardPlayedEvent
 {
 	override val delayMillis: Long
 		get() = 2000
 }
 
-fun Tabletop.onReversePlayed()
+fun Tabletop.onReversePlayed(event: ReversePlayedEvent)
 {
 	powerCardEffects.clearChildren()
 	powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 		defaultAction along Actions.run {
 			persistentPowerCardEffects += PowerCardEffectRing(room)
 			room.deepWhoosh.play()
-			playDirectionIndicator.flipDirection()
+			playDirectionIndicator.isReversed = event.isReversed
 		}
 	}
 	persistentPowerCardEffects += PowerCardEffectRing(room)

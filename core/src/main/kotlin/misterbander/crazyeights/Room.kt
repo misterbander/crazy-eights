@@ -472,7 +472,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				is DrawTwosPlayedEvent -> tabletop.onDrawTwosPlayed(packet)
 				is DrawTwoPenaltyEvent -> tabletop.onDrawTwoPenalty(packet)
 				is SkipsPlayedEvent -> tabletop.onSkipsPlayed(packet)
-				is ReversePlayedEvent -> tabletop.onReversePlayed()
+				is ReversePlayedEvent -> tabletop.onReversePlayed(packet)
 				is DrawStackRefillEvent -> tabletop.onDrawStackRefill(packet)
 				is CardSlideSoundEvent -> cardSlide.play()
 			}

@@ -20,6 +20,15 @@ class PlayDirectionIndicator(room: GScreen<CrazyEights>) : GObject<CrazyEights>(
 	private val triangleSize = 40F
 	private val thickness = 40F
 	private var rotationSpeed = 20F
+	var isReversed: Boolean
+		get() = scaleX == -1F
+		set(value)
+		{
+			scaleX = if (value) -1F else 1F
+			rotationSpeed = -20F
+			color = Color.WHITE
+			this += delay(0.2F, color(darkRed, 0.5F))
+		}
 	
 	private val darkRed = Color(0x351A1AFF)
 	
@@ -35,14 +44,6 @@ class PlayDirectionIndicator(room: GScreen<CrazyEights>) : GObject<CrazyEights>(
 		rotationSpeed = min(rotationSpeed + 10*delta, 20F)
 		if (rotationSpeed > 0)
 			rotation += if (scaleX == 1F) -rotationSpeed*delta else rotationSpeed*delta
-	}
-	
-	fun flipDirection()
-	{
-		scaleX = -scaleX
-		rotationSpeed = -20F
-		color = Color.WHITE
-		this += delay(0.2F, color(darkRed, 0.5F))
 	}
 	
 	fun reset()

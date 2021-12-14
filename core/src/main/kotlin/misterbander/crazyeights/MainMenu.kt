@@ -1,9 +1,11 @@
 package misterbander.crazyeights
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -12,6 +14,7 @@ import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.Listener
 import ktx.actors.alpha
 import ktx.actors.onChange
+import ktx.actors.onKeyDown
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.collections.*
@@ -71,6 +74,19 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	
 	init
 	{
+		activeTable = mainTable
+		val fallbackActor = Actor().apply {
+			onKeyDown { keyCode ->
+				if (keyCode != Input.Keys.BACK)
+					return@onKeyDown
+				if (activeTable != mainTable)
+					showTable(mainTable)
+				else
+					Gdx.app.exit()
+			}
+		}
+		uiStage += fallbackActor
+		uiStage.keyboardFocus = fallbackActor
 		uiStage += scene2d.table {
 			setFillParent(true)
 			image(logo).cell(pad = 16F).inCell.top()
@@ -83,7 +99,6 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 				}
 			}.cell(grow = true)
 		}
-		activeTable = mainTable
 		playTable.alpha = 0F
 		playTable.isVisible = false
 		

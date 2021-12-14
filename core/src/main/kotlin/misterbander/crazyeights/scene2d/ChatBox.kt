@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.scenes.scene2d.Actor
-import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
@@ -13,8 +12,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
-import ktx.actors.KtxInputListener
 import ktx.actors.onKey
+import ktx.actors.onKeyDown
 import ktx.actors.onKeyboardFocus
 import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
@@ -48,7 +47,7 @@ class ChatBox(private val room: Room) : Table()
 			{
 				game.client?.sendTCP(Chat(game.user, "<${game.user.name}> $text"))
 				text = ""
-				uiStage.keyboardFocus = null
+				uiStage.keyboardFocus = room.fallbackActor
 				uiStage.scrollFocus = null
 			}
 		}
@@ -57,6 +56,10 @@ class ChatBox(private val room: Room) : Table()
 			chatHistoryScrollPane.isVisible = focused
 			uiStage.scrollFocus = if (focused) chatHistoryScrollPane else null
 			Gdx.input.setOnscreenKeyboardVisible(focused)
+		}
+		onKeyDown { keyCode ->
+			if (keyCode == Input.Keys.ESCAPE || keyCode == Input.Keys.BACK)
+				setFocused(false)
 		}
 	}
 	private val chatHistory = scene2d.verticalGroup {
@@ -78,28 +81,20 @@ class ChatBox(private val room: Room) : Table()
 			container(chatPopup).top().left()
 			actor(chatHistoryScrollPane)
 		}).left()
-		
-		uiStage.addListener(object : KtxInputListener()
+	}
+	
+	fun setFocused(isFocused: Boolean)
+	{
+		if (isFocused)
 		{
-			override fun keyDown(event: InputEvent, keycode: Int): Boolean
-			{
-				if (event.keyCode == Input.Keys.T && !chatTextField.hasKeyboardFocus())
-				{
-					Gdx.app.postRunnable {
-						uiStage.keyboardFocus = chatTextField
-						uiStage.scrollFocus = chatHistoryScrollPane
-					}
-					return true
-				}
-				else if (event.keyCode == Input.Keys.ESCAPE)
-				{
-					uiStage.keyboardFocus = null
-					uiStage.scrollFocus = null
-					return true
-				}
-				return false
-			}
-		})
+			uiStage.keyboardFocus = chatTextField
+			uiStage.scrollFocus = chatHistoryScrollPane
+		}
+		else
+		{
+			uiStage.keyboardFocus = room.fallbackActor
+			uiStage.scrollFocus = null
+		}
 	}
 	
 	@Suppress("UNCHECKED_CAST")

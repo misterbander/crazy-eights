@@ -31,7 +31,8 @@ class ServerGameState(
 	var isPlayReversed: Boolean = false,
 	drawCount: Int = 0,
 	declaredSuit: Suit? = null,
-	drawTwoEffectCardCount: Int = 0
+	drawTwoEffectCardCount: Int = 0,
+	private var isFirstMove: Boolean = true
 )
 {
 	/** Top card of the discard pile. */
@@ -152,6 +153,34 @@ class ServerGameState(
 			onPlayerChanged(currentPlayer)
 			hasPlayerChanged = false
 		}
+		isFirstMove = false
+	}
+	
+	fun triggerFirstPowerCard(): Rank?
+	{
+		val firstPower = when
+		{
+			!ruleset.firstDiscardOnDealTriggersPower -> null
+			topCard.rank == ruleset.drawTwos ->
+			{
+				drawTwoEffectCardCount = 2
+				ruleset.drawTwos
+			}
+			topCard.rank == ruleset.skips ->
+			{
+				advanceToNextPlayer()
+				ruleset.skips
+			}
+			topCard.rank == ruleset.reverses && playerCount > 2 ->
+			{
+				isPlayReversed = !isPlayReversed
+				ruleset.reverses
+			}
+			else -> null
+		}
+		updateMoves()
+		hasPlayerChanged = false
+		return firstPower
 	}
 	
 	private fun updateMoves()
@@ -187,7 +216,8 @@ class ServerGameState(
 			}
 			else if (card.suit == declaredSuit
 				|| declaredSuit == null && card.suit == topCard.suit
-				|| card.rank == topCard.rank)
+				|| card.rank == topCard.rank
+				|| isFirstMove && ruleset.firstDiscardOnDealTriggersPower && topCard.rank == Rank.EIGHT)
 				moves += PlayMove(card)
 		}
 	}
@@ -265,7 +295,8 @@ class ServerGameState(
 				isPlayReversed,
 				drawCount,
 				declaredSuit,
-				drawTwoEffectCardCount
+				drawTwoEffectCardCount,
+				isFirstMove
 			)
 		}
 	

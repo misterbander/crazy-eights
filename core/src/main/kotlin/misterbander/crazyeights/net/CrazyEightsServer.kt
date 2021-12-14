@@ -126,7 +126,7 @@ class CrazyEightsServer(private val roomCode: String)
 	val aiJobs = Queue<Job>()
 	@Volatile private var isStopped = false
 	
-	var ruleset: Ruleset = Ruleset()
+	var ruleset: Ruleset = Ruleset(firstDiscardOnDealTriggersPower = true)
 	var serverGameState: ServerGameState? = null
 	val isGameStarted: Boolean
 		get() = serverGameState != null

@@ -143,6 +143,8 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 //	val seed = -5000073366615045381 // Starting hand with 2
 //	val seed = 2212245332158196130 // Starting hand with Q
 //	val seed = -3202561125370556140 // Starting hand with A
+//	val seed = 1505641440241536783 // First discard is 8
+//	val seed = 1997011525088092652 // First discard is Q
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
 	drawStack.shuffle(seed, tabletop)
 	
@@ -166,18 +168,37 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 			playerHands[user] = GdxArray(hand) as GdxArray<ServerCard>
 	}
 	acquireActionLocks()
-	serverGameState = ServerGameState(ruleset, playerHands, GdxArray(drawStack.cards), GdxArray(discardPile.cards))
-	serverGameState!!.onPlayerChanged = ::onPlayerChanged
+	val serverGameState = ServerGameState(ruleset, playerHands, GdxArray(drawStack.cards), GdxArray(discardPile.cards))
+	this.serverGameState = serverGameState
+	serverGameState.onPlayerChanged = ::onPlayerChanged
+	val firstPlayer = serverGameState.currentPlayer.name
 	
 	server.sendToAllTCP(Chat(message = "${(connection.arbitraryData as User).name} started a new game", isSystemMessage = true))
-	server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState!!.toGameState()))
+	server.sendToAllTCP(NewGameEvent(cardGroupChangeEvent, seed, serverGameState.toGameState()))
 	
-	if (tabletop.users[serverGameState!!.currentPlayer.name].isAi)
-	{
-		KtxAsync.launch {
-			waitForActionLocks()
-			onPlayerChanged(serverGameState!!.currentPlayer)
+	KtxAsync.launch {
+		waitForActionLocks()
+		val firstPower = serverGameState.triggerFirstPowerCard()
+		when
+		{
+			firstPower == ruleset.drawTwos ->
+			{
+				lastPowerCardPlayedEvent = DrawTwosPlayedEvent(serverGameState.drawTwoEffectCardCount)
+				server.sendToAllTCP(serverGameState.toGameState(lastPowerCardPlayedEvent))
+			}
+			firstPower == ruleset.skips ->
+			{
+				lastPowerCardPlayedEvent = SkipsPlayedEvent(firstPlayer)
+				server.sendToAllTCP(serverGameState.toGameState(lastPowerCardPlayedEvent))
+			}
+			firstPower == ruleset.reverses && serverGameState.playerCount > 2 ->
+			{
+				lastPowerCardPlayedEvent = ReversePlayedEvent(serverGameState.isPlayReversed)
+				server.sendToAllTCP(serverGameState.toGameState(lastPowerCardPlayedEvent))
+			}
 		}
+		if (tabletop.users[serverGameState.currentPlayer.name].isAi)
+			onPlayerChanged(serverGameState.currentPlayer)
 	}
 }
 

@@ -258,6 +258,7 @@ fun Tabletop.onGameEnded(event: GameEndedEvent)
 	drawStackHolder!!.touchable = Touchable.enabled
 	drawStackHolder!!.isFlashing = false
 	myHand.setDarkened { false }
+	myHand.clearMemory()
 	room.gameState = null
 	for (hand: Hand in userToHandMap.values())
 	{

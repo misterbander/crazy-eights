@@ -14,20 +14,17 @@ import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.async.KtxAsync
 import ktx.collections.*
-import ktx.log.debug
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.game.Player
 import misterbander.crazyeights.game.ServerGameState
 import misterbander.crazyeights.game.ai.IsmctsAgent
 import misterbander.crazyeights.game.draw
+import misterbander.crazyeights.game.resetDeck
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
-import misterbander.crazyeights.model.ServerLockable
-import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.EffectText
@@ -103,41 +100,13 @@ fun Tabletop.onNewGame(event: NewGameEvent)
 @Suppress("UNCHECKED_CAST")
 fun CrazyEightsServer.onNewGame(connection: Connection)
 {
+	if (actionLocks.isNotEmpty())
+		return
+	
 	val idToObjectMap = tabletop.idToObjectMap
 	val drawStack = (idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
 	val discardPile = (idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup
 	
-	// Recall all cards
-	val serverObjects = idToObjectMap.values().toArray()
-	for (serverObject: ServerObject in serverObjects) // Unlock everything and move all cards to the draw stack
-	{
-		if (serverObject is ServerLockable)
-			serverObject.lockHolder = null
-		if (serverObject is ServerCard)
-		{
-			if (serverObject.cardGroupId != drawStack.id)
-				serverObject.setServerCardGroup(drawStack, tabletop)
-			serverObject.isFaceUp = false
-		}
-	}
-	for (serverObject: ServerObject in serverObjects) // Remove all empty card groups
-	{
-		if (serverObject is ServerCardGroup && serverObject.cardHolderId == -1)
-		{
-			idToObjectMap.remove(serverObject.id)
-			tabletop.serverObjects.removeValue(serverObject, true)
-		}
-	}
-	for (username in tabletop.hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
-	{
-		if (username !in tabletop.users)
-			tabletop.hands.remove(username)
-	}
-	tabletop.hands.values().forEach { it.clear() }
-	
-	val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
-	
-	// Shuffle draw stack
 	val seed = MathUtils.random.nextLong()
 //	val seed = 9020568252116114615 // Starting hand with 8, A
 //	val seed = -5000073366615045381 // Starting hand with 2
@@ -145,8 +114,7 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 //	val seed = -3202561125370556140 // Starting hand with A
 //	val seed = 1505641440241536783 // First discard is 8
 //	val seed = 1997011525088092652 // First discard is Q
-	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
-	drawStack.shuffle(seed, tabletop)
+	val cardGroupChangeEvent = resetDeck(seed, true)
 	
 	// Deal
 	repeat(if (tabletop.hands.size > 2) 5 else 7) {

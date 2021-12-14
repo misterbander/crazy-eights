@@ -41,6 +41,7 @@ import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
+import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SkipsPlayedEvent
@@ -106,5 +107,6 @@ fun Kryo.registerClasses()
 	register(SkipsPlayedEvent::class.java)
 	register(ReversePlayedEvent::class.java)
 	register(DrawStackRefillEvent::class.java)
+	register(ResetDeckEvent::class.java)
 	register(CrazyEightsClient.BufferEnd::class.java)
 }

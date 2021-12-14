@@ -64,6 +64,7 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.PowerCardPlayedEvent
+import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
@@ -85,6 +86,7 @@ import misterbander.crazyeights.net.packets.onObjectMove
 import misterbander.crazyeights.net.packets.onObjectOwn
 import misterbander.crazyeights.net.packets.onObjectRotate
 import misterbander.crazyeights.net.packets.onObjectUnlock
+import misterbander.crazyeights.net.packets.onResetDeck
 import misterbander.crazyeights.net.packets.onRulesetUpdate
 import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
@@ -404,10 +406,11 @@ class CrazyEightsServer(private val roomCode: String)
 				is CardGroupDetachEvent -> onCardGroupDetach(`object`)
 				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
 				is NewGameEvent -> onNewGame(connection)
+				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name
 				is RulesetUpdateEvent -> onRulesetUpdate(`object`)
 				is PassEvent -> pass()
 				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
-				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name
+				is ResetDeckEvent -> onResetDeck()
 				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {
 					it.runnable()
 				}

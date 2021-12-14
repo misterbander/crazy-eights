@@ -2,6 +2,7 @@ package misterbander.crazyeights
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.MathUtils
@@ -24,7 +25,7 @@ import misterbander.gframework.scene2d.gTextField
 /**
  * [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.
  */
-class CrazyEights : GFramework()
+class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 {
 	// Fonts
 	private val msjhlGenerator by lazy { assetStorage[Fonts.msjhl] }
@@ -222,7 +223,13 @@ class CrazyEights : GFramework()
 	
 	override fun create()
 	{
-		Gdx.app.logLevel = Application.LOG_ERROR
+		Gdx.app.logLevel = when (args.firstOrNull())
+		{
+			"--debug" -> Application.LOG_DEBUG
+			"--log" -> Application.LOG_INFO
+			else -> Application.LOG_ERROR
+		}
+		Gdx.input.setCatchKey(Input.Keys.BACK, true)
 //		Log.set(Log.LEVEL_DEBUG)
 		KtxAsync.initiate()
 		

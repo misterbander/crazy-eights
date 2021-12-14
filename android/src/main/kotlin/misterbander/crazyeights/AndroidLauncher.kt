@@ -15,7 +15,8 @@ class AndroidLauncher : AndroidApplication(), KeyboardHeightObserver
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
 		super.onCreate(savedInstanceState)
-		crazyEights = CrazyEights()
+		val args = intent.extras?.getString("args")
+		crazyEights = CrazyEights(args?.let { arrayOf(it) } ?: emptyArray())
 		initialize(crazyEights, AndroidApplicationConfiguration())
 		
 		keyboardHeightProvider = KeyboardHeightProvider(this)

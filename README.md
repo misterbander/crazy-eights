@@ -22,6 +22,6 @@ No pics no clicks!
 
 ## Download
 
-You can download the app here.
+You can download the app [here](https://github.com/misterbander/crazy-eights/releases).
 
 ## Feedback

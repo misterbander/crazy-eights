@@ -1,5 +1,6 @@
 package misterbander.crazyeights.scene2d.dialogs
 
+import com.badlogic.gdx.Gdx
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -107,6 +108,12 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 			}
 			add(scene2d.label("Room Code:", INFO_LABEL_STYLE_S))
 			add(roomCodeTextField).prefWidth(416F)
+			add(scene2d.textButton("How to Join?", TEXT_BUTTON_STYLE) {
+				onChange {
+					mainMenu.click.play()
+					Gdx.net.openURI("https://github.com/misterbander/crazy-eights/wiki/Multiplayer-Guide")
+				}
+			})
 		}
 		buttonTable.apply {
 			add(joinButton).prefWidth(248F)

@@ -1,5 +1,6 @@
 package misterbander.crazyeights.scene2d
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import ktx.actors.onChange
@@ -37,7 +38,10 @@ class HelpPanel(room: Room) : Table()
 		}).expand().bottom()
 		row()
 		add(scene2d.textButton("Game Rules", TEXT_BUTTON_STYLE) {
-			onChange { room.click.play() } // TODO Add help
+			onChange {
+				room.click.play()
+				Gdx.net.openURI("https://github.com/misterbander/crazy-eights/wiki/Rules")
+			}
 		})
 		row()
 		add(scene2d.label(

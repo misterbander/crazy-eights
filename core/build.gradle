@@ -9,6 +9,7 @@ sourceSets {
 dependencies {
 	api "com.badlogicgames.gdx:gdx:$gdxVersion"
 	api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+	api "com.esotericsoftware:kryo:5.2.1"
 	api "com.github.crykn:kryonet:$kryoNetVersion"
 	api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 	api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCoreVersion"

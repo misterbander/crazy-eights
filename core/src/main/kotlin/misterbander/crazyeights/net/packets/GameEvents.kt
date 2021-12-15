@@ -149,17 +149,17 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 		val firstPower = serverGameState.triggerFirstPowerCard()
 		when
 		{
-			firstPower == ruleset.drawTwos ->
+			ruleset.drawTwos != null && firstPower == ruleset.drawTwos ->
 			{
 				lastPowerCardPlayedEvent = DrawTwosPlayedEvent(serverGameState.drawTwoEffectCardCount)
 				server.sendToAllTCP(serverGameState.toGameState(lastPowerCardPlayedEvent))
 			}
-			firstPower == ruleset.skips ->
+			ruleset.skips != null && firstPower == ruleset.skips ->
 			{
 				lastPowerCardPlayedEvent = SkipsPlayedEvent(firstPlayer)
 				server.sendToAllTCP(serverGameState.toGameState(lastPowerCardPlayedEvent))
 			}
-			firstPower == ruleset.reverses && serverGameState.playerCount > 2 ->
+			ruleset.reverses != null && firstPower == ruleset.reverses && serverGameState.playerCount > 2 ->
 			{
 				lastPowerCardPlayedEvent = ReversePlayedEvent(serverGameState.isPlayReversed)
 				server.sendToAllTCP(serverGameState.toGameState(lastPowerCardPlayedEvent))

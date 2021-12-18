@@ -28,7 +28,7 @@ configure(subprojects - project(':android')) {
 }
 
 subprojects {
-	version = '1.0.0-alpha'
+	version = '1.0.0-alpha.2'
 	ext.appName = 'CrazyEights'
 	repositories {
 		mavenLocal()

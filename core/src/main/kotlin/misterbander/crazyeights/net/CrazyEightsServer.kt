@@ -207,7 +207,7 @@ class CrazyEightsServer(private val roomCode: String)
 		val serverGameState = serverGameState!!
 		val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
 		val discardPile = (tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup
-		if (!tabletop.users[player.name]!!.isAi)
+		if (tabletop.users[player.name]?.isAi != true)
 			return
 		
 		val firstAiJob = if (!aiJobs.isEmpty) aiJobs.first() else null

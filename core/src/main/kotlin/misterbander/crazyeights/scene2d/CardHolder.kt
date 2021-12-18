@@ -104,7 +104,7 @@ class CardHolder(
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean =
-		cardGroup != null && (gObject is Card || gObject is CardGroup)
+		!room.isGameStarted && cardGroup != null && (gObject is Card || gObject is CardGroup)
 	
 	override fun accept(gObject: GObject<CrazyEights>) = cardGroup!!.accept(gObject)
 	

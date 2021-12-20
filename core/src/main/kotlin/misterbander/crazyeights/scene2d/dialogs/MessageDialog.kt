@@ -11,7 +11,6 @@ class MessageDialog(screen: CrazyEightsScreen) : CrazyEightsDialog(screen, "")
 {
 	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE_S)
 	private val textButton = scene2d.textButton("", TEXT_BUTTON_STYLE) {
-		labelCell.prefWidth(192F)
 		onChange {
 			screen.click.play()
 			actionlessHide()
@@ -24,7 +23,7 @@ class MessageDialog(screen: CrazyEightsScreen) : CrazyEightsDialog(screen, "")
 	init
 	{
 		contentTable.add(messageLabel)
-		buttonTable.add(textButton)
+		buttonTable.add(textButton).prefWidth(224F)
 	}
 	
 	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)? = null) =

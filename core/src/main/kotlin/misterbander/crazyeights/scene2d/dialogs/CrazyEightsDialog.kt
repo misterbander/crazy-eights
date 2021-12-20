@@ -34,11 +34,11 @@ abstract class CrazyEightsDialog(
 	
 	init
 	{
-		titleTable.add(closeButton).right()
 		titleTable.pad(2F, 16F, 0F, 8F)
+		titleTable.add(closeButton).right()
 		contentTable.pad(16F)
-		buttonTable.pad(0F, 16F, 16F, 16F)
 		buttonTable.defaults().space(16F)
+		buttonTable.pad(0F, 16F, 16F, 16F)
 		
 		onKeyDown { keyCode ->
 			if (keyCode == Input.Keys.BACK)

@@ -15,24 +15,26 @@ class ColorPickerDialog(mainMenu: MainMenu, parent: PlayDialog) : CrazyEightsDia
 	
 	init
 	{
-		contentTable.apply {
-			add(hueSlider).padLeft(16F).padRight(16F).prefWidth(600F)
+		contentTable.add(scene2d.table {
+			defaults().space(8F)
+			actor(hueSlider).cell(padLeft = 16F, padRight = 16F, preferredWidth = 600F)
 			row()
-			add(colorCircle)
-		}
-		buttonTable.apply {
-			add(scene2d.textButton("Apply", TEXT_BUTTON_STYLE) {
+			actor(colorCircle)
+		})
+		buttonTable.add(scene2d.table {
+			defaults().space(16F)
+			textButton("Apply", TEXT_BUTTON_STYLE) {
 				onChange {
 					mainMenu.click.play()
 					hide()
 					game.user.color.fromHsv(hueSlider.value, 0.8F, 0.8F)
 					parent.colorButton.image.color.fromHsv(hueSlider.value, 0.8F, 0.8F)
 				}
-			}).prefWidth(224F)
-			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
+			}.cell(preferredWidth = 224F)
+			textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { mainMenu.click.play(); hide() }
-			})
-		}
+			}
+		})
 	}
 	
 	override fun show()

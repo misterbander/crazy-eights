@@ -91,33 +91,34 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 	
 	init
 	{
-		contentTable.apply {
+		contentTable.add(scene2d.table {
 			defaults().left().space(16F)
-			add(scene2d.label("Username:", INFO_LABEL_STYLE_S))
-			add(usernameTextField).prefWidth(416F)
-			add(colorButton)
+			label("Username:", INFO_LABEL_STYLE_S)
+			actor(usernameTextField).cell(preferredWidth = 416F)
+			actor(colorButton)
 			row()
 			if (isAdvanced)
 			{
-				add(scene2d.label("Server IP Address:", INFO_LABEL_STYLE_S))
-				add(ipTextField).prefWidth(416F)
+				label("Server IP Address:", INFO_LABEL_STYLE_S)
+				actor(ipTextField).cell(preferredWidth = 416F)
 				row()
-				add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
-				add(portTextField).prefWidth(416F)
+				label("Server Port:", INFO_LABEL_STYLE_S)
+				actor(portTextField).cell(preferredWidth = 416F)
 				row()
 			}
-			add(scene2d.label("Room Code:", INFO_LABEL_STYLE_S))
-			add(roomCodeTextField).prefWidth(416F)
-			add(scene2d.textButton("How to Join?", TEXT_BUTTON_STYLE) {
+			label("Room Code:", INFO_LABEL_STYLE_S)
+			actor(roomCodeTextField).cell(preferredWidth = 416F)
+			textButton("How to Join?", TEXT_BUTTON_STYLE) {
 				onChange {
 					mainMenu.click.play()
 					Gdx.net.openURI("https://github.com/misterbander/crazy-eights/wiki/Multiplayer-Guide")
 				}
-			})
-		}
-		buttonTable.apply {
-			add(joinButton).prefWidth(248F)
-			add(scene2d.textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
+			}
+		})
+		buttonTable.add(scene2d.table {
+			defaults().space(16F)
+			actor(joinButton).cell(preferredWidth = 248F)
+			textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
 				onChange {
 					mainMenu.click.play()
 					hide()
@@ -126,11 +127,11 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 					else
 						mainMenu.advancedJoinRoomDialog.show()
 				}
-			}).prefWidth(224F)
-			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
+			}.cell(preferredWidth = 224F)
+			textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { mainMenu.click.play(); hide() }
-			})
-		}
+			}
+		})
 		addListener(UnfocusListener(this))
 	}
 	

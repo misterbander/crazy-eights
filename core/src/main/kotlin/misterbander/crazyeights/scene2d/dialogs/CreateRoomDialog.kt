@@ -72,26 +72,27 @@ class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mai
 	
 	init
 	{
-		contentTable.apply {
+		contentTable.add(scene2d.table {
 			defaults().left().space(16F)
-			add(scene2d.label("Username:", INFO_LABEL_STYLE_S))
-			add(usernameTextField).prefWidth(416F)
-			add(colorButton)
+			label("Username:", INFO_LABEL_STYLE_S)
+			actor(usernameTextField).cell(preferredWidth = 416F)
+			actor(colorButton)
 			row()
 			if (isAdvanced)
 			{
-				add(scene2d.label("Server Port:", INFO_LABEL_STYLE_S))
-				add(portTextField).prefWidth(416F)
+				label("Server Port:", INFO_LABEL_STYLE_S)
+				actor(portTextField).cell(preferredWidth = 416F)
 				row()
 			}
-			add(scene2d.label("Room Code:", INFO_LABEL_STYLE_S))
-			add(roomCodeTextField).prefWidth(416F)
+			label("Room Code:", INFO_LABEL_STYLE_S)
+			actor(roomCodeTextField).cell(preferredWidth = 416F)
 			val chars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 			roomCodeTextField.text = (1..6).map { chars.random() }.joinToString("")
-		}
-		buttonTable.apply {
-			add(createButton).prefWidth(248F)
-			add(scene2d.textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
+		})
+		buttonTable.add(scene2d.table {
+			defaults().space(16F)
+			actor(createButton).cell(preferredWidth = 248F)
+			textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
 				onChange {
 					mainMenu.click.play()
 					hide()
@@ -100,11 +101,11 @@ class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mai
 					else
 						mainMenu.advancedCreateRoomDialog.show()
 				}
-			}).prefWidth(224F)
-			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
+			}.cell(preferredWidth = 224F)
+			textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { mainMenu.click.play(); hide() }
-			})
-		}
+			}
+		})
 		addListener(UnfocusListener(this))
 	}
 	

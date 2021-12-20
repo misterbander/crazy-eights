@@ -11,12 +11,12 @@ class GameMenuDialog(room: Room) : CrazyEightsDialog(room, "Game Menu")
 	init
 	{
 		contentTable.pad(0F)
-		buttonTable.apply {
+		buttonTable.add(scene2d.table {
 			defaults().center().space(16F)
 			padTop(16F)
-			add(scene2d.textButton("Continue", TEXT_BUTTON_STYLE) { onChange { room.click.play(); hide() } })
+			textButton("Continue", TEXT_BUTTON_STYLE) { onChange { room.click.play(); hide() } }
 			row()
-			add(scene2d.textButton("Quit", TEXT_BUTTON_STYLE) {
+			textButton("Quit", TEXT_BUTTON_STYLE) {
 				onChange {
 					room.click.play()
 					hide()
@@ -25,7 +25,7 @@ class GameMenuDialog(room: Room) : CrazyEightsDialog(room, "Game Menu")
 					game.network.stop()
 					room.transition.start(targetScreen = game.getScreen<MainMenu>())
 				}
-			})
-		}
+			}
+		})
 	}
 }

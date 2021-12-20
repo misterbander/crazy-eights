@@ -87,48 +87,49 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 	
 	init
 	{
-		contentTable.apply {
+		contentTable.add(scene2d.table {
 			defaults().left().space(16F)
-			add(scene2d.verticalGroup {
+			verticalGroup {
 				columnAlign(Align.left)
 				label("Max Draw Count", INFO_LABEL_STYLE_S)
 				label("Maximum number of cards to draw before being forced to pass.\nEnter 0 for no limit.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
-			})
-			add(maxDrawCountTextField).prefWidth(128F)
+			}
+			actor(maxDrawCountTextField).cell(preferredWidth = 128F)
 			row()
-			add(scene2d.verticalGroup {
+			verticalGroup {
 				columnAlign(Align.left)
 				label("Draw Twos", INFO_LABEL_STYLE_S)
 				label("Next player draws two cards. Can be stacked.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
-			})
-			add(drawTwosSelectBox)
+			}
+			actor(drawTwosSelectBox)
 			row()
-			add(scene2d.verticalGroup {
+			verticalGroup {
 				columnAlign(Align.left)
 				label("Skips", INFO_LABEL_STYLE_S)
 				label("Skips the next player.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
-			})
-			add(skipsSelectBox)
+			}
+			actor(skipsSelectBox)
 			row()
-			add(scene2d.verticalGroup {
+			verticalGroup {
 				columnAlign(Align.left)
 				label("Reverses", INFO_LABEL_STYLE_S)
 				label("Reverses the play direction.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
-			})
-			add(reversesSelectBox)
+			}
+			actor(reversesSelectBox)
 			row()
-			add(scene2d.horizontalGroup {
+			horizontalGroup {
 				space(16F)
 				actor(addAiButton)
 				actor(resetDeckButton)
-			}).colspan(2).center()
-		}
-		buttonTable.apply {
-			add(newGameButton).prefWidth(224F)
-			add(scene2d.textButton("Cancel", TEXT_BUTTON_STYLE) {
+			}.cell(colspan = 2).inCell.center()
+		})
+		buttonTable.add(scene2d.table {
+			defaults().space(16F)
+			actor(newGameButton).cell(preferredWidth = 224F)
+			textButton("Cancel", TEXT_BUTTON_STYLE) {
 				onChange { room.click.play(); hide() }
-			})
-		}
+			}
+		})
 		addListener(UnfocusListener(this))
 	}
 	

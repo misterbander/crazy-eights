@@ -73,7 +73,7 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 							mainMenu.messageDialog.show(
 								"Error",
 								"Couldn't find room with room code: ${roomCodeTextField.text}\n" +
-									"Either the room code is incorrect, the server is not discoverable under your " +
+									"Either the room code is incorrect, the server is not discoverable in your " +
 									"network, or the server failed to respond in time.",
 								"OK",
 								this@JoinRoomDialog::show

@@ -25,3 +25,7 @@ No pics no clicks!
 You can download the app [here](https://github.com/misterbander/crazy-eights/releases).
 
 ## Feedback
+
+This project is created as part of my thesis. If you have any feedback, you can leave one at https://forms.office.com/r/LXrC4umeu3.
+
+Thanks and have fun!

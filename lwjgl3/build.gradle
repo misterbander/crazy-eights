@@ -1,17 +1,16 @@
 apply plugin: 'application'
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-mainClassName = 'misterbander.crazyeights.lwjdl3.Lwjgl3Launcher'
+mainClassName = 'misterbander.crazyeights.lwjgl3.Lwjgl3Launcher'
 eclipse.project.name = appName + '-lwjgl3'
-sourceCompatibility = 8.0
+sourceCompatibility = 1.8
 java.targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-	implementation project(':core')
 	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-	implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
 	implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+	implementation project(':core')
 }
 
 def os = System.properties['os.name'].toLowerCase()
@@ -19,7 +18,7 @@ def os = System.properties['os.name'].toLowerCase()
 run {
 	workingDir = rootProject.projectDir
 	setIgnoreExitValue(true)
-	
+
 	if (os.contains('mac')) {
 		// Required to run LWJGL3 Java apps on MacOS
 		jvmArgs += "-XstartOnFirstThread"
@@ -46,4 +45,8 @@ jar {
 	doLast {
 		file(archiveFile).setExecutable(true, false)
 	}
+}
+
+// Equivalent to the jar task; here for compatibility with gdx-setup.
+task dist(dependsOn: [jar]) {
 }

@@ -226,7 +226,7 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 		Gdx.app.logLevel = when (args.firstOrNull())
 		{
 			"--debug" -> Application.LOG_DEBUG
-			"--log" -> Application.LOG_INFO
+			"--info" -> Application.LOG_INFO
 			else -> Application.LOG_ERROR
 		}
 		Gdx.input.setCatchKey(Input.Keys.BACK, true)

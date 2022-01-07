@@ -33,13 +33,13 @@ android {
 		applicationId 'misterbander.crazyeights'
 		minSdkVersion 21
 		targetSdkVersion 30
-		versionCode 2
-		versionName "1.0.0-alpha.2"
+		versionCode 3
+		versionName "1.0.0-alpha.3"
 		multiDexEnabled true
 	}
 	compileOptions {
-		sourceCompatibility "8.0"
-		targetCompatibility "8.0"
+		sourceCompatibility "1.8"
+		targetCompatibility "1.8"
 		coreLibraryDesugaringEnabled true
 	}
 	kotlinOptions.jvmTarget = "1.8"
@@ -61,22 +61,28 @@ configurations { natives }
 
 dependencies {
 	coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
-	implementation project(':core')
 	implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+	implementation project(':core')
 
-	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
-	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
-	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
-	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
-	natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
-	natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-arm64-v8a"
-	natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
-	natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86_64"
-	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
 	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
+	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
 	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
 	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
+	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
 
+	// This follows advice from https://blog.gradle.org/log4j-vulnerability
+	constraints {
+		implementation("org.apache.logging.log4j:log4j-core") {
+			version {
+				strictly("[2.17, 3[")
+				prefer("2.17.0")
+			}
+			because("CVE-2021-44228, CVE-2021-45046, CVE-2021-45105: Log4j vulnerable to remote code execution and other critical security vulnerabilities")
+		}
+	}
 }
 
 // Called every time gradle gets executed, takes the native dependencies of
@@ -88,7 +94,7 @@ task copyAndroidNatives() {
 		file("libs/arm64-v8a/").mkdirs()
 		file("libs/x86_64/").mkdirs()
 		file("libs/x86/").mkdirs()
-		
+
 		configurations.getByName("natives").copy().files.each { jar ->
     	    def outputDir = null
     	    if(jar.name.endsWith("natives-armeabi-v7a.jar")) outputDir = file("libs/armeabi-v7a")
@@ -124,14 +130,14 @@ task run(type: Exec) {
 		if (sdkDir) {
 			path = sdkDir
 		} else {
-			path = "$System.env.ANDROID_HOME"
+			path = "$System.env.ANDROID_SDK_ROOT"
 		}
 	} else {
-		path = "$System.env.ANDROID_HOME"
+		path = "$System.env.ANDROID_SDK_ROOT"
 	}
 
 	def adb = path + "/platform-tools/adb"
-	commandLine "$adb", 'shell', 'am', 'start', '-n', 'misterbander.crazyeights/misterbander.crazyeights.AndroidLauncher'
+	commandLine "$adb", 'shell', 'am', 'start', '-n', 'misterbander.crazyeights/misterbander.crazyeights.android.AndroidLauncher'
 }
 
 eclipse.project.name = appName + "-android"

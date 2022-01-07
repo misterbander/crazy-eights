@@ -14,7 +14,7 @@
  * You should have received a copy of the Lesser GNU General Public License
  * along with Siebe Projects samples.  If not, see <http://www.gnu.org/licenses/>.
  */
-package misterbander.crazyeights
+package misterbander.crazyeights.android
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -28,6 +28,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.PopupWindow
 import com.badlogic.gdx.Gdx
+import misterbander.crazyeights.R
 import misterbander.gframework.scene2d.KeyboardHeightObserver
 
 /**

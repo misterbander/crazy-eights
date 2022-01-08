@@ -14,7 +14,7 @@ import ktx.freetype.async.registerFreeTypeFontLoaders
 import space.earlygrey.shapedrawer.ShapeDrawer
 
 /**
- * Framework built on top of LibKTX.
+ * Framework built on top of KTX.
  *
  * `GFramework` extends [KtxGame] and serves to be the main game class. It defines [PolygonSpriteBatch], [ShapeRenderer],
  * [ShapeDrawer], and an [AssetStorage].

@@ -24,35 +24,6 @@ fun gdxIntIntMapOf(
 }
 
 /**
- * @return A randomly chosen key based on the key to weight mapping given.
- */
-fun <T> ObjectIntMap<T>.weightedRandom(): T
-{
-	val items: GdxArray<T> = keys().toArray()
-	val cumulativeWeightArray = IntArray(size)
-	for (i in cumulativeWeightArray.indices)
-		cumulativeWeightArray[i] = this[items[i], Int.MIN_VALUE] + if (i == 0) 0 else cumulativeWeightArray[i - 1]
-	
-	val random = MathUtils.random(1, cumulativeWeightArray.last())
-	
-	// Perform binary search to select the smallest index with cumulative weight greater than or
-	// equal to the randomly chosen number
-	var low = 0
-	var high = cumulativeWeightArray.lastIndex
-	while (low != high)
-	{
-		val mid = (low + high)/2
-		if (cumulativeWeightArray[mid] == random)
-			return items[mid]
-		if (cumulativeWeightArray[mid] > random)
-			high = mid
-		else
-			low = mid + 1
-	}
-	return items[low]
-}
-
-/**
  * Shuffles a [GdxArray] using a specific seed.
  * @param seed the seed for the random number generator
  */

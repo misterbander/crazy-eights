@@ -1,12 +1,11 @@
 package misterbander.crazyeights.game.ai
 
-import com.badlogic.gdx.utils.ObjectIntMap
+import com.badlogic.gdx.math.CumulativeDistribution
 import ktx.collections.*
 import misterbander.crazyeights.game.DrawMove
 import misterbander.crazyeights.game.Move
 import misterbander.crazyeights.game.PassMove
 import misterbander.crazyeights.game.ServerGameState
-import misterbander.gframework.util.weightedRandom
 
 class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 {
@@ -46,9 +45,10 @@ class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 			// Simulate
 			while (!observedState.isTerminal)
 			{
-				val moveWeightMap = ObjectIntMap<Move>()
-				observedMoves.forEach { move: Move -> moveWeightMap.put(move, if (move is DrawMove || move is PassMove) 1 else 10000) }
-				observedState.doMove(moveWeightMap.weightedRandom())
+				val moveDistribution = CumulativeDistribution<Move>()
+				observedMoves.forEach { move: Move -> moveDistribution.add(move, if (move is DrawMove || move is PassMove) 1F else 10000F) }
+				moveDistribution.generateNormalized()
+				observedState.doMove(moveDistribution.value())
 			}
 			
 			// Backpropagate

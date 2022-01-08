@@ -1,10 +1,26 @@
 package misterbander.gframework.util
 
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.RandomXS128
 import com.badlogic.gdx.utils.IntIntMap
-import com.badlogic.gdx.utils.ObjectIntMap
+import com.badlogic.gdx.utils.IntMap
 import ktx.collections.*
+
+/**
+ * @param keysToValues will be added to the map.
+ * @param initialCapacity initial capacity of the map. Will be resized if necessary.
+ * @param loadFactor decides under what load the map is resized.
+ * @return a new [IntMap].
+ */
+fun <T> gdxIntMapOf(
+	vararg keysToValues: Pair<Int, T>,
+	initialCapacity: Int = defaultMapSize,
+	loadFactor: Float = defaultLoadFactor
+): IntMap<T>
+{
+	val map = IntMap<T>(initialCapacity, loadFactor)
+	keysToValues.forEach { map[it.first] = it.second }
+	return map
+}
 
 /**
  * @param keysToValues will be added to the map.

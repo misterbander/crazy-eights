@@ -1,28 +1,32 @@
-package misterbander.crazyeights.model
+package misterbander.crazyeights.net
 
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.OrderedMap
 import ktx.collections.*
+import misterbander.crazyeights.model.ServerCardGroup
+import misterbander.crazyeights.model.ServerCardHolder
+import misterbander.crazyeights.model.ServerObject
+import misterbander.crazyeights.model.TabletopState
+import misterbander.crazyeights.model.User
 
-data class ServerTabletop(
-	val users: GdxMap<String, User> = GdxMap(),
-	val serverObjects: GdxArray<ServerObject> = GdxArray(),
-	val hands: OrderedMap<String, GdxArray<ServerObject>> = OrderedMap(),
-	var drawStackHolderId: Int = -1,
-	var discardPileHolderId: Int = -1,
-	var suitChooser: String? = null
-)
+class ServerTabletop(val drawStackHolder: ServerCardHolder, val discardPileHolder: ServerCardHolder)
 {
-	@Transient val idToObjectMap = IntMap<ServerObject>()
+	val idToObjectMap = IntMap<ServerObject>()
 	
-	@Volatile @Transient var serverObjectsDebugString: String = ""
+	val users: GdxMap<String, User> = GdxMap()
+	val hands: OrderedMap<String, GdxArray<ServerObject>> = OrderedMap()
+	
+	val serverObjects: GdxArray<ServerObject> = GdxArray()
+	
+	var suitChooser: String? = null
+	
+	@Volatile var serverObjectsDebugString: String = ""
 		private set
-	@Volatile @Transient var handsDebugString: String = ""
+	@Volatile var handsDebugString: String = ""
 		private set
 	
 	fun addServerObject(serverObject: ServerObject, insertAtIndex: Int = -1)
 	{
-		val idToObjectMap = idToObjectMap
 		idToObjectMap[serverObject.id] = serverObject
 		if (serverObject is ServerCardGroup)
 			serverObject.cards.forEach { idToObjectMap[it.id] = it }
@@ -44,4 +48,6 @@ data class ServerTabletop(
 		val handsStr = hands.joinToString(separator = "\n") { (key, value) -> "$key: ${value?.joinToString(separator = ",\n", prefix = "[\n", postfix = "\n]") { "    $it" }}" }
 		handsDebugString = "Hands:\n$handsStr"
 	}
+	
+	fun toTabletopState(): TabletopState = TabletopState(users, serverObjects, hands)
 }

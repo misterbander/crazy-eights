@@ -51,7 +51,7 @@ fun CrazyEightsServer.onCardGroupCreate(event: CardGroupCreateEvent)
 		card.y = y
 		card.rotation = rotation
 		cards[index] = card
-		cardGroup.plusAssign(card, tabletop)
+		cardGroup.plusAssign(tabletop, card)
 	}
 	cardGroup.arrange()
 	tabletop.addServerObject(cardGroup, insertAtIndex)
@@ -87,7 +87,7 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 	val (cards, newCardGroupId, changerUsername) = event
 	val newCardGroup = if (newCardGroupId != -1) tabletop.idToObjectMap[newCardGroupId] as ServerCardGroup else null
 	
-	if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolderId) // User discards a card
+	if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolder.id) // User discards a card
 	{
 		play(event)
 		return
@@ -96,7 +96,7 @@ fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
 	cards.forEachIndexed { index, (id, _, _, rotation) ->
 		val card = tabletop.idToObjectMap[id] as ServerCard
 		card.rotation = rotation
-		card.setServerCardGroup(newCardGroup, tabletop)
+		card.setServerCardGroup(tabletop, newCardGroup)
 		cards[index] = card
 		if (isGameStarted) // Cancel the run later which would send the card back to its original owner
 			runLater.getOrPut(changerUsername) { IntMap() }.remove(id)?.onCancel?.invoke()
@@ -149,7 +149,7 @@ fun CrazyEightsServer.onCardGroupDismantle(connection: Connection, event: CardGr
 	while (cardGroup.cards.isNotEmpty())
 	{
 		val card: ServerCard = cardGroup.cards.removeIndex(0)
-		card.setServerCardGroup(null, tabletop)
+		card.setServerCardGroup(tabletop, null)
 	}
 	tabletop.idToObjectMap.remove(cardGroup.id)
 	tabletop.serverObjects.removeValue(cardGroup, true)

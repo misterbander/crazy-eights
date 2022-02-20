@@ -17,7 +17,6 @@ import misterbander.crazyeights.game.draw
 import misterbander.crazyeights.game.refillDrawStack
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
@@ -61,11 +60,10 @@ fun CrazyEightsServer.onSuitDeclare(connection: Connection? = null, event: SuitD
 	info("Server | INFO") { "Suit changed to ${event.suit.name}" }
 	KtxAsync.launch {
 		val serverGameState = serverGameState!!
-		val topCard: ServerCard =
-			(tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup.cards.peek()
+		val topCard: ServerCard = tabletop.discardPileHolder.cardGroup.cards.peek()
 		kotlinx.coroutines.delay(1000)
 		serverGameState.doMove(ChangeSuitMove(topCard, event.suit))
-		val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+		val drawStack = tabletop.drawStackHolder.cardGroup
 		if (drawStack.cards.isEmpty)
 			refillDrawStack()
 		server.sendToAllTCP(serverGameState.toGameState())
@@ -119,7 +117,7 @@ fun Tabletop.onDrawTwoPenalty(event: DrawTwoPenaltyEvent)
 fun CrazyEightsServer.acceptDrawTwoPenalty(acceptorUsername: String)
 {
 	val serverGameState = serverGameState!!
-	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	val drawStack = tabletop.drawStackHolder.cardGroup
 	
 	KtxAsync.launch {
 		if (drawStack.cards.size < serverGameState.drawTwoEffectCardCount)

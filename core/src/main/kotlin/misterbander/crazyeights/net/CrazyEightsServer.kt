@@ -42,7 +42,6 @@ import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
-import misterbander.crazyeights.model.ServerTabletop
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.ActionLockReleaseEvent
 import misterbander.crazyeights.net.packets.AiAddEvent
@@ -97,13 +96,6 @@ import java.security.MessageDigest
 
 class CrazyEightsServer(private val roomCode: String)
 {
-	private var maxId = 0
-	val tabletop = ServerTabletop()
-	val actionLocks = GdxSet<String>()
-	val runLater = GdxMap<String, IntMap<CancellableRunnable>>()
-	val aiNames = gdxArrayOf("Shark (AI)", "Queenpin (AI)", "Watson (AI)", "Ning (AI)")
-	var aiCount = 0
-	
 	private val asyncContext = newSingleThreadAsyncContext("CrazyEightsServer-AsyncExecutor-Thread")
 	val server by lazy {
 		Server().apply {
@@ -128,6 +120,12 @@ class CrazyEightsServer(private val roomCode: String)
 	val aiJobs = Queue<Job>()
 	@Volatile private var isStopped = false
 	
+	val tabletop: ServerTabletop
+	private var maxId = 0
+	val actionLocks = GdxSet<String>()
+	val runLater = GdxMap<String, IntMap<CancellableRunnable>>()
+	val aiNames = gdxArrayOf("Shark (AI)", "Queenpin (AI)", "Watson (AI)", "Ning (AI)")
+	var aiCount = 0
 	var ruleset: Ruleset = Ruleset(firstDiscardOnDealTriggersPower = true)
 	var serverGameState: ServerGameState? = null
 	val isGameStarted: Boolean
@@ -149,8 +147,7 @@ class CrazyEightsServer(private val roomCode: String)
 		}
 		val drawStackHolder = ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
 		val discardPileHolder = ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE))
-		tabletop.drawStackHolderId = drawStackHolder.id
-		tabletop.discardPileHolderId = discardPileHolder.id
+		tabletop = ServerTabletop(drawStackHolder, discardPileHolder)
 		tabletop.addServerObject(drawStackHolder)
 		tabletop.addServerObject(discardPileHolder)
 		
@@ -205,8 +202,8 @@ class CrazyEightsServer(private val roomCode: String)
 		if (!isGameStarted)
 			return
 		val serverGameState = serverGameState!!
-		val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
-		val discardPile = (tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup
+		val drawStack = tabletop.drawStackHolder.cardGroup
+		val discardPile = tabletop.discardPileHolder.cardGroup
 		if (tabletop.users[player.name]?.isAi != true)
 			return
 		
@@ -304,7 +301,7 @@ class CrazyEightsServer(private val roomCode: String)
 						{
 							serverObject.isFaceUp = true
 							serverObject.lockHolder = null
-							serverObject.setOwner(user.name, tabletop)
+							serverObject.setOwner(tabletop, user.name)
 							server.sendToAllTCP(ObjectOwnEvent(serverObject.id, user.name))
 						}
 					}
@@ -375,7 +372,7 @@ class CrazyEightsServer(private val roomCode: String)
 					connection.arbitraryData = `object`
 					tabletop.users[`object`.name] = `object`
 					tabletop.hands.getOrPut(`object`.name) { GdxArray() }
-					connection.sendTCP(tabletop)
+					connection.sendTCP(tabletop.toTabletopState())
 					connection.sendTCP(RulesetUpdateEvent(ruleset))
 					if (isGameStarted)
 						connection.sendTCP(serverGameState!!.toGameState(

@@ -1,6 +1,6 @@
 package misterbander.crazyeights.model
 
-interface ServerLockable
+interface ServerLockable : ServerObject
 {
 	var lockHolder: String?
 	

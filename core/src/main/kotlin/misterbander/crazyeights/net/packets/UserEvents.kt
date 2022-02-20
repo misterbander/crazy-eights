@@ -94,7 +94,7 @@ fun CrazyEightsServer.onAiRemove(event: AiRemoveEvent)
 	val ai: User = tabletop.users.remove(event.username)
 	val hand: GdxArray<ServerObject> = tabletop.hands.remove(event.username)
 	for (card: ServerObject in hand)
-		(card as ServerCard).setServerCardGroup(null, tabletop)
+		(card as ServerCard).setServerCardGroup(tabletop, null)
 	if (!event.username.startsWith("AI "))
 		aiNames += event.username
 	server.sendToAllTCP(UserLeftEvent(ai))

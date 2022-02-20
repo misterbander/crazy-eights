@@ -24,7 +24,6 @@ import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.EffectText
@@ -103,9 +102,8 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 	if (actionLocks.isNotEmpty())
 		return
 	
-	val idToObjectMap = tabletop.idToObjectMap
-	val drawStack = (idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
-	val discardPile = (idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder).cardGroup
+	val drawStack = tabletop.drawStackHolder.cardGroup
+	val discardPile = tabletop.discardPileHolder.cardGroup
 	
 	val seed = MathUtils.random.nextLong()
 //	val seed = 9020568252116114615 // Starting hand with 8, A
@@ -122,7 +120,7 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 			draw(drawStack.cards.peek(), username, refillIfEmpty = false)
 	}
 	val topCard: ServerCard = drawStack.cards.peek()
-	topCard.setServerCardGroup(discardPile, tabletop)
+	topCard.setServerCardGroup(tabletop, discardPile)
 	topCard.isFaceUp = true
 	
 	// Set game state and action lock

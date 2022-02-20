@@ -1,6 +1,7 @@
 package misterbander.crazyeights.model
 
 import ktx.collections.*
+import misterbander.crazyeights.net.ServerTabletop
 
 data class ServerCard(
 	override val id: Int = -1,
@@ -15,31 +16,31 @@ data class ServerCard(
 	var cardGroupId: Int = -1,
 	var justMoved: Boolean = false,
 	var justRotated: Boolean = false
-) : ServerObject, ServerLockable
+) : ServerLockable, ServerOwnable
 {
 	val name: String
 		get() = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
 	
-	private fun getServerCardGroup(state: ServerTabletop): ServerCardGroup? =
-		if (cardGroupId != -1) state.idToObjectMap[cardGroupId] as ServerCardGroup else null
+	private fun getServerCardGroup(tabletop: ServerTabletop): ServerCardGroup? =
+		if (cardGroupId != -1) tabletop.idToObjectMap[cardGroupId] as ServerCardGroup else null
 	
-	fun setServerCardGroup(cardGroup: ServerCardGroup?, state: ServerTabletop)
+	fun setServerCardGroup(tabletop: ServerTabletop, cardGroup: ServerCardGroup?)
 	{
-		getServerCardGroup(state)?.minusAssign(this, state)
+		getServerCardGroup(tabletop)?.minusAssign(tabletop, this)
 		if (cardGroup != null)
 		{
-			cardGroup.plusAssign(this, state)
-			state.serverObjects.removeValue(this, true)
+			cardGroup.plusAssign(tabletop, this)
+			tabletop.serverObjects.removeValue(this, true)
 		}
 		else
-			state.serverObjects += this
+			tabletop.serverObjects += this
 	}
 	
-	override fun setOwner(ownerUsername: String, state: ServerTabletop)
+	override fun setOwner(tabletop: ServerTabletop, ownerUsername: String)
 	{
-		(state.idToObjectMap[cardGroupId] as? ServerCardGroup)?.minusAssign(this, state)
+		(tabletop.idToObjectMap[cardGroupId] as? ServerCardGroup)?.minusAssign(tabletop, this)
 		lastOwner = ownerUsername
-		super.setOwner(ownerUsername, state)
+		super.setOwner(tabletop, ownerUsername)
 	}
 	
 	override fun toString(): String =

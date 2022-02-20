@@ -6,6 +6,7 @@ import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
+import misterbander.crazyeights.model.ServerOwnable
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
@@ -52,7 +53,7 @@ fun Tabletop.onObjectOwn(event: ObjectOwnEvent)
 fun CrazyEightsServer.onObjectOwn(connection: Connection, event: ObjectOwnEvent)
 {
 	val (id, ownerUsername) = event
-	tabletop.idToObjectMap[id]!!.setOwner(ownerUsername, tabletop)
+	(tabletop.idToObjectMap[id] as ServerOwnable).setOwner(tabletop, ownerUsername)
 	server.sendToAllExceptTCP(connection.id, event)
 }
 

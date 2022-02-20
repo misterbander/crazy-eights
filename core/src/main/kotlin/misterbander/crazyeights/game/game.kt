@@ -8,7 +8,6 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.model.ServerCardGroup
-import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.net.CrazyEightsServer
@@ -80,7 +79,7 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 		extraPackets += CardSlideSoundEvent
 	card.rotation = cards[0].rotation
 	card.isFaceUp = true
-	card.setServerCardGroup(discardPile, tabletop)
+	card.setServerCardGroup(tabletop, discardPile)
 	cards[0] = card
 	runLater.getOrPut(playerUsername) { IntMap() }.remove(card.id)?.onCancel?.invoke()
 	discardPile.arrange()
@@ -101,7 +100,7 @@ fun CrazyEightsServer.play(cardGroupChangeEvent: CardGroupChangeEvent)
 	
 	extraPackets.forEach { server.sendToAllTCP(it) }
 	
-	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	val drawStack = tabletop.drawStackHolder.cardGroup
 	if (drawStack.cards.isEmpty && card.rank != Rank.EIGHT)
 		refillDrawStack()
 }
@@ -115,13 +114,13 @@ fun CrazyEightsServer.draw(
 )
 {
 	card.isFaceUp = true
-	card.setOwner(ownerUsername, tabletop)
+	card.setOwner(tabletop, ownerUsername)
 	if (fireOwnEvent)
 		server.sendToAllTCP(ObjectOwnEvent(card.id, ownerUsername))
 	if (playSound)
 		server.sendToAllTCP(CardSlideSoundEvent)
 	
-	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	val drawStack = tabletop.drawStackHolder.cardGroup
 	if (drawStack.cards.isEmpty && refillIfEmpty)
 		refillDrawStack()
 }
@@ -136,8 +135,8 @@ fun CrazyEightsServer.pass()
 
 fun CrazyEightsServer.refillDrawStack()
 {
-	val drawStack = (tabletop.idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
-	val discardPileHolder = tabletop.idToObjectMap[tabletop.discardPileHolderId] as ServerCardHolder
+	val drawStack = tabletop.drawStackHolder.cardGroup
+	val discardPileHolder = tabletop.discardPileHolder
 	val discardPile = discardPileHolder.cardGroup
 	val serverGameState = serverGameState!!
 	
@@ -150,7 +149,7 @@ fun CrazyEightsServer.refillDrawStack()
 			discard.lockHolder = null
 		if (discard is ServerCard && discard.cardGroupId != drawStack.id)
 		{
-			discard.setServerCardGroup(drawStack, tabletop)
+			discard.setServerCardGroup(tabletop, drawStack)
 			discard.isFaceUp = false
 		}
 	}
@@ -160,7 +159,7 @@ fun CrazyEightsServer.refillDrawStack()
 	// Shuffle draw stack
 	val seed = MathUtils.random.nextLong()
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
-	drawStack.shuffle(seed, tabletop)
+	drawStack.shuffle(tabletop, seed)
 	
 	// Rearrange the top card nicely
 	topCard.x = 0F
@@ -182,7 +181,7 @@ fun CrazyEightsServer.refillDrawStack()
 fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupChangeEvent
 {
 	val idToObjectMap = tabletop.idToObjectMap
-	val drawStack = (idToObjectMap[tabletop.drawStackHolderId] as ServerCardHolder).cardGroup
+	val drawStack = tabletop.drawStackHolder.cardGroup
 	
 	// Recall all cards
 	val serverObjects = idToObjectMap.values().toArray()
@@ -193,7 +192,7 @@ fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupCh
 		if (serverObject is ServerCard)
 		{
 			if (serverObject.cardGroupId != drawStack.id)
-				serverObject.setServerCardGroup(drawStack, tabletop)
+				serverObject.setServerCardGroup(tabletop, drawStack)
 			serverObject.isFaceUp = false
 		}
 	}
@@ -219,7 +218,7 @@ fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupCh
 	
 	// Shuffle draw stack
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
-	drawStack.shuffle(seed, tabletop)
+	drawStack.shuffle(tabletop, seed)
 	
 	return cardGroupChangeEvent
 }

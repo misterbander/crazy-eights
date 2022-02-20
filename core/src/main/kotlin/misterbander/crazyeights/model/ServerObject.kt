@@ -1,6 +1,7 @@
 package misterbander.crazyeights.model
 
 import ktx.collections.*
+import misterbander.crazyeights.net.ServerTabletop
 
 interface ServerObject
 {
@@ -15,16 +16,10 @@ interface ServerObject
 		this.y = y
 	}
 	
-	fun toFront(state: ServerTabletop)
+	fun toFront(tabletop: ServerTabletop)
 	{
 		// Remove the object and add it again to move it to the front
-		if (state.serverObjects.removeValue(this, true))
-			state.serverObjects += this
-	}
-	
-	fun setOwner(ownerUsername: String, state: ServerTabletop)
-	{
-		state.serverObjects.removeValue(this, true)
-		state.hands[ownerUsername]!!.add(this)
+		if (tabletop.serverObjects.removeValue(this, true))
+			tabletop.serverObjects += this
 	}
 }

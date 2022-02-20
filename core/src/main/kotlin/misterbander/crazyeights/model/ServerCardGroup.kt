@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.MathUtils
 import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.getSpreadPositionForIndex
 import misterbander.crazyeights.scene2d.getSpreadRotationForIndex
 import misterbander.gframework.util.shuffle
@@ -20,7 +21,7 @@ data class ServerCardGroup(
 	var type: Type = Type.STACK,
 	override var lockHolder: String? = null,
 	var cardHolderId: Int = -1
-) : ServerObject, ServerLockable
+) : ServerLockable, ServerOwnable
 {
 	override val canLock: Boolean
 		get() = !isLocked && (cards.isEmpty || !cards.peek().isLocked)
@@ -31,12 +32,12 @@ data class ServerCardGroup(
 		arrange()
 	}
 	
-	fun plusAssign(card: ServerCard, state: ServerTabletop)
+	fun plusAssign(tabletop: ServerTabletop, card: ServerCard)
 	{
 		cards += card
 		if (type == Type.PILE)
 		{
-			val cardHolder = state.idToObjectMap[cardHolderId] as? ServerCardHolder
+			val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
 			if (cards.size == 1)
 			{
 				card.x = 0F
@@ -59,9 +60,9 @@ data class ServerCardGroup(
 		card.cardGroupId = id
 	}
 	
-	fun minusAssign(card: ServerCard, state: ServerTabletop)
+	fun minusAssign(tabletop: ServerTabletop, card: ServerCard)
 	{
-		val cardHolder = state.idToObjectMap[cardHolderId] as? ServerCardHolder
+		val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
 		cards -= card
 		card.x += x + (cardHolder?.x ?: 0F)
 		card.y += y + (cardHolder?.y ?: 0F)
@@ -91,10 +92,10 @@ data class ServerCardGroup(
 		}
 	}
 	
-	fun shuffle(seed: Long, state: ServerTabletop)
+	fun shuffle(tabletop: ServerTabletop, seed: Long)
 	{
-		val cardHolder = state.idToObjectMap[cardHolderId] as? ServerCardHolder
-		cardHolder?.toFront(state) ?: toFront(state)
+		val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
+		cardHolder?.toFront(tabletop) ?: toFront(tabletop)
 		cards.shuffle(seed)
 	}
 	

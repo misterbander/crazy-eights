@@ -46,7 +46,7 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 		if (toLock is ServerCard && toLock.cardGroupId != -1)
 		{
 			val cardGroup = tabletop.idToObjectMap[toLock.cardGroupId] as ServerCardGroup
-			if (cardGroup.cardHolderId == tabletop.drawStackHolderId)
+			if (cardGroup.cardHolderId == tabletop.drawStackHolder.id)
 			{
 				if (serverGameState.drawCount >= serverGameState.ruleset.maxDrawCount)
 					return
@@ -57,7 +57,7 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 				}
 				serverGameState.doMove(DrawMove)
 			}
-			else if (cardGroup.cardHolderId == tabletop.discardPileHolderId) // Discard pile cannot be locked
+			else if (cardGroup.cardHolderId == tabletop.discardPileHolder.id) // Discard pile cannot be locked
 				return
 		}
 		else if (toLock is ServerCardGroup) // Card groups can't be locked during games
@@ -82,7 +82,7 @@ fun CrazyEightsServer.onObjectUnlock(event: ObjectUnlockEvent)
 		if (toUnlock.cardGroupId != -1)
 		{
 			val cardGroup = tabletop.idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup
-			if (isGameStarted && cardGroup.cardHolderId == tabletop.drawStackHolderId)
+			if (isGameStarted && cardGroup.cardHolderId == tabletop.drawStackHolder.id)
 			{
 				server.sendToAllTCP(event)
 				draw(cardGroup.cards.peek(), unlockerUsername, fireOwnEvent = true, playSound = true)

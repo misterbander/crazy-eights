@@ -16,7 +16,7 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.ServerObject
-import misterbander.crazyeights.model.ServerTabletop
+import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.Ownable
@@ -28,8 +28,9 @@ class Tabletop(val room: Room)
 	val game: CrazyEights
 		get() = room.game
 	
-	val users = GdxMap<String, User>()
 	val idToGObjectMap = IntMap<GObject<CrazyEights>>()
+	
+	val users = GdxMap<String, User>()
 	val userToCursorsMap = GdxMap<String, IntMap<CrazyEightsCursor>>()
 	val userToHandMap = OrderedMap<String, Hand>()
 	
@@ -56,13 +57,15 @@ class Tabletop(val room: Room)
 	var isPowerCardJustPlayed = false
 	
 	@Suppress("UNCHECKED_CAST")
-	fun setState(state: ServerTabletop)
+	fun setState(state: TabletopState)
 	{
+		val (users,	serverObjects, hands) = state
+		
 		// Add users and cursors
-		state.users.forEach { this += it.value }
+		users.forEach { this += it.value }
 		
 		// Add server objects
-		for (serverObject: ServerObject in state.serverObjects)
+		for (serverObject: ServerObject in serverObjects)
 		{
 			val gObject = serverObject.toGObject()
 			if (gObject is CardHolder)
@@ -72,7 +75,7 @@ class Tabletop(val room: Room)
 		}
 		
 		// Add each hand
-		for ((ownerUsername, hand) in state.hands)
+		for ((ownerUsername, hand) in hands)
 		{
 			if (ownerUsername == game.user.name)
 			{

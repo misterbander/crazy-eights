@@ -9,7 +9,7 @@ import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
-import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.CardHolder
@@ -38,24 +38,24 @@ fun Tabletop.onCardGroupCreate(event: CardGroupCreateEvent)
 	idToGObjectMap[id] = cardGroup
 }
 
-fun CrazyEightsServer.onCardGroupCreate(event: CardGroupCreateEvent)
+fun ServerTabletop.onCardGroupCreate(event: CardGroupCreateEvent)
 {
 	val cards = event.cards
 	val (firstId, firstX, firstY, firstRotation) = cards[0]
-	val cardGroup = ServerCardGroup(newId(), firstX, firstY, firstRotation)
-	val insertAtIndex = tabletop.serverObjects.indexOfFirst { it.id == firstId }
+	val cardGroup = ServerCardGroup(parent.newId(), firstX, firstY, firstRotation)
+	val insertAtIndex = serverObjects.indexOfFirst { it.id == firstId }
 	cards.forEachIndexed { index, (id, x, y, rotation) ->
-		val card = tabletop.idToObjectMap[id] as ServerCard
-		tabletop.serverObjects.removeValue(card, true)
+		val card = idToObjectMap[id] as ServerCard
+		serverObjects.removeValue(card, true)
 		card.x = x
 		card.y = y
 		card.rotation = rotation
 		cards[index] = card
-		cardGroup.plusAssign(tabletop, card)
+		cardGroup.plusAssign(this, card)
 	}
 	cardGroup.arrange()
-	tabletop.addServerObject(cardGroup, insertAtIndex)
-	server.sendToAllTCP(event.copy(id = cardGroup.id))
+	addServerObject(cardGroup, insertAtIndex)
+	parent.server.sendToAllTCP(event.copy(id = cardGroup.id))
 }
 
 @NoArg
@@ -82,27 +82,27 @@ fun Tabletop.onCardGroupChange(event: CardGroupChangeEvent)
 	}
 }
 
-fun CrazyEightsServer.onCardGroupChange(event: CardGroupChangeEvent)
+fun ServerTabletop.onCardGroupChange(event: CardGroupChangeEvent)
 {
 	val (cards, newCardGroupId, changerUsername) = event
-	val newCardGroup = if (newCardGroupId != -1) tabletop.idToObjectMap[newCardGroupId] as ServerCardGroup else null
+	val newCardGroup = if (newCardGroupId != -1) idToObjectMap[newCardGroupId] as ServerCardGroup else null
 	
-	if (isGameStarted && newCardGroup?.cardHolderId == tabletop.discardPileHolder.id) // User discards a card
+	if (parent.isGameStarted && newCardGroup?.cardHolderId == discardPileHolder.id) // User discards a card
 	{
-		play(event)
+		parent.play(event)
 		return
 	}
 	
 	cards.forEachIndexed { index, (id, _, _, rotation) ->
-		val card = tabletop.idToObjectMap[id] as ServerCard
+		val card = idToObjectMap[id] as ServerCard
 		card.rotation = rotation
-		card.setServerCardGroup(tabletop, newCardGroup)
+		card.setServerCardGroup(this, newCardGroup)
 		cards[index] = card
-		if (isGameStarted) // Cancel the run later which would send the card back to its original owner
-			runLater.getOrPut(changerUsername) { IntMap() }.remove(id)?.onCancel?.invoke()
+		if (parent.isGameStarted) // Cancel the run later which would send the card back to its original owner
+			parent.runLater.getOrPut(changerUsername) { IntMap() }.remove(id)?.onCancel?.invoke()
 	}
 	newCardGroup?.arrange()
-	server.sendToAllTCP(event)
+	parent.server.sendToAllTCP(event)
 }
 
 @NoArg
@@ -123,37 +123,37 @@ fun Tabletop.onCardGroupDetach(event: CardGroupDetachEvent)
 	cardHolder += replacementCardGroup
 }
 
-fun CrazyEightsServer.onCardGroupDetach(event: CardGroupDetachEvent)
+fun ServerTabletop.onCardGroupDetach(event: CardGroupDetachEvent)
 {
 	val (cardHolderId, _, changerUsername) = event
-	val cardHolder = tabletop.idToObjectMap[cardHolderId] as ServerCardHolder
+	val cardHolder = idToObjectMap[cardHolderId] as ServerCardHolder
 	val cardGroup = cardHolder.cardGroup
 	cardGroup.x = cardHolder.x
 	cardGroup.y = cardHolder.y
 	cardGroup.rotation = cardHolder.rotation
 	cardGroup.cardHolderId = -1
-	tabletop.serverObjects += cardGroup
-	val replacementCardGroup = ServerCardGroup(newId(), type = cardHolder.defaultType)
-	tabletop.idToObjectMap[replacementCardGroup.id] = replacementCardGroup
+	serverObjects += cardGroup
+	val replacementCardGroup = ServerCardGroup(parent.newId(), type = cardHolder.defaultType)
+	idToObjectMap[replacementCardGroup.id] = replacementCardGroup
 	cardHolder.cardGroup = replacementCardGroup
 	replacementCardGroup.cardHolderId = cardHolder.id
-	server.sendToAllTCP(CardGroupDetachEvent(cardHolderId, cardHolder.cardGroup.id, changerUsername))
+	parent.server.sendToAllTCP(CardGroupDetachEvent(cardHolderId, cardHolder.cardGroup.id, changerUsername))
 }
 
 @NoArg
 data class CardGroupDismantleEvent(val id: Int)
 
-fun CrazyEightsServer.onCardGroupDismantle(connection: Connection, event: CardGroupDismantleEvent)
+fun ServerTabletop.onCardGroupDismantle(connection: Connection, event: CardGroupDismantleEvent)
 {
-	val cardGroup = tabletop.idToObjectMap[event.id] as ServerCardGroup
+	val cardGroup = idToObjectMap[event.id] as ServerCardGroup
 	while (cardGroup.cards.isNotEmpty())
 	{
 		val card: ServerCard = cardGroup.cards.removeIndex(0)
-		card.setServerCardGroup(tabletop, null)
+		card.setServerCardGroup(this, null)
 	}
-	tabletop.idToObjectMap.remove(cardGroup.id)
-	tabletop.serverObjects.removeValue(cardGroup, true)
-	server.sendToAllExceptTCP(connection.id, event)
+	idToObjectMap.remove(cardGroup.id)
+	serverObjects.removeValue(cardGroup, true)
+	parent.server.sendToAllExceptTCP(connection.id, event)
 }
 
 @NoArg

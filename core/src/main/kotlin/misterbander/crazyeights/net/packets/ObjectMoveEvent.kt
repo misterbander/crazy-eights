@@ -5,8 +5,8 @@ import ktx.collections.*
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerLockable
-import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.KryoPoolable
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.net.objectMoveEventPool
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.Tabletop
@@ -39,13 +39,13 @@ fun Tabletop.onObjectMove(event: ObjectMoveEvent)
 	objectMoveEventPool.free(event)
 }
 
-fun CrazyEightsServer.onObjectMove(connection: Connection, event: ObjectMoveEvent)
+fun ServerTabletop.onObjectMove(connection: Connection, event: ObjectMoveEvent)
 {
-	if (actionLocks.isNotEmpty())
+	if (parent.actionLocks.isNotEmpty())
 		return
 	val (id, x, y) = event
-	val toMove = tabletop.idToObjectMap[id]!!
-	if (toMove !is ServerLockable || toMove.lockHolder?.let { tabletop.users[it] } != connection.arbitraryData)
+	val toMove = idToObjectMap[id]!!
+	if (toMove !is ServerLockable || toMove.lockHolder?.let { users[it] } != connection.arbitraryData)
 		return
 	toMove.x = x
 	toMove.y = y
@@ -56,6 +56,6 @@ fun CrazyEightsServer.onObjectMove(connection: Connection, event: ObjectMoveEven
 		if (toMove.isLocked && toMove.type == ServerCardGroup.Type.PILE)
 			toMove.type = ServerCardGroup.Type.STACK
 	}
-	server.sendToAllExceptTCP(connection.id, event)
+	parent.server.sendToAllExceptTCP(connection.id, event)
 	objectMoveEventPool.free(event)
 }

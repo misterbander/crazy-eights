@@ -7,7 +7,7 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.ServerOwnable
-import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.Groupable
@@ -50,11 +50,11 @@ fun Tabletop.onObjectOwn(event: ObjectOwnEvent)
 		hand.arrange()
 }
 
-fun CrazyEightsServer.onObjectOwn(connection: Connection, event: ObjectOwnEvent)
+fun ServerTabletop.onObjectOwn(connection: Connection, event: ObjectOwnEvent)
 {
 	val (id, ownerUsername) = event
-	(tabletop.idToObjectMap[id] as ServerOwnable).setOwner(tabletop, ownerUsername)
-	server.sendToAllExceptTCP(connection.id, event)
+	(idToObjectMap[id] as ServerOwnable).setOwner(this, ownerUsername)
+	parent.server.sendToAllExceptTCP(connection.id, event)
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -74,10 +74,10 @@ fun Tabletop.onObjectDisown(event: ObjectDisownEvent)
 		toDisown.isFaceUp = isFaceUp
 }
 
-fun CrazyEightsServer.onObjectDisown(connection: Connection, event: ObjectDisownEvent)
+fun ServerTabletop.onObjectDisown(connection: Connection, event: ObjectDisownEvent)
 {
 	val (id, x, y, rotation, isFaceUp, disownerUsername) = event
-	val toDisown = tabletop.idToObjectMap[id]!!
+	val toDisown = idToObjectMap[id]!!
 	toDisown.x = x
 	toDisown.y = y
 	toDisown.rotation = rotation
@@ -85,18 +85,18 @@ fun CrazyEightsServer.onObjectDisown(connection: Connection, event: ObjectDisown
 		toDisown.lockHolder = disownerUsername
 	if (toDisown is ServerCard)
 		toDisown.isFaceUp = isFaceUp
-	tabletop.serverObjects += toDisown
-	tabletop.hands[disownerUsername]!!.removeValue(toDisown, true)
-	server.sendToAllExceptTCP(connection.id, event)
+	serverObjects += toDisown
+	hands[disownerUsername]!!.removeValue(toDisown, true)
+	parent.server.sendToAllExceptTCP(connection.id, event)
 }
 
 @NoArg
 data class HandUpdateEvent(val hand: GdxArray<ServerObject>, val ownerUsername: String)
 
-fun CrazyEightsServer.onHandUpdate(connection: Connection, event: HandUpdateEvent)
+fun ServerTabletop.onHandUpdate(connection: Connection, event: HandUpdateEvent)
 {
 	val (hand, ownerUsername) = event
-	tabletop.hands[ownerUsername] = hand
-	hand.forEach { tabletop.idToObjectMap[it.id] = it }
-	server.sendToAllExceptTCP(connection.id, event)
+	hands[ownerUsername] = hand
+	hand.forEach { idToObjectMap[it.id] = it }
+	parent.server.sendToAllExceptTCP(connection.id, event)
 }

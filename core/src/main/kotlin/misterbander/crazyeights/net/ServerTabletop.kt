@@ -9,7 +9,7 @@ import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
 
-class ServerTabletop(val drawStackHolder: ServerCardHolder, val discardPileHolder: ServerCardHolder)
+class ServerTabletop(val parent: CrazyEightsServer, val drawStackHolder: ServerCardHolder, val discardPileHolder: ServerCardHolder)
 {
 	val idToObjectMap = IntMap<ServerObject>()
 	

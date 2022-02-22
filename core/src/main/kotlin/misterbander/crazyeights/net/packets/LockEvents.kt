@@ -10,6 +10,7 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -30,34 +31,34 @@ fun Tabletop.onObjectLock(event: ObjectLockEvent)
 		room.gameState!!.drawCount++
 }
 
-fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
+fun ServerTabletop.onObjectLock(event: ObjectLockEvent)
 {
-	if (actionLocks.isNotEmpty())
+	if (parent.actionLocks.isNotEmpty())
 		return
 	val (id, lockerUsername) = event
-	val toLock = tabletop.idToObjectMap[id]!!
+	val toLock = idToObjectMap[id]!!
 	if (toLock !is ServerLockable || !toLock.canLock) // Only unlocked draggables can be locked
 		return
-	if (isGameStarted)
+	if (parent.isGameStarted)
 	{
-		val serverGameState = serverGameState!!
+		val serverGameState = parent.serverGameState!!
 		if (lockerUsername != serverGameState.currentPlayer.name) // You can't lock anything if it's not your turn
 			return
 		if (toLock is ServerCard && toLock.cardGroupId != -1)
 		{
-			val cardGroup = tabletop.idToObjectMap[toLock.cardGroupId] as ServerCardGroup
-			if (cardGroup.cardHolderId == tabletop.drawStackHolder.id)
+			val cardGroup = idToObjectMap[toLock.cardGroupId] as ServerCardGroup
+			if (cardGroup.cardHolderId == drawStackHolder.id)
 			{
 				if (serverGameState.drawCount >= serverGameState.ruleset.maxDrawCount)
 					return
 				if (serverGameState.drawTwoEffectCardCount > 0)
 				{
-					acceptDrawTwoPenalty(lockerUsername)
+					parent.acceptDrawTwoPenalty(lockerUsername)
 					return
 				}
 				serverGameState.doMove(DrawMove)
 			}
-			else if (cardGroup.cardHolderId == tabletop.discardPileHolder.id) // Discard pile cannot be locked
+			else if (cardGroup.cardHolderId == discardPileHolder.id) // Discard pile cannot be locked
 				return
 		}
 		else if (toLock is ServerCardGroup) // Card groups can't be locked during games
@@ -65,14 +66,14 @@ fun CrazyEightsServer.onObjectLock(event: ObjectLockEvent)
 	}
 	debug("Server | DEBUG") { "$lockerUsername locks $toLock" }
 	toLock.lockHolder = lockerUsername
-	toLock.toFront(tabletop)
-	server.sendToAllTCP(event)
+	toLock.toFront(this)
+	parent.server.sendToAllTCP(event)
 }
 
-fun CrazyEightsServer.onObjectUnlock(event: ObjectUnlockEvent)
+fun ServerTabletop.onObjectUnlock(event: ObjectUnlockEvent)
 {
 	val (id, unlockerUsername, sideEffects) = event
-	val toUnlock = tabletop.idToObjectMap[id] ?: return
+	val toUnlock = idToObjectMap[id] ?: return
 	if (toUnlock !is ServerLockable || toUnlock.lockHolder != unlockerUsername)
 		return
 	debug("Server | DEBUG") { "${toUnlock.lockHolder} unlocks $toUnlock" }
@@ -81,36 +82,36 @@ fun CrazyEightsServer.onObjectUnlock(event: ObjectUnlockEvent)
 	{
 		if (toUnlock.cardGroupId != -1)
 		{
-			val cardGroup = tabletop.idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup
-			if (isGameStarted && cardGroup.cardHolderId == tabletop.drawStackHolder.id)
+			val cardGroup = idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup
+			if (parent.isGameStarted && cardGroup.cardHolderId == drawStackHolder.id)
 			{
-				server.sendToAllTCP(event)
-				draw(cardGroup.cards.peek(), unlockerUsername, fireOwnEvent = true, playSound = true)
+				parent.server.sendToAllTCP(event)
+				parent.draw(cardGroup.cards.peek(), unlockerUsername, fireOwnEvent = true, playSound = true)
 				return
 			}
 			else
 				cardGroup.arrange()
 		}
-		else if (isGameStarted)
+		else if (parent.isGameStarted)
 		{
 			// If the card is left on the table without being in someone's hand or in a card group, then it will be
 			// returned to its original owner
 			toUnlock.lockHolder = ""
-			runLater.getOrPut(unlockerUsername) { IntMap() }.put(
+			parent.runLater.getOrPut(unlockerUsername) { IntMap() }.put(
 				toUnlock.id,
 				CrazyEightsServer.CancellableRunnable(
 					runnable = {
 						toUnlock.lockHolder = null
-						draw(toUnlock, unlockerUsername, fireOwnEvent = true)
+						parent.draw(toUnlock, unlockerUsername, fireOwnEvent = true)
 					},
 					onCancel = { toUnlock.lockHolder = null }
 				)
 			)
 		}
-		if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects && !isGameStarted)
+		if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects && !parent.isGameStarted)
 		{
 			toUnlock.isFaceUp = !toUnlock.isFaceUp
-			server.sendToAllTCP(CardFlipEvent(id))
+			parent.server.sendToAllTCP(CardFlipEvent(id))
 		}
 		toUnlock.justMoved = false
 		toUnlock.justRotated = false
@@ -120,5 +121,5 @@ fun CrazyEightsServer.onObjectUnlock(event: ObjectUnlockEvent)
 		if (toUnlock.cardHolderId != -1)
 			toUnlock.rotation = 0F
 	}
-	server.sendToAllTCP(event)
+	parent.server.sendToAllTCP(event)
 }

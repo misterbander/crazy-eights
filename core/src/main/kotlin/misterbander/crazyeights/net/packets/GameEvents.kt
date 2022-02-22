@@ -26,6 +26,7 @@ import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.EffectText
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.OpponentHand
@@ -112,7 +113,7 @@ fun CrazyEightsServer.onNewGame(connection: Connection)
 //	val seed = -3202561125370556140 // Starting hand with A
 //	val seed = 1505641440241536783 // First discard is 8
 //	val seed = 1997011525088092652 // First discard is Q
-	val cardGroupChangeEvent = resetDeck(seed, true)
+	val cardGroupChangeEvent = tabletop.resetDeck(seed, true)
 	
 	// Deal
 	repeat(if (tabletop.hands.size > 2) 5 else 7) {

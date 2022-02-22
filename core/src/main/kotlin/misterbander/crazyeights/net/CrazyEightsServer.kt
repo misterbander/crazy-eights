@@ -147,7 +147,7 @@ class CrazyEightsServer(private val roomCode: String)
 		}
 		val drawStackHolder = ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
 		val discardPileHolder = ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE))
-		tabletop = ServerTabletop(drawStackHolder, discardPileHolder)
+		tabletop = ServerTabletop(this, drawStackHolder, discardPileHolder)
 		tabletop.addServerObject(drawStackHolder)
 		tabletop.addServerObject(discardPileHolder)
 		
@@ -381,9 +381,9 @@ class CrazyEightsServer(private val roomCode: String)
 					server.sendToAllTCP(UserJoinedEvent(`object`))
 					info("Server | INFO") { "${`object`.name} joined the game" }
 				}
-				is SwapSeatsEvent -> onSwapSeats(`object`)
-				is AiAddEvent -> onAiAdd()
-				is AiRemoveEvent -> onAiRemove(`object`)
+				is SwapSeatsEvent -> tabletop.onSwapSeats(`object`)
+				is AiAddEvent -> tabletop.onAiAdd()
+				is AiRemoveEvent -> tabletop.onAiRemove(`object`)
 				is Chat -> server.sendToAllTCP(`object`)
 				is CursorPosition ->
 				{
@@ -391,23 +391,23 @@ class CrazyEightsServer(private val roomCode: String)
 					cursorPositionPool.free(`object`)
 				}
 				is TouchUpEvent -> server.sendToAllExceptTCP(connection.id, `object`)
-				is ObjectLockEvent -> onObjectLock(`object`) // User attempts to lock an object
-				is ObjectUnlockEvent -> onObjectUnlock(`object`) // User unlocks an object
-				is ObjectOwnEvent -> onObjectOwn(connection, `object`)
-				is ObjectDisownEvent -> onObjectDisown(connection, `object`)
-				is HandUpdateEvent -> onHandUpdate(connection, `object`)
-				is ObjectMoveEvent -> onObjectMove(connection, `object`)
-				is ObjectRotateEvent -> onObjectRotate(connection, `object`)
-				is CardGroupCreateEvent -> onCardGroupCreate(`object`)
-				is CardGroupChangeEvent -> onCardGroupChange(`object`)
-				is CardGroupDetachEvent -> onCardGroupDetach(`object`)
-				is CardGroupDismantleEvent -> onCardGroupDismantle(connection, `object`)
+				is ObjectLockEvent -> tabletop.onObjectLock(`object`) // User attempts to lock an object
+				is ObjectUnlockEvent -> tabletop.onObjectUnlock(`object`) // User unlocks an object
+				is ObjectOwnEvent -> tabletop.onObjectOwn(connection, `object`)
+				is ObjectDisownEvent -> tabletop.onObjectDisown(connection, `object`)
+				is HandUpdateEvent -> tabletop.onHandUpdate(connection, `object`)
+				is ObjectMoveEvent -> tabletop.onObjectMove(connection, `object`)
+				is ObjectRotateEvent -> tabletop.onObjectRotate(connection, `object`)
+				is CardGroupCreateEvent -> tabletop.onCardGroupCreate(`object`)
+				is CardGroupChangeEvent -> tabletop.onCardGroupChange(`object`)
+				is CardGroupDetachEvent -> tabletop.onCardGroupDetach(`object`)
+				is CardGroupDismantleEvent -> tabletop.onCardGroupDismantle(connection, `object`)
 				is NewGameEvent -> onNewGame(connection)
 				is ActionLockReleaseEvent -> actionLocks -= (connection.arbitraryData as User).name
 				is RulesetUpdateEvent -> onRulesetUpdate(`object`)
 				is PassEvent -> pass()
 				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
-				is ResetDeckEvent -> onResetDeck()
+				is ResetDeckEvent -> tabletop.onResetDeck()
 				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {
 					it.runnable()
 				}

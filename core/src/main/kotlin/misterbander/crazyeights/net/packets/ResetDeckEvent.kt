@@ -8,7 +8,7 @@ import ktx.actors.then
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.game.resetDeck
-import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.actions.ShuffleAction
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -40,12 +40,12 @@ fun Tabletop.onResetDeck(event: ResetDeckEvent)
 		}
 }
 
-fun CrazyEightsServer.onResetDeck()
+fun ServerTabletop.onResetDeck()
 {
-	if (actionLocks.isNotEmpty())
+	if (parent.actionLocks.isNotEmpty())
 		return
 	val seed = MathUtils.random.nextLong()
 	val cardGroupChangeEvent = resetDeck(seed, false)
-	acquireActionLocks()
-	server.sendToAllTCP(ResetDeckEvent(cardGroupChangeEvent, seed))
+	parent.acquireActionLocks()
+	parent.server.sendToAllTCP(ResetDeckEvent(cardGroupChangeEvent, seed))
 }

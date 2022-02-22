@@ -9,6 +9,7 @@ import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
 
@@ -24,15 +25,15 @@ fun Tabletop.onUserJoined(event: UserJoinedEvent)
 	if (user != game.user)
 	{
 		this += user
-		val opponentHand = this.userToHandMap.getOrPut(user.name) {
+		val opponentHand = userToHandMap.getOrPut(user.name) {
 			OpponentHand(room)
 		} as OpponentHand
 		opponentHand.user = user
-		this.opponentHands += opponentHand
+		opponentHands += opponentHand
 	}
 	if (!user.isAi)
 		room.chatBox.chat("${user.name} joined the game", Color.YELLOW)
-	this.arrangePlayers()
+	arrangePlayers()
 }
 
 fun Tabletop.onUserLeft(event: UserLeftEvent)
@@ -59,14 +60,14 @@ fun Tabletop.onSwapSeats(event: SwapSeatsEvent)
 	arrangePlayers()
 }
 
-fun CrazyEightsServer.onSwapSeats(event: SwapSeatsEvent)
+fun ServerTabletop.onSwapSeats(event: SwapSeatsEvent)
 {
 	val (user1, user2) = event
-	val keys: GdxArray<String> = tabletop.hands.orderedKeys()
+	val keys: GdxArray<String> = hands.orderedKeys()
 	val index1 = keys.indexOf(user1, false)
 	val index2 = keys.indexOf(user2, false)
 	keys.swap(index1, index2)
-	server.sendToAllTCP(event)
+	parent.server.sendToAllTCP(event)
 	info("Server | INFO") { "$user1 swapped seats with $user2" }
 }
 
@@ -75,27 +76,27 @@ object AiAddEvent
 @NoArg
 data class AiRemoveEvent(val username: String)
 
-fun CrazyEightsServer.onAiAdd()
+fun ServerTabletop.onAiAdd()
 {
-	if (aiCount >= 6)
+	if (parent.aiCount >= 6)
 		return
-	aiCount++
-	val name = aiNames.random() ?: "AI $aiCount"
-	aiNames -= name
+	parent.aiCount++
+	val name = parent.aiNames.random() ?: "AI ${parent.aiCount}"
+	parent.aiNames -= name
 	val ai = User(name, Color.LIGHT_GRAY, true)
-	tabletop.users[name] = ai
-	tabletop.hands[name] = GdxArray()
-	server.sendToAllTCP(UserJoinedEvent(ai))
+	users[name] = ai
+	hands[name] = GdxArray()
+	parent.server.sendToAllTCP(UserJoinedEvent(ai))
 }
 
-fun CrazyEightsServer.onAiRemove(event: AiRemoveEvent)
+fun ServerTabletop.onAiRemove(event: AiRemoveEvent)
 {
-	aiCount--
-	val ai: User = tabletop.users.remove(event.username)
-	val hand: GdxArray<ServerObject> = tabletop.hands.remove(event.username)
+	parent.aiCount--
+	val ai: User = users.remove(event.username)
+	val hand: GdxArray<ServerObject> = hands.remove(event.username)
 	for (card: ServerObject in hand)
-		(card as ServerCard).setServerCardGroup(tabletop, null)
+		(card as ServerCard).setServerCardGroup(this, null)
 	if (!event.username.startsWith("AI "))
-		aiNames += event.username
-	server.sendToAllTCP(UserLeftEvent(ai))
+		parent.aiNames += event.username
+	parent.server.sendToAllTCP(UserLeftEvent(ai))
 }

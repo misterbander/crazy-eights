@@ -11,6 +11,7 @@ import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerLockable
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.net.CrazyEightsServer
+import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
 import misterbander.crazyeights.net.packets.DrawStackRefillEvent
@@ -178,10 +179,10 @@ fun CrazyEightsServer.refillDrawStack()
 	server.sendToAllTCP(DrawStackRefillEvent(cardGroupChangeEvent, seed))
 }
 
-fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupChangeEvent
+fun ServerTabletop.resetDeck(seed: Long, removeOffline: Boolean): CardGroupChangeEvent
 {
-	val idToObjectMap = tabletop.idToObjectMap
-	val drawStack = tabletop.drawStackHolder.cardGroup
+	val idToObjectMap = idToObjectMap
+	val drawStack = drawStackHolder.cardGroup
 	
 	// Recall all cards
 	val serverObjects = idToObjectMap.values().toArray()
@@ -192,7 +193,7 @@ fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupCh
 		if (serverObject is ServerCard)
 		{
 			if (serverObject.cardGroupId != drawStack.id)
-				serverObject.setServerCardGroup(tabletop, drawStack)
+				serverObject.setServerCardGroup(this, drawStack)
 			serverObject.isFaceUp = false
 		}
 	}
@@ -206,19 +207,19 @@ fun CrazyEightsServer.resetDeck(seed: Long, removeOffline: Boolean): CardGroupCh
 	}
 	if (removeOffline)
 	{
-		for (username in tabletop.hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
+		for (username in hands.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
 		{
-			if (username !in tabletop.users)
-				tabletop.hands.remove(username)
+			if (username !in users)
+				hands.remove(username)
 		}
 	}
-	tabletop.hands.values().forEach { it.clear() }
+	hands.values().forEach { it.clear() }
 	
 	val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
 	
 	// Shuffle draw stack
 	debug("Server | DEBUG") { "Shuffling with seed = $seed" }
-	drawStack.shuffle(tabletop, seed)
+	drawStack.shuffle(this, seed)
 	
 	return cardGroupChangeEvent
 }

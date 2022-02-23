@@ -111,6 +111,8 @@ public class GGestureDetector extends InputAdapter
 		// ================ MODIFICATION START ================
 		if (pointers.size >= 2)
 			return false;
+		if (pointers.contains(pointer))
+			return false;
 		
 		pointers.add(pointer);
 		if (pointers.size == 1)

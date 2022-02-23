@@ -17,6 +17,7 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
+import java.util.function.BooleanSupplier
 
 open class Rotatable(
 	private val smoothMovable: SmoothMovable,
@@ -50,7 +51,7 @@ open class Rotatable(
 			}
 		})
 		// Rotate using pinch gesture
-		parent.addListener(object : GActorGestureListener()
+		parent.addListener(object : GActorGestureListener(BooleanSupplier { lockable.canTouchDown })
 		{
 			private var justStartedPinching = false
 			private val initialDistanceVec = vec2()

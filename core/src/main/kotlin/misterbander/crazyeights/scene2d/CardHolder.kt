@@ -66,7 +66,11 @@ class CardHolder(
 	
 	// Modules
 	private val smoothMovable = SmoothMovable(this, x, y, rotation)
-	override val lockable = Lockable(id, lockHolder, smoothMovable)
+	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
+	{
+		override val canTouchDown: Boolean
+			get() = draggable.canDrag
+	}
 	private val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean

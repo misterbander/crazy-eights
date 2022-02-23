@@ -2,14 +2,15 @@ package misterbander.crazyeights.scene2d.modules
 
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import ktx.actors.setScrollFocus
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
+import java.util.function.BooleanSupplier
 
 open class Lockable(
 	val id: Int,
@@ -28,7 +29,7 @@ open class Lockable(
 	
 	init
 	{
-		parent.addListener(object : ActorGestureListener()
+		parent.addListener(object : GActorGestureListener(BooleanSupplier { canTouchDown })
 		{
 			private var pointers = 0
 			
@@ -65,6 +66,8 @@ open class Lockable(
 	
 	open fun longPress(): Boolean = false
 	
+	open val canTouchDown: Boolean
+		get() = true
 	open val canLock: Boolean
 		get() = !isLocked && parent.getModule<Draggable>()?.canDrag ?: true
 	

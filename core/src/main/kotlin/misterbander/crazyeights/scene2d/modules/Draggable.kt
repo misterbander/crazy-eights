@@ -14,6 +14,7 @@ import misterbander.crazyeights.scene2d.DragTarget
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
+import java.util.function.BooleanSupplier
 
 open class Draggable(
 	private val room: Room,
@@ -29,7 +30,11 @@ open class Draggable(
 	init
 	{
 		parent.addListener(object : GActorGestureListener(
-			if (Platform.isDesktop) 8F else 20F, 0.4F, 1.1F, Int.MAX_VALUE.toFloat()
+			if (Platform.isDesktop) 8F else 20F,
+			0.4F,
+			1.1F,
+			Int.MAX_VALUE.toFloat(),
+			BooleanSupplier { lockable.canTouchDown }
 		)
 		{
 			private var justStartedDragging = false

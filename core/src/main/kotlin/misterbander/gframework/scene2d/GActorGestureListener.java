@@ -10,8 +10,11 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.utils.Null;
 
+import java.util.function.BooleanSupplier;
+
 /**
- * Modified version of {@link ActorGestureListener} that uses {@link GGestureDetector} instead of {@link GestureDetector}.
+ * Modified version of {@link ActorGestureListener} that uses {@link GGestureDetector} instead of {@link GestureDetector}
+ * and accepts a {@link BooleanSupplier} that can be used to decide whether touch down on the actor should be fired.
  */
 @SuppressWarnings("unused")
 public class GActorGestureListener implements EventListener
@@ -19,21 +22,22 @@ public class GActorGestureListener implements EventListener
 	static final Vector2 tmpCoords = new Vector2(), tmpCoords2 = new Vector2();
 	
 	private final GGestureDetector detector;
+	private final BooleanSupplier canTouchDown;
 	InputEvent event;
 	Actor actor, touchDownTarget;
 	
 	/**
 	 * @see GestureDetector#GestureDetector(GestureDetector.GestureListener)
 	 */
-	public GActorGestureListener()
+	public GActorGestureListener(BooleanSupplier canTouchDown)
 	{
-		this(20, 0.4F, 1.1F, Integer.MAX_VALUE);
+		this(20, 0.4F, 1.1F, Integer.MAX_VALUE, canTouchDown);
 	}
 	
 	/**
 	 * @see GestureDetector#GestureDetector(float, float, float, float, GestureDetector.GestureListener)
 	 */
-	public GActorGestureListener(float halfTapSquareSize, float tapCountInterval, float longPressDuration, float maxFlingDelay)
+	public GActorGestureListener(float halfTapSquareSize, float tapCountInterval, float longPressDuration, float maxFlingDelay, BooleanSupplier canTouchDown)
 	{
 		detector = new GGestureDetector(halfTapSquareSize, tapCountInterval, longPressDuration, maxFlingDelay, new GestureAdapter()
 		{
@@ -100,6 +104,7 @@ public class GActorGestureListener implements EventListener
 				amount.sub(actor.stageToLocalCoordinates(tmpCoords2.set(0, 0)));
 			}
 		});
+		this.canTouchDown = canTouchDown;
 	}
 	
 	public boolean handle(Event e)
@@ -110,6 +115,8 @@ public class GActorGestureListener implements EventListener
 		switch (event.getType())
 		{
 			case touchDown:
+				if (!canTouchDown.getAsBoolean())
+					return false;
 				actor = event.getListenerActor();
 				touchDownTarget = event.getTarget();
 				detector.touchDown(event.getStageX(), event.getStageY(), event.getPointer(), event.getButton());

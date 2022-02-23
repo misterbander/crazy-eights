@@ -155,21 +155,11 @@ class CardGroup(
 	private fun detachFromCardHolder()
 	{
 		val cardHolder = cardHolder ?: return
-		// Events get propagated to parents even though it has already been handled by its children.
-		// As a result, a touch down in a card holder's card group also results in touch down in the
-		// parent card holder, causing unwanted pinches when attempting to drag the underlying card holder
-		// after detaching the card group, which is stupid
-		// To reset touch down, it's way easier to just create a new one
-		val cardHolderIndex = room.tabletop.cardHolders.children.indexOf(cardHolder, true)
-		val replacementCardHolder =
-			CardHolder(room, cardHolder.id, cardHolder.x, cardHolder.y, cardHolder.rotation, defaultType = cardHolder.defaultType)
-		cardHolder.remove()
-		room.tabletop.idToGObjectMap[cardHolder.id] = replacementCardHolder
-		room.tabletop.cardHolders.addActorAt(cardHolderIndex, replacementCardHolder)
 		transformToGroupCoordinates(room.tabletop.cards)
 		game.client?.apply {
 			outgoingPacketBuffer += CardGroupDetachEvent(cardHolder.id, changerUsername = game.user.name)
 		}
+		cardHolder.highlightable.cancel()
 		room.tabletop.cards += this
 		setScrollFocus()
 		

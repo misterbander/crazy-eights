@@ -1,4 +1,4 @@
-package misterbander.crazyeights.net
+package misterbander.crazyeights.kryo
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.utils.OrderedMap
@@ -15,6 +15,7 @@ import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.CrazyEightsClient
 import misterbander.crazyeights.net.packets.ActionLockReleaseEvent
 import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.AiRemoveEvent

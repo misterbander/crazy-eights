@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package misterbander.crazyeights.net
+package misterbander.crazyeights.kryo
 
 import com.badlogic.gdx.utils.OrderedMap
 

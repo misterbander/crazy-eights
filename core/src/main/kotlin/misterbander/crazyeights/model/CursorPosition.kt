@@ -1,13 +1,13 @@
 package misterbander.crazyeights.model
 
-import misterbander.crazyeights.net.KryoPoolable
+import misterbander.crazyeights.kryo.KryoPoolable
 
 data class CursorPosition(
 	var username: String = "",
 	var x: Float = 0F,
 	var y: Float = 0F,
 	var pointer: Int = -1
-): KryoPoolable
+) : KryoPoolable
 {
 	override fun reset()
 	{

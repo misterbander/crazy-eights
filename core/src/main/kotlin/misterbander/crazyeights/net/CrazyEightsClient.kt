@@ -13,6 +13,9 @@ import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
+import misterbander.crazyeights.kryo.objectMoveEventPool
+import misterbander.crazyeights.kryo.objectRotateEventPool
+import misterbander.crazyeights.kryo.registerClasses
 import java.net.ConnectException
 import java.net.DatagramPacket
 import java.security.MessageDigest

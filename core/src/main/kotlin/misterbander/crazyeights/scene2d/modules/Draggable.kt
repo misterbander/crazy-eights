@@ -8,7 +8,7 @@ import ktx.math.component2
 import ktx.math.vec2
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.net.objectMoveEventPool
+import misterbander.crazyeights.kryo.objectMoveEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.scene2d.DragTarget
 import misterbander.gframework.scene2d.GActorGestureListener

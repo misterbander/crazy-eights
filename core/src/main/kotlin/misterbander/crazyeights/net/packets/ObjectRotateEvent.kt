@@ -4,10 +4,9 @@ import com.esotericsoftware.kryonet.Connection
 import ktx.collections.*
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerLockable
-import misterbander.crazyeights.net.CrazyEightsServer
-import misterbander.crazyeights.net.KryoPoolable
+import misterbander.crazyeights.kryo.KryoPoolable
 import misterbander.crazyeights.net.ServerTabletop
-import misterbander.crazyeights.net.objectRotateEventPool
+import misterbander.crazyeights.kryo.objectRotateEventPool
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 

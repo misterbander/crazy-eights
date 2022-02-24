@@ -109,7 +109,7 @@ class Card(
 				else
 					this@Card.isFaceUp = !this@Card.isFaceUp
 			}
-			super.unlock(sideEffects)
+			super.unlock(true)
 			cardGroup?.arrange()
 			if (isLockHolder && ownable.isOwned && shouldSendUpdates)
 				room.tabletop.myHand.sendUpdates()

@@ -36,13 +36,12 @@ open class Lockable(
 			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				pointers++
-				if (canLock)
-				{
-					if (parent.getModule<Ownable>()?.isOwned == true)
-						lock(game.user)
-					else
-						game.client?.apply { outgoingPacketBuffer += ObjectLockEvent(id, game.user.name) }
-				}
+				if (!canLock)
+					return
+				if (parent.getModule<Ownable>()?.isOwned == true)
+					lock(game.user)
+				else
+					game.client?.apply { outgoingPacketBuffer += ObjectLockEvent(id, game.user.name) }
 			}
 			
 			override fun longPress(actor: Actor, x: Float, y: Float): Boolean = this@Lockable.longPress()
@@ -50,16 +49,15 @@ open class Lockable(
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
 				pointers--
-				if (pointers == 0)
-				{
-					if (parent.getModule<Ownable>()?.isOwned == true)
-						unlock()
-					else
-						game.client?.apply { outgoingPacketBuffer += ObjectUnlockEvent(id, game.user.name) }
-					justLongPressed = false
-					parent.getModule<Draggable>()?.justDragged = false
-					parent.getModule<Rotatable>()?.justRotated = false
-				}
+				if (pointers > 0)
+					return
+				if (parent.getModule<Ownable>()?.isOwned == true)
+					unlock()
+				else
+					game.client?.apply { outgoingPacketBuffer += ObjectUnlockEvent(id, game.user.name) }
+				justLongPressed = false
+				parent.getModule<Draggable>()?.justDragged = false
+				parent.getModule<Rotatable>()?.justRotated = false
 			}
 		})
 	}

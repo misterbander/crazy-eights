@@ -65,44 +65,40 @@ open class Rotatable(
 			
 			override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
-				if (!isPinching)
+				if (isPinching)
+					return
+				if (pointer1 == -1)
+					pointer1 = pointer
+				else if (pointer2 == -1)
+					pointer2 = pointer
+				if (pointer1 != -1 && pointer2 != -1)
 				{
-					// ActorGestureListener does not identify pointers that initially touched down
-					// on this actor, we need to take care of that manually
-					if (pointer1 == -1)
-						pointer1 = pointer
-					else if (pointer2 == -1)
-						pointer2 = pointer
-					if (pointer1 != -1 && pointer2 != -1)
-					{
-						isPinching = true
-						justStartedPinching = true
-					}
+					isPinching = true
+					justStartedPinching = true
 				}
 			}
 			
 			override fun touchUp(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int)
 			{
-				if (pointer == pointer1 || pointer == pointer2)
+				if (pointer != pointer1 && pointer != pointer2)
+					return
+				val otherPointer: Int
+				if (pointer == pointer1)
 				{
-					var otherPointer = -1
-					if (pointer == pointer1)
-					{
-						pointer1 = -1
-						otherPointer = pointer2
-					}
-					else if (pointer == pointer2)
-					{
-						pointer2 = -1
-						otherPointer = pointer1
-					}
-					isPinching = false
-					justStartedPinching = false
-					if (otherPointer != -1)
-					{
-						val (otherX, otherY) = parent.screenToLocalCoordinates(tempVec.set(Gdx.input.getX(otherPointer).toFloat(), Gdx.input.getY(otherPointer).toFloat()))
-						draggable.unrotatedDragPositionVec.set(otherX, otherY).rotateDeg(parent.rotation)
-					}
+					pointer1 = -1
+					otherPointer = pointer2
+				}
+				else
+				{
+					pointer2 = -1
+					otherPointer = pointer1
+				}
+				isPinching = false
+				justStartedPinching = false
+				if (otherPointer != -1)
+				{
+					val (otherX, otherY) = parent.screenToLocalCoordinates(tempVec.set(Gdx.input.getX(otherPointer).toFloat(), Gdx.input.getY(otherPointer).toFloat()))
+					draggable.unrotatedDragPositionVec.set(otherX, otherY).rotateDeg(parent.rotation)
 				}
 			}
 			

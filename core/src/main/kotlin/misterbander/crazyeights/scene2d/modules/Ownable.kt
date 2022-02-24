@@ -51,14 +51,11 @@ class Ownable(
 				}
 			}
 		}
-		else
+		else if (uiStageY <= 92 + room.tabletop.myHand.offsetCenterY) // Should own it in hand?
 		{
-			if (uiStageY <= 92 + room.tabletop.myHand.offsetCenterY) // Should own it in hand?
-			{
-				room.tabletop.myHand += parent as Groupable<CardGroup>
-				room.tabletop.myHand.arrange()
-				game.client?.apply { outgoingPacketBuffer += ObjectOwnEvent(id, game.user.name) }
-			}
+			room.tabletop.myHand += parent as Groupable<CardGroup>
+			room.tabletop.myHand.arrange()
+			game.client?.apply { outgoingPacketBuffer += ObjectOwnEvent(id, game.user.name) }
 		}
 	}
 }

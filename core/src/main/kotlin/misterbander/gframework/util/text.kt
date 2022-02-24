@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
-import com.badlogic.gdx.utils.StringBuilder as GdxStringBuilder
+import com.badlogic.gdx.utils.StringBuilder
+
+typealias GdxStringBuilder = StringBuilder
 
 private val glyph = GlyphLayout()
 

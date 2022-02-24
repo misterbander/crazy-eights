@@ -5,9 +5,9 @@ import ktx.collections.*
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerLockable
-import misterbander.crazyeights.net.KryoPoolable
+import misterbander.crazyeights.kryo.KryoPoolable
 import misterbander.crazyeights.net.ServerTabletop
-import misterbander.crazyeights.net.objectMoveEventPool
+import misterbander.crazyeights.kryo.objectMoveEventPool
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.modules.SmoothMovable

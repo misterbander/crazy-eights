@@ -21,6 +21,7 @@ import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.VERSION_STRING
+import misterbander.crazyeights.kryo.cursorPositionPool
 import misterbander.crazyeights.game.ChangeSuitMove
 import misterbander.crazyeights.game.DrawMove
 import misterbander.crazyeights.game.DrawTwoEffectPenalty
@@ -89,6 +90,7 @@ import misterbander.crazyeights.net.packets.onResetDeck
 import misterbander.crazyeights.net.packets.onRulesetUpdate
 import misterbander.crazyeights.net.packets.onSuitDeclare
 import misterbander.crazyeights.net.packets.onSwapSeats
+import misterbander.crazyeights.kryo.registerClasses
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel

@@ -10,8 +10,8 @@ import ktx.math.component2
 import ktx.math.minusAssign
 import ktx.math.vec2
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.net.objectMoveEventPool
-import misterbander.crazyeights.net.objectRotateEventPool
+import misterbander.crazyeights.kryo.objectMoveEventPool
+import misterbander.crazyeights.kryo.objectRotateEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.gframework.scene2d.GActorGestureListener

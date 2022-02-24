@@ -1,4 +1,4 @@
-package misterbander.crazyeights.net
+package misterbander.crazyeights.kryo
 
 import com.esotericsoftware.kryo.util.Pool
 import ktx.log.debug

@@ -26,11 +26,11 @@ import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.game.Ruleset
+import misterbander.crazyeights.kryo.cursorPositionPool
 import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.net.BufferedListener
-import misterbander.crazyeights.net.cursorPositionPool
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent

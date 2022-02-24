@@ -11,8 +11,7 @@ dependencies {
 	api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 	api "com.esotericsoftware:kryo:$kryoVersion"
 	api "com.github.crykn:kryonet:$kryoNetVersion"
-	api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-	api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCoreVersion"
+	api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
 	api "io.github.libktx:ktx-actors:$ktxVersion"
 	api "io.github.libktx:ktx-app:$ktxVersion"
 	api "io.github.libktx:ktx-assets:$ktxVersion"
@@ -29,7 +28,7 @@ dependencies {
 	api "io.github.libktx:ktx-style:$ktxVersion"
 	api "space.earlygrey:shapedrawer:$shapeDrawerVersion"
 	testImplementation 'junit:junit:4.13.2'
-	testImplementation 'org.jetbrains.kotlin:kotlin-test:1.5.31'
+	testImplementation 'org.jetbrains.kotlin:kotlin-test:1.6.0'
 }
 
 apply plugin: 'kotlin-noarg'

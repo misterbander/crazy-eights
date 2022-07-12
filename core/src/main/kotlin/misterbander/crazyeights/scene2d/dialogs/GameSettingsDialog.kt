@@ -7,10 +7,8 @@ import ktx.actors.onKeyboardFocus
 import ktx.collections.*
 import ktx.scene2d.*
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.SELECT_BOX_STYLE
-import misterbander.crazyeights.TEXT_BUTTON_STYLE
 import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.net.packets.AiAddEvent
@@ -39,7 +37,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			))
 		}
 	}
-	private val drawTwosSelectBox = scene2d.selectBox<String>(SELECT_BOX_STYLE) {
+	private val drawTwosSelectBox = scene2d.selectBox<String>() {
 		items = this@GameSettingsDialog.items
 		selected = Rank.TWO.toString()
 		selection.setProgrammaticChangeEvents(false)
@@ -47,7 +45,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(drawTwos = selected?.toRank()), game.user.name))
 		}
 	}
-	private val skipsSelectBox = scene2d.selectBox<String>(SELECT_BOX_STYLE) {
+	private val skipsSelectBox = scene2d.selectBox<String>() {
 		items = this@GameSettingsDialog.items
 		selected = Rank.QUEEN.toString()
 		selection.setProgrammaticChangeEvents(false)
@@ -55,7 +53,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(skips = selected?.toRank()), game.user.name))
 		}
 	}
-	private val reversesSelectBox = scene2d.selectBox<String>(SELECT_BOX_STYLE) {
+	private val reversesSelectBox = scene2d.selectBox<String>() {
 		items = this@GameSettingsDialog.items
 		selected = Rank.ACE.toString()
 		selection.setProgrammaticChangeEvents(false)
@@ -64,20 +62,20 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 		}
 	}
 	
-	private val addAiButton = scene2d.textButton("Add AI", TEXT_BUTTON_STYLE) {
+	private val addAiButton = scene2d.textButton("Add AI") {
 		onChange {
 			room.click.play()
 			game.client?.sendTCP(AiAddEvent)
 		}
 	}
-	private val resetDeckButton = scene2d.textButton("Reset deck", TEXT_BUTTON_STYLE) {
+	private val resetDeckButton = scene2d.textButton("Reset deck") {
 		onChange {
 			room.click.play()
 			hide()
 			game.client?.sendTCP(ResetDeckEvent())
 		}
 	}
-	private val newGameButton = scene2d.textButton("New Game", TEXT_BUTTON_STYLE) {
+	private val newGameButton = scene2d.textButton("New Game") {
 		onChange {
 			room.click.play()
 			hide()
@@ -91,29 +89,29 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			defaults().left().space(16F)
 			verticalGroup {
 				columnAlign(Align.left)
-				label("Max Draw Count", INFO_LABEL_STYLE_S)
-				label("Maximum number of cards to draw before being forced to pass.\nEnter 0 for no limit.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
+				label("Max Draw Count", LABEL_SMALL_STYLE)
+				label("Maximum number of cards to draw before being forced to pass.\nEnter 0 for no limit.", LABEL_SMALL_STYLE) { color = Color.LIGHT_GRAY }
 			}
 			actor(maxDrawCountTextField).cell(preferredWidth = 128F)
 			row()
 			verticalGroup {
 				columnAlign(Align.left)
-				label("Draw Twos", INFO_LABEL_STYLE_S)
-				label("Next player draws two cards. Can be stacked.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
+				label("Draw Twos", LABEL_SMALL_STYLE)
+				label("Next player draws two cards. Can be stacked.", LABEL_SMALL_STYLE) { color = Color.LIGHT_GRAY }
 			}
 			actor(drawTwosSelectBox)
 			row()
 			verticalGroup {
 				columnAlign(Align.left)
-				label("Skips", INFO_LABEL_STYLE_S)
-				label("Skips the next player.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
+				label("Skips", LABEL_SMALL_STYLE)
+				label("Skips the next player.", LABEL_SMALL_STYLE) { color = Color.LIGHT_GRAY }
 			}
 			actor(skipsSelectBox)
 			row()
 			verticalGroup {
 				columnAlign(Align.left)
-				label("Reverses", INFO_LABEL_STYLE_S)
-				label("Reverses the play direction.", INFO_LABEL_STYLE_S) { color = Color.LIGHT_GRAY }
+				label("Reverses", LABEL_SMALL_STYLE)
+				label("Reverses the play direction.", LABEL_SMALL_STYLE) { color = Color.LIGHT_GRAY }
 			}
 			actor(reversesSelectBox)
 			row()
@@ -126,7 +124,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 		buttonTable.add(scene2d.table {
 			defaults().space(16F)
 			actor(newGameButton).cell(preferredWidth = 224F)
-			textButton("Cancel", TEXT_BUTTON_STYLE) {
+			textButton("Cancel") {
 				onChange { room.click.play(); hide() }
 			}
 		})

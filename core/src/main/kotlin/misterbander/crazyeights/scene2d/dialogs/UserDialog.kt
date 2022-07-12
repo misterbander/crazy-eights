@@ -3,9 +3,8 @@ package misterbander.crazyeights.scene2d.dialogs
 import ktx.actors.onChange
 import ktx.actors.txt
 import ktx.scene2d.*
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.TEXT_BUTTON_STYLE
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
@@ -19,15 +18,15 @@ class UserDialog(private val room: Room) : CrazyEightsDialog(room, "User Info")
 			usernameLabel.txt = value.name
 			usernameLabel.color = value.color
 		}
-	private val usernameLabel = scene2d.label("", INFO_LABEL_STYLE_S)
-	private val swapSeatsButton = scene2d.textButton("Swap Seats", TEXT_BUTTON_STYLE) {
+	private val usernameLabel = scene2d.label("", LABEL_SMALL_STYLE)
+	private val swapSeatsButton = scene2d.textButton("Swap Seats") {
 		onChange {
 			room.click.play()
 			game.client?.sendTCP(SwapSeatsEvent(game.user.name, user.name))
 			hide()
 		}
 	}
-	private val removeButton = scene2d.textButton("Remove", TEXT_BUTTON_STYLE) {
+	private val removeButton = scene2d.textButton("Remove") {
 		onChange {
 			room.click.play()
 			game.client?.sendTCP(AiRemoveEvent(user.name))
@@ -38,7 +37,7 @@ class UserDialog(private val room: Room) : CrazyEightsDialog(room, "User Info")
 		space(16F)
 		actor(swapSeatsButton)
 		actor(removeButton)
-		textButton("Cancel", TEXT_BUTTON_STYLE) {
+		textButton("Cancel") {
 			onChange { room.click.play(); hide() }
 		}
 	}

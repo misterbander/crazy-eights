@@ -1,0 +1,163 @@
+{
+  "Color": {
+    "black": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 1
+    },
+    "gray": {
+      "r": 0.49803922,
+      "g": 0.49803922,
+      "b": 0.49803922,
+      "a": 1
+    },
+    "light_gray": {
+      "r": 0.6666667,
+      "g": 0.6666667,
+      "b": 0.6666667,
+      "a": 1
+    },
+    "white": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+    }
+  },
+  "ButtonStyle": {
+    "close_button": {
+      "up": "close_button",
+      "down": "close_button_down",
+      "over": "close_button_over",
+      "disabled": "close_button_disabled"
+    }
+  },
+  "ImageButtonStyle": {
+    "default": {
+      "up": "button",
+      "down": "button_down",
+      "over": "button_over"
+    },
+    "checkable_image_button": {
+      "parent": "default",
+      "checked": "button_down"
+    },
+    "color_button": {
+      "parent": "default",
+      "imageUp": "color_circle"
+    },
+    "menu_button": {
+      "parent": "default",
+      "imageUp": "menu_icon",
+      "imageDown": "menu_icon_down"
+    },
+    "settings_button": {
+      "parent": "default",
+      "imageUp": "gear_icon",
+      "imageDown": "gear_icon_down"
+    },
+    "help_button": {
+      "parent": "checkable_image_button",
+      "imageUp": "help_icon",
+      "imageDown": "help_icon_down",
+      "imageChecked": "help_icon_down"
+    }
+  },
+  "LabelStyle": {
+    "label_small": {
+      "font": "ms_jhenghei_ui_small",
+      "fontColor": "white"
+    },
+    "label_tiny": {
+      "font": "ms_jhenghei_ui_tiny",
+      "fontColor": "white"
+    },
+    "center_title_label": {
+      "font": "ms_jhenghei_ui_large",
+      "fontColor": "white"
+    },
+    "effect_text_label": {
+      "font": "tw_cen_mt_outlined",
+      "fontColor": "white"
+    },
+    "power_card_label": {
+      "font": "tw_cen_mt",
+      "fontColor": "white"
+    }
+  },
+  "ListStyle": {
+    "default": {
+      "font": "ms_jhenghei_ui_small",
+      "fontColorSelected": "white",
+      "fontColorUnselected": "white",
+      "selection": "list_selection",
+      "background": "list"
+    }
+  },
+  "ScrollPaneStyle": {
+    "default": {
+      "background": "background",
+      "vScrollKnob": "text_cursor"
+    }
+  },
+  "SelectBoxStyle": {
+    "default": {
+      "font": "ms_jhenghei_ui_small",
+      "fontColor": "white",
+      "background": "select_box",
+      "scrollStyle": "default",
+      "listStyle": "default",
+      "backgroundOpen": "select_box_open",
+      "backgroundDisabled": "select_box_disabled"
+    }
+  },
+  "SliderStyle": {
+    "hue_slider": {
+      "knobOver": "hue_slider_knob_over",
+      "knobDown": "hue_slider_knob_down",
+      "background": "hue_slider",
+      "knob": "hue_slider_knob"
+    }
+  },
+  "TextButtonStyle": {
+    "default": {
+      "font": "ms_jhenghei_ui",
+      "fontColor": "white",
+      "downFontColor": "black",
+      "disabledFontColor": "gray",
+      "up": "button",
+      "down": "button_down",
+      "over": "button_over",
+      "disabled": "button_disabled"
+    }
+  },
+  "WindowStyle": {
+    "default": {
+      "background": "window",
+      "titleFont": "ms_jhenghei_ui_small",
+      "titleFontColor": "white"
+    }
+  },
+  "misterbander.gframework.scene2d.GTextField$GTextFieldStyle": {
+    "default": {
+      "font": "ms_jhenghei_ui_small",
+      "fontColor": "white",
+      "messageFontColor": "gray",
+      "focusedFontColor": "white",
+      "cursor": "text_cursor",
+      "selection": "text_selection",
+      "disabledFontColor": "light_gray"
+    },
+    "form_text_field": {
+      "parent": "default",
+      "background": "text_field",
+      "focusedBackground": "text_field_focused",
+      "disabledBackground": "text_field_disabled"
+    },
+    "chat_text_field": {
+      "parent": "default",
+      "background": "chat_text_field_background"
+    }
+  }
+}

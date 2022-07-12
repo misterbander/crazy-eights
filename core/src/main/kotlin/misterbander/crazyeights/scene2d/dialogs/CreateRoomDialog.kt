@@ -9,10 +9,9 @@ import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
 import misterbander.crazyeights.DEFAULT_TCP_PORT
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.MainMenu
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.TEXT_BUTTON_STYLE
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.gframework.scene2d.UnfocusListener
 import java.net.BindException
@@ -20,7 +19,7 @@ import java.net.BindException
 @Suppress("BlockingMethodInNonBlockingContext")
 class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainMenu, "Create Room")
 {
-	private val createButton = scene2d.textButton("Create", TEXT_BUTTON_STYLE) {
+	private val createButton = scene2d.textButton("Create") {
 		usernameTextField.setTextFieldListener { textField, _ -> isDisabled = textField.text.isBlank() }
 		onChange {
 			mainMenu.click.play()
@@ -74,17 +73,17 @@ class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mai
 	{
 		contentTable.add(scene2d.table {
 			defaults().left().space(16F)
-			label("Username:", INFO_LABEL_STYLE_S)
+			label("Username:", LABEL_SMALL_STYLE)
 			actor(usernameTextField).cell(preferredWidth = 416F)
 			actor(colorButton)
 			row()
 			if (isAdvanced)
 			{
-				label("Server Port:", INFO_LABEL_STYLE_S)
+				label("Server Port:", LABEL_SMALL_STYLE)
 				actor(portTextField).cell(preferredWidth = 416F)
 				row()
 			}
-			label("Room Code:", INFO_LABEL_STYLE_S)
+			label("Room Code:", LABEL_SMALL_STYLE)
 			actor(roomCodeTextField).cell(preferredWidth = 416F)
 			val chars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 			roomCodeTextField.text = (1..6).map { chars.random() }.joinToString("")
@@ -92,7 +91,7 @@ class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mai
 		buttonTable.add(scene2d.table {
 			defaults().space(16F)
 			actor(createButton).cell(preferredWidth = 248F)
-			textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
+			textButton(if (isAdvanced) "Simple" else "Advanced") {
 				onChange {
 					mainMenu.click.play()
 					hide()
@@ -102,7 +101,7 @@ class CreateRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mai
 						mainMenu.advancedCreateRoomDialog.show()
 				}
 			}.cell(preferredWidth = 224F)
-			textButton("Cancel", TEXT_BUTTON_STYLE) {
+			textButton("Cancel") {
 				onChange { mainMenu.click.play(); hide() }
 			}
 		})

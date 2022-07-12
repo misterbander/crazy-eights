@@ -26,7 +26,6 @@ import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsServer
-import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.EffectText
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.OpponentHand

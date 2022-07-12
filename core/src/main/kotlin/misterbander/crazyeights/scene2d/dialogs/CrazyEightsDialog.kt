@@ -15,7 +15,6 @@ import misterbander.crazyeights.ANIMATION_DURATION
 import misterbander.crazyeights.CLOSE_BUTTON_STYLE
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.CrazyEightsScreen
-import misterbander.crazyeights.WINDOW_STYLE
 import misterbander.gframework.scene2d.AccessibleInputDialog
 
 /**
@@ -24,7 +23,7 @@ import misterbander.gframework.scene2d.AccessibleInputDialog
 abstract class CrazyEightsDialog(
 	protected val screen: CrazyEightsScreen,
 	title: String,
-) : AccessibleInputDialog(title, Scene2DSkin.defaultSkin, WINDOW_STYLE)
+) : AccessibleInputDialog(title, Scene2DSkin.defaultSkin, defaultStyle)
 {
 	protected val game: CrazyEights = screen.game
 	val closeButton: Button = scene2d.button(CLOSE_BUTTON_STYLE) {

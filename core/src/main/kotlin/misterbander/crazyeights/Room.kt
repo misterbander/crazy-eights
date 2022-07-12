@@ -160,11 +160,11 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	val chatBox = ChatBox(this)
 	val centerTitle = scene2d.label("Test", CENTER_TITLE_LABEL_STYLE)
 	val centerTitleContainer = scene2d.container(centerTitle) {
-		background = Scene2DSkin.defaultSkin["chatbackground"]
+		background = Scene2DSkin.defaultSkin["chat_text_field_background"]
 		isVisible = false
 	}
 	
-	val debugInfo = scene2d.label("", INFO_LABEL_STYLE_XS)
+	val debugInfo = scene2d.label("", LABEL_TINY_STYLE)
 //	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED)
 //	val gizmo2 = Gizmo(game.shapeDrawer, Color.ORANGE)
 //	val gizmo3 = Gizmo(game.shapeDrawer, Color.YELLOW)
@@ -174,7 +174,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	private val uprightActors = GdxSet<Actor>()
 	private val originalRotationMap = ObjectFloatMap<Actor>()
 	
-	val passButton = scene2d.textButton("Pass", TEXT_BUTTON_STYLE) {
+	val passButton = scene2d.textButton("Pass") {
 		setOrigin(Align.center)
 		isTransform = true
 		isVisible = false
@@ -237,7 +237,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 				table {
 					// UI
 					actor(menuButton).cell(pad = 16F).inCell.top()
-					actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 312F, pad = 16F)
+					actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 310F, pad = 16F)
 					row()
 					verticalGroup {
 						space(16F)
@@ -280,9 +280,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		super.show()
 		if (Platform.isDesktop)
 		{
-			val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursorborder"]
+			val cursorBorder: TextureRegion = Scene2DSkin.defaultSkin["cursor_border"]
 			val cursorBorderPixmap = cursorBorder.toPixmap()
-			val cursorBase: TextureRegion = Scene2DSkin.defaultSkin["cursorbase"]
+			val cursorBase: TextureRegion = Scene2DSkin.defaultSkin["cursor_base"]
 			val cursorBasePixmap = cursorBase.toPixmap()
 			for (i in 0 until cursorBasePixmap.width)
 			{

@@ -3,14 +3,13 @@ package misterbander.crazyeights.scene2d.dialogs
 import ktx.actors.onChange
 import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEightsScreen
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
-import misterbander.crazyeights.TEXT_BUTTON_STYLE
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.gframework.util.wrap
 
 class MessageDialog(screen: CrazyEightsScreen) : CrazyEightsDialog(screen, "")
 {
-	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE_S)
-	private val textButton = scene2d.textButton("", TEXT_BUTTON_STYLE) {
+	private val messageLabel = scene2d.label("", LABEL_SMALL_STYLE)
+	private val textButton = scene2d.textButton("") {
 		onChange {
 			screen.click.play()
 			actionlessHide()

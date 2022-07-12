@@ -11,7 +11,7 @@ class CardGhost(parent: Groupable<CardGroup>) : GObject<CrazyEights>(parent.scre
 {
 	init
 	{
-		this += scene2d.image("cardghost") { setPosition(0F, 0F, Align.center) }
+		this += scene2d.image("card_ghost") { setPosition(0F, 0F, Align.center) }
 		
 		touchable = Touchable.disabled
 		

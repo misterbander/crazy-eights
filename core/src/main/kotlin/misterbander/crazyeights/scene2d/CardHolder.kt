@@ -34,8 +34,8 @@ class CardHolder(
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
 {
-	private val holderDrawable: Drawable = Scene2DSkin.defaultSkin["cardholder"]
-	private val holderOverDrawable: Drawable = Scene2DSkin.defaultSkin["cardholderover"]
+	private val holderDrawable: Drawable = Scene2DSkin.defaultSkin["card_holder"]
+	private val holderOverDrawable: Drawable = Scene2DSkin.defaultSkin["card_holder_over"]
 	private val holderImage = scene2d.image(holderDrawable) { setPosition(0F, 0F, Align.center) }
 	
 	val cardGroup: CardGroup?

@@ -9,7 +9,7 @@ import ktx.actors.plusAssign
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.PLAYER_NAMETAG_LABEL_STYLE_XS
+import misterbander.crazyeights.LABEL_TINY_STYLE
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
@@ -31,13 +31,16 @@ class CrazyEightsCursor(
 	{
 		touchable = Touchable.disabled
 		color = user.color
-		base = Scene2DSkin.defaultSkin["cursorbase"]
-		border = Scene2DSkin.defaultSkin["cursorborder"]
+		base = Scene2DSkin.defaultSkin["cursor_base"]
+		border = Scene2DSkin.defaultSkin["cursor_border"]
 		setSize(base.regionWidth.toFloat(), base.regionHeight.toFloat())
 		overwritePosition(room.uiViewport.minWorldWidth/2, room.uiViewport.minWorldHeight/2)
 		if (!noLabel)
 		{
-			this += scene2d.label(user.name, PLAYER_NAMETAG_LABEL_STYLE_XS) {
+			this += scene2d.container {
+				background = Scene2DSkin.defaultSkin["background"]
+				pad(2F, 12F, 2F, 12F)
+				label(user.name, LABEL_TINY_STYLE) { pack() }
 				pack()
 				setPosition(this@CrazyEightsCursor.width/2 - 3F, 0F, Align.topLeft)
 			}

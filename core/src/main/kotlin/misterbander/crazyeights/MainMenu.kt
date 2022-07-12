@@ -43,11 +43,11 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	private val mainTable: Table by lazy {
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
-			textButton("Play", TEXT_BUTTON_STYLE) {
+			textButton("Play") {
 				onChange { click.play(); showTable(playTable) }
 			}
 			row()
-			textButton("Quit", TEXT_BUTTON_STYLE) {
+			textButton("Quit") {
 				onChange { click.play(); Gdx.app.exit() }
 			}
 		}
@@ -55,15 +55,15 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	private val playTable: Table by lazy {
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
-			textButton("Create Room", TEXT_BUTTON_STYLE) {
+			textButton("Create Room") {
 				onChange { click.play(); createRoomDialog.show() }
 			}
 			row()
-			textButton("Join Room", TEXT_BUTTON_STYLE) {
+			textButton("Join Room") {
 				onChange { click.play(); joinRoomDialog.show() }
 			}
 			row()
-			textButton("Cancel", TEXT_BUTTON_STYLE) {
+			textButton("Cancel") {
 				onChange { click.play(); showTable(mainTable) }
 			}
 		}
@@ -94,7 +94,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 			stack {
 				actor(mainTable)
 				actor(playTable)
-				container(label(VERSION_STRING, INFO_LABEL_STYLE_S)) {
+				container(label(VERSION_STRING, LABEL_SMALL_STYLE)) {
 					bottom().right().padBottom(8F).padRight(8F)
 				}
 			}.cell(grow = true)

@@ -10,10 +10,9 @@ import ktx.log.info
 import ktx.scene2d.*
 import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.MainMenu
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.TEXT_BUTTON_STYLE
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
@@ -24,7 +23,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainMenu, "Join Room")
 {
 	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
-	private val joinButton = scene2d.textButton("Join", TEXT_BUTTON_STYLE) {
+	private val joinButton = scene2d.textButton("Join") {
 		usernameTextField.setTextFieldListener { textField, _ -> isDisabled = textField.text.isBlank() }
 		onChange {
 			mainMenu.click.play()
@@ -93,22 +92,22 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 	{
 		contentTable.add(scene2d.table {
 			defaults().left().space(16F)
-			label("Username:", INFO_LABEL_STYLE_S)
+			label("Username:", LABEL_SMALL_STYLE)
 			actor(usernameTextField).cell(preferredWidth = 416F)
 			actor(colorButton)
 			row()
 			if (isAdvanced)
 			{
-				label("Server IP Address:", INFO_LABEL_STYLE_S)
+				label("Server IP Address:", LABEL_SMALL_STYLE)
 				actor(ipTextField).cell(preferredWidth = 416F)
 				row()
-				label("Server Port:", INFO_LABEL_STYLE_S)
+				label("Server Port:", LABEL_SMALL_STYLE)
 				actor(portTextField).cell(preferredWidth = 416F)
 				row()
 			}
-			label("Room Code:", INFO_LABEL_STYLE_S)
+			label("Room Code:", LABEL_SMALL_STYLE)
 			actor(roomCodeTextField).cell(preferredWidth = 416F)
-			textButton("How to Join?", TEXT_BUTTON_STYLE) {
+			textButton("How to Join?") {
 				onChange {
 					mainMenu.click.play()
 					Gdx.net.openURI("https://github.com/misterbander/crazy-eights/wiki/Multiplayer-Guide")
@@ -118,7 +117,7 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 		buttonTable.add(scene2d.table {
 			defaults().space(16F)
 			actor(joinButton).cell(preferredWidth = 248F)
-			textButton(if (isAdvanced) "Simple" else "Advanced", TEXT_BUTTON_STYLE) {
+			textButton(if (isAdvanced) "Simple" else "Advanced") {
 				onChange {
 					mainMenu.click.play()
 					hide()
@@ -128,7 +127,7 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 						mainMenu.advancedJoinRoomDialog.show()
 				}
 			}.cell(preferredWidth = 224F)
-			textButton("Cancel", TEXT_BUTTON_STYLE) {
+			textButton("Cancel") {
 				onChange { mainMenu.click.play(); hide() }
 			}
 		})

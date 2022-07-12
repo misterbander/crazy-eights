@@ -20,12 +20,11 @@ import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.app.Platform
 import ktx.scene2d.*
-import misterbander.crazyeights.CHAT_LABEL_STYLE
+import ktx.style.*
 import misterbander.crazyeights.CHAT_TEXT_FIELD_STYLE
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.Room
-import misterbander.crazyeights.SCROLL_PANE_STYLE
 import misterbander.crazyeights.model.Chat
 import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.textSize
@@ -66,7 +65,7 @@ class ChatBox(private val room: Room) : Table()
 		grow()
 		onTouchDown { Gdx.input.setOnscreenKeyboardVisible(false) }
 	}
-	private val chatHistoryScrollPane = scene2d.scrollPane(SCROLL_PANE_STYLE) {
+	private val chatHistoryScrollPane = scene2d.scrollPane {
 		actor = chatHistory
 		isVisible = false
 	}
@@ -116,13 +115,15 @@ class ChatBox(private val room: Room) : Table()
 	 */
 	fun chat(message: String, color: Color? = null)
 	{
-		val chatLabel = scene2d.label(message, CHAT_LABEL_STYLE) {
+		val chatLabel = scene2d.label(message, LABEL_SMALL_STYLE) {
 			wrap = true
 			if (color != null)
 				this.color = color.cpy()
 		}
 		chatPopup += scene2d.container(chatLabel) {
+			background = Scene2DSkin.defaultSkin["background"]
 			width(chatLabel.style.font.chatTextWidth(message))
+			pad(4F, 16F, 4F, 16F)
 			this += delay(10F) then alpha(0F, 1F) then Actions.removeActor(this)
 		}
 		
@@ -133,7 +134,7 @@ class ChatBox(private val room: Room) : Table()
 		}
 		
 		// Add to history
-		val chatHistoryLabel = scene2d.label(message, INFO_LABEL_STYLE_S) {
+		val chatHistoryLabel = scene2d.label(message, LABEL_SMALL_STYLE) {
 			wrap = true
 			if (color != null)
 				this.color = color.cpy()

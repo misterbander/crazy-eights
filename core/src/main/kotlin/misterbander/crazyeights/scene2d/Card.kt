@@ -44,8 +44,8 @@ class Card(
 ) : Groupable<CardGroup>(room), DragTarget
 {
 	private val faceUpDrawable: Drawable =
-		Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "cardjoker" else "card${suit.name.lowercase()}${if (rank == Rank.ACE || rank == Rank.JACK || rank == Rank.QUEEN || rank == Rank.KING) rank.name.lowercase() else rank}"]
-	private val faceDownDrawable: Drawable = Scene2DSkin.defaultSkin["cardbackred"]
+		Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "card_joker" else "card_${suit.name.lowercase()}_${if (rank == Rank.ACE || rank == Rank.JACK || rank == Rank.QUEEN || rank == Rank.KING) rank.name.lowercase() else rank}"]
+	private val faceDownDrawable: Drawable = Scene2DSkin.defaultSkin["card_back_red"]
 	private val cardImage = scene2d.image(if (isFaceUp) faceUpDrawable else faceDownDrawable) {
 		setPosition(0F, 0F, Align.center)
 	}

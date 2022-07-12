@@ -8,7 +8,7 @@ import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.packets.HandUpdateEvent
@@ -19,7 +19,7 @@ class MyHand(private val room: Room) : Hand(room), DragTarget
 {
 	val offsetCenterY = 48F
 	override val cardGroup = CardGroup(room, y = offsetCenterY, type = ServerCardGroup.Type.SPREAD)
-	private val spectatorLabel = scene2d.label("You are a spectator. Please wait for a new game.", INFO_LABEL_STYLE_S) {
+	private val spectatorLabel = scene2d.label("You are a spectator. Please wait for a new game.", LABEL_SMALL_STYLE) {
 		setPosition(0F, offsetCenterY, Align.bottom)
 	}
 	

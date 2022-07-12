@@ -8,7 +8,6 @@ import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerObject
 import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.ServerTabletop
 import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop

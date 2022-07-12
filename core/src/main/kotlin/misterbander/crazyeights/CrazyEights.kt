@@ -20,7 +20,6 @@ import misterbander.crazyeights.net.CrazyEightsClient
 import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.Network
 import misterbander.gframework.GFramework
-import misterbander.gframework.scene2d.gTextField
 
 /**
  * [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.
@@ -28,188 +27,56 @@ import misterbander.gframework.scene2d.gTextField
 class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 {
 	// Fonts
-	private val msjhlGenerator by lazy { assetStorage[Fonts.msjhl] }
-	private val tcbGenerator by lazy { assetStorage[Fonts.tcb] }
-	val jhengheiui by lazy {
-		msjhlGenerator.generateFont {
+	private val msJhengHeiUiGenerator by lazy { assetStorage[Fonts.msJhengHeiUi] }
+	private val twCenMtGenerator by lazy { assetStorage[Fonts.twCenMt] }
+	val msJhengHeiUi by lazy {
+		msJhengHeiUiGenerator.generateFont {
 			size = 40
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val jhengheiuis by lazy {
-		msjhlGenerator.generateFont {
+	val msJhengHeiUiSmall by lazy {
+		msJhengHeiUiGenerator.generateFont {
 			size = 25
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val jhengheiuixs by lazy {
-		msjhlGenerator.generateFont {
+	val msJhengHeiUiTiny by lazy {
+		msJhengHeiUiGenerator.generateFont {
 			size = 15
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val jhengheiuil by lazy {
-		msjhlGenerator.generateFont {
+	val msJhengHeiUiLarge by lazy {
+		msJhengHeiUiGenerator.generateFont {
 			size = 64
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val tcb by lazy {
-		tcbGenerator.generateFont {
+	val twCenMt by lazy {
+		twCenMtGenerator.generateFont {
 			size = 128
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val tcbo by lazy {
-		tcbGenerator.generateFont {
+	val twCenMtOutlined by lazy {
+		twCenMtGenerator.generateFont {
 			size = 108
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 			borderColor = Color.BLACK
 			borderWidth = 3F
-		}
-	}
-	
-	// Skins
-	private val skin by lazy {
-		skin {
-			addRegions(assetStorage[TextureAtlases.gui])
-			label(INFO_LABEL_STYLE_S) { font = jhengheiuis; fontColor = Color.WHITE }
-			label(INFO_LABEL_STYLE_XS) { font = jhengheiuixs; fontColor = Color.WHITE }
-			label(CHAT_LABEL_STYLE, INFO_LABEL_STYLE_S) {
-				background = this@skin.newDrawable("chatbackground")
-				background.topHeight = 4F
-				background.leftWidth = 16F
-				background.rightWidth = 16F
-				background.bottomHeight = 4F
-			}
-			label(PLAYER_NAMETAG_LABEL_STYLE_S) {
-				font = jhengheiuis
-				fontColor = Color.WHITE
-				background = this@skin.newDrawable("chatbackground")
-				background.topHeight = 2F
-				background.leftWidth = 12F
-				background.rightWidth = 12F
-				background.bottomHeight = 2F
-			}
-			label(PLAYER_NAMETAG_LABEL_STYLE_XS) {
-				font = jhengheiuixs
-				fontColor = Color.WHITE
-				background = this@skin.newDrawable("chatbackground")
-				background.topHeight = 2F
-				background.leftWidth = 12F
-				background.rightWidth = 12F
-				background.bottomHeight = 2F
-			}
-			label(CENTER_TITLE_LABEL_STYLE) { font = jhengheiuil; fontColor = Color.WHITE }
-			label(POWER_CARD_LABEL_STYLE) { font = tcb; fontColor = Color.WHITE }
-			label(EFFECT_TEXT_LABEL_STYLE) { font = tcbo; fontColor = Color.WHITE }
-			window(WINDOW_STYLE) {
-				background = this@skin["window"]
-				titleFont = jhengheiuis
-				titleFontColor = Color.WHITE
-			}
-			val scrollPaneStyle = scrollPane(SCROLL_PANE_STYLE) {
-				background = this@skin.newDrawable("chatbackground")
-				vScrollKnob = this@skin["textcursor"]
-			}
-			textButton(TEXT_BUTTON_STYLE) {
-				up = this@skin["button"]
-				over = this@skin["buttonover"]
-				down = this@skin["buttondown"]
-				disabled = this@skin["buttondisabled"]
-				font = jhengheiui
-				fontColor = Color.WHITE
-				downFontColor = Color.BLACK
-				disabledFontColor = Color.GRAY
-			}
-			button(CLOSE_BUTTON_STYLE) {
-				up = this@skin["closebutton"]
-				over = this@skin["closebuttonover"]
-				down = this@skin["closebuttondown"]
-				disabled = this@skin["closebuttondisabled"]
-			}
-			val imageButtonStyleBase = "imagebuttonstylebase"
-			imageButton(imageButtonStyleBase) {
-				up = this@skin["button"]
-				over = this@skin["buttonover"]
-				down = this@skin["buttondown"]
-			}
-			val checkableImageButtonStyleBase = "checkableimagebuttonstylebase"
-			imageButton(checkableImageButtonStyleBase, imageButtonStyleBase) { checked = down }
-			imageButton(COLOR_BUTTON_STYLE, imageButtonStyleBase) {
-				imageUp = this@skin["colorcircle"]
-			}
-			imageButton(MENU_BUTTON_STYLE, imageButtonStyleBase) {
-				imageUp = this@skin["menuicon"]
-				imageDown = this@skin["menuicondown"]
-			}
-			imageButton(SETTINGS_BUTTON_STYLE, imageButtonStyleBase) {
-				imageUp = this@skin["gearicon"]
-				imageDown = this@skin["gearicondown"]
-			}
-			imageButton(HELP_BUTTON_STYLE, checkableImageButtonStyleBase) {
-				imageUp = this@skin["helpicon"]
-				imageDown = this@skin["helpicondown"]
-				imageChecked = imageDown
-			}
-			val gTextFieldStyleBase = "mbtextfieldstylebase"
-			gTextField(gTextFieldStyleBase) {
-				font = jhengheiuis
-				fontColor = Color.WHITE
-				messageFontColor = Color.GRAY
-				focusedFontColor = Color.WHITE
-				cursor = this@skin["textcursor"]
-				selection = this@skin["textselection"]
-				disabledFontColor = Color(0xAAAAAAFF.toInt())
-			}
-			gTextField(CHAT_TEXT_FIELD_STYLE, gTextFieldStyleBase) {
-				background = this@skin.newDrawable("chatbackground")
-				background.topHeight = 16F
-				background.leftWidth = 16F
-				background.rightWidth = 16F
-				background.bottomHeight = 16F
-			}
-			gTextField(FORM_TEXT_FIELD_STYLE, gTextFieldStyleBase) {
-				background = this@skin["textfield"]
-				focusedBackground = this@skin["textfieldfocused"]
-				disabledBackground = this@skin["textfielddisabled"]
-			}
-			slider(HUE_SLIDER_STYLE) {
-				background = this@skin["hueslider"]
-				knob = this@skin["huesliderknob"]
-				knobOver = this@skin["huesliderknobover"]
-				knobDown = this@skin["huesliderknobdown"]
-			}
-			val listStyle = list(LIST_STYLE) {
-				font = jhengheiuis
-				selection = this@skin["textselection"]
-				selection.topHeight = 8F
-				selection.leftWidth = 16F
-				selection.rightWidth = 16F
-				selection.bottomHeight = 8F
-				background = this@skin["list"]
-			}
-			selectBox(SELECT_BOX_STYLE) {
-				font = jhengheiuis
-				disabledFontColor = Color(0xAAAAAAFF.toInt())
-				background = this@skin["selectbox"]
-				backgroundOpen = this@skin["selectboxopen"]
-				backgroundDisabled = this@skin["selectboxdisabled"]
-				scrollStyle = scrollPaneStyle
-				this.listStyle = listStyle
-			}
 		}
 	}
 	
@@ -237,8 +104,8 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 			val assets = listOf(
 				assetStorage.loadAsync(TextureAtlases.gui),
 				assetStorage.loadAsync(Textures.title),
-				assetStorage.loadAsync(Fonts.msjhl),
-				assetStorage.loadAsync(Fonts.tcb),
+				assetStorage.loadAsync(Fonts.msJhengHeiUi),
+				assetStorage.loadAsync(Fonts.twCenMt),
 				assetStorage.loadAsync(Sounds.click),
 				assetStorage.loadAsync(Sounds.cardSlide),
 				assetStorage.loadAsync(Sounds.dramatic),
@@ -247,7 +114,17 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 				assetStorage.loadAsync(Shaders.vignette)
 			)
 			assets.joinAll()
-			Scene2DSkin.defaultSkin = skin
+			Scene2DSkin.defaultSkin = skin {
+				addRegions(assetStorage[TextureAtlases.gui])
+				add("ms_jhenghei_ui", msJhengHeiUi)
+				add("ms_jhenghei_ui_small", msJhengHeiUiSmall)
+				add("ms_jhenghei_ui_tiny", msJhengHeiUiTiny)
+				add("ms_jhenghei_ui_large", msJhengHeiUiLarge)
+				add("tw_cen_mt", twCenMt)
+				add("tw_cen_mt_outlined", twCenMtOutlined)
+				load(Gdx.files.internal("textures/skin.json"))
+			}
+			
 			info("CrazyEights | INFO") { "Finished loading assets!" }
 			
 			// Load settings

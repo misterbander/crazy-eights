@@ -2,12 +2,12 @@ package misterbander.crazyeights.scene2d.dialogs
 
 import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEightsScreen
-import misterbander.crazyeights.INFO_LABEL_STYLE_S
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.gframework.util.wrap
 
 class InfoDialog(screen: CrazyEightsScreen) : CrazyEightsDialog(screen, "")
 {
-	private val messageLabel = scene2d.label("", INFO_LABEL_STYLE_S)
+	private val messageLabel = scene2d.label("", LABEL_SMALL_STYLE)
 	
 	init
 	{

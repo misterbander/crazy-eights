@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import ktx.actors.onClick
@@ -15,7 +16,8 @@ import ktx.graphics.copy
 import ktx.math.component1
 import ktx.math.component2
 import ktx.scene2d.*
-import misterbander.crazyeights.PLAYER_NAMETAG_LABEL_STYLE_S
+import ktx.style.*
+import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
@@ -40,16 +42,22 @@ class OpponentHand(
 	override val cardGroup = CardGroup(room, spreadSeparation = 20F, type = ServerCardGroup.Type.SPREAD).apply {
 		setScale(0.5F)
 	}
-	private val nameLabel = scene2d.label(user.name, PLAYER_NAMETAG_LABEL_STYLE_S) {
+	private val nameLabel = scene2d.label(user.name, LABEL_SMALL_STYLE) {
 		color = user.color
 		pack()
 	}
 	private val nameLabelContainer = scene2d.container(nameLabel) {
 		background = object : ShapeDrawerDrawable(game.shapeDrawer)
 		{
-			override fun drawShapes(shapeDrawer: ShapeDrawer, x: Float, y: Float, width: Float, height: Float) =
+			private val background: Drawable = Scene2DSkin.defaultSkin["background"]
+			
+			override fun drawShapes(shapeDrawer: ShapeDrawer, x: Float, y: Float, width: Float, height: Float)
+			{
+				this.background.draw(shapeDrawer.batch, x, y, width, height)
 				shapeDrawer.rectangle(x - 2.5F, y - 2.5F, width + 5, height + 5, yellow, 5F)
+			}
 		}
+		pad(2F, 12F, 2F, 12F)
 		pack()
 		setPosition(0F, 0F, Align.center)
 	}

@@ -1,9 +1,16 @@
 
 gui.png
-size: 1851,1164
+size: 1851, 1164
 format: RGBA8888
-filter: Linear,Linear
+filter: Linear, Linear
 repeat: none
+background
+  rotate: false
+  xy: 598, 1130
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
 button
   rotate: false
   xy: 808, 58
@@ -13,16 +20,7 @@ button
   orig: 80, 80
   offset: 0, 0
   index: -1
-buttondisabled
-  rotate: false
-  xy: 1769, 888
-  size: 80, 80
-  split: 38, 38, 38, 38
-  pad: 15, 17, 15, 17
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
-buttondown
+button_disabled
   rotate: false
   xy: 1769, 720
   size: 80, 80
@@ -31,7 +29,7 @@ buttondown
   orig: 80, 80
   offset: 0, 0
   index: -1
-buttonover
+button_down
   rotate: false
   xy: 1769, 804
   size: 80, 80
@@ -40,436 +38,447 @@ buttonover
   orig: 80, 80
   offset: 0, 0
   index: -1
-cardbackred
+button_over
   rotate: false
-  xy: 323, 142
-  size: 140, 190
-  orig: 140, 190
+  xy: 1769, 888
+  size: 80, 80
+  split: 38, 38, 38, 38
+  pad: 15, 17, 15, 17
+  orig: 80, 80
   offset: 0, 0
   index: -1
-cardclubs10
-  rotate: false
-  xy: 834, 972
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs2
-  rotate: false
-  xy: 181, 734
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs3
-  rotate: false
-  xy: 1186, 584
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs4
-  rotate: false
-  xy: 905, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs5
+card_back_red
   rotate: false
   xy: 1475, 196
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardclubs6
-  rotate: false
-  xy: 755, 142
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs7
-  rotate: false
-  xy: 978, 972
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs8
-  rotate: false
-  xy: 1330, 390
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubs9
-  rotate: false
-  xy: 1481, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubsace
-  rotate: false
-  xy: 1337, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubsjack
-  rotate: false
-  xy: 761, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubsking
-  rotate: false
-  xy: 1618, 390
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardclubsqueen
-  rotate: false
-  xy: 1331, 2
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds10
-  rotate: false
-  xy: 1618, 584
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds2
-  rotate: false
-  xy: 1625, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds3
-  rotate: false
-  xy: 1619, 2
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds4
-  rotate: false
-  xy: 1042, 584
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds5
-  rotate: false
-  xy: 1698, 972
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds6
-  rotate: false
-  xy: 1331, 196
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds7
-  rotate: false
-  xy: 751, 336
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamonds8
+card_clubs
   rotate: false
   xy: 463, 336
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-carddiamonds9
+  index: 6
+card_clubs
   rotate: false
-  xy: 1186, 390
+  xy: 1698, 972
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-carddiamondsace
+  index: 3
+card_clubs
   rotate: false
-  xy: 1475, 2
+  xy: 761, 778
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-carddiamondsjack
+  index: 8
+card_clubs
+  rotate: false
+  xy: 611, 142
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 5
+card_clubs
+  rotate: false
+  xy: 1042, 584
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 2
+card_clubs
+  rotate: false
+  xy: 1042, 390
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 7
+card_clubs
   rotate: false
   xy: 1187, 196
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-carddiamondsking
-  rotate: false
-  xy: 610, 530
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-carddiamondsqueen
-  rotate: false
-  xy: 546, 936
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardghost
-  rotate: false
-  xy: 325, 726
-  size: 148, 198
-  orig: 148, 198
-  offset: 0, 0
-  index: -1
-cardhearts10
-  rotate: false
-  xy: 1474, 390
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardhearts2
-  rotate: false
-  xy: 899, 196
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardhearts3
-  rotate: false
-  xy: 607, 336
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardhearts4
-  rotate: false
-  xy: 466, 530
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardhearts5
-  rotate: false
-  xy: 898, 390
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardhearts6
-  rotate: false
-  xy: 1049, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardhearts7
+  index: 4
+card_clubs
   rotate: false
   xy: 1619, 196
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardhearts8
+  index: 9
+card_clubs
   rotate: false
-  xy: 754, 548
+  xy: 1331, 2
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 10
+card_clubs_ace
+  rotate: false
+  xy: 1186, 584
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardhearts9
+card_clubs_jack
   rotate: false
   xy: 1122, 972
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardheartsace
+card_clubs_king
   rotate: false
-  xy: 1266, 972
+  xy: 1186, 390
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardheartsjack
+card_clubs_queen
   rotate: false
-  xy: 467, 142
+  xy: 607, 336
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardheartsking
+card_diamonds
   rotate: false
-  xy: 1187, 2
+  xy: 181, 734
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardheartsqueen
+  index: 4
+card_diamonds
+  rotate: false
+  xy: 834, 972
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 9
+card_diamonds
   rotate: false
   xy: 617, 742
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardholder
+  index: 6
+card_diamonds
   rotate: false
-  xy: 394, 928
-  size: 148, 198
-  orig: 148, 198
-  offset: 0, 0
-  index: -1
-cardholderover
-  rotate: false
-  xy: 242, 928
-  size: 148, 198
-  orig: 148, 198
-  offset: 0, 0
-  index: -1
-cardjoker
-  rotate: false
-  xy: 1042, 390
+  xy: 1625, 778
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspades10
+  index: 3
+card_diamonds
   rotate: false
-  xy: 690, 972
+  xy: 610, 530
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspades2
+  index: 10
+card_diamonds
   rotate: false
-  xy: 1554, 972
+  xy: 751, 336
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspades3
+  index: 8
+card_diamonds
   rotate: false
-  xy: 1043, 196
+  xy: 1330, 584
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspades4
+  index: 5
+card_diamonds
   rotate: false
-  xy: 611, 142
+  xy: 1618, 390
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspades5
+  index: 2
+card_diamonds
   rotate: false
-  xy: 179, 276
+  xy: 1331, 196
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspades6
-  rotate: false
-  xy: 1474, 584
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardspades7
-  rotate: false
-  xy: 1193, 778
-  size: 140, 190
-  orig: 140, 190
-  offset: 0, 0
-  index: -1
-cardspades8
+  index: 7
+card_diamonds_ace
   rotate: false
   xy: 899, 2
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardspades9
+card_diamonds_jack
+  rotate: false
+  xy: 1266, 972
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_diamonds_king
+  rotate: false
+  xy: 1474, 390
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_diamonds_queen
+  rotate: false
+  xy: 323, 142
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_ghost
+  rotate: false
+  xy: 394, 928
+  size: 148, 198
+  orig: 148, 198
+  offset: 0, 0
+  index: -1
+card_hearts
+  rotate: false
+  xy: 179, 276
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 10
+card_hearts
+  rotate: false
+  xy: 978, 972
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 3
+card_hearts
+  rotate: false
+  xy: 1554, 972
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 8
+card_hearts
+  rotate: false
+  xy: 1193, 778
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 5
+card_hearts
+  rotate: false
+  xy: 755, 142
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 2
+card_hearts
   rotate: false
   xy: 898, 584
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
+  index: 7
+card_hearts
+  rotate: false
+  xy: 1330, 390
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 4
+card_hearts
+  rotate: false
+  xy: 1043, 196
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 9
+card_hearts
+  rotate: false
+  xy: 1619, 2
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 6
+card_hearts_ace
+  rotate: false
+  xy: 1337, 778
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
   index: -1
-cardspadesace
+card_hearts_jack
+  rotate: false
+  xy: 1481, 778
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_hearts_king
+  rotate: false
+  xy: 1187, 2
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_hearts_queen
+  rotate: false
+  xy: 1475, 2
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_holder
+  rotate: false
+  xy: 242, 928
+  size: 148, 198
+  orig: 148, 198
+  offset: 0, 0
+  index: -1
+card_holder_over
+  rotate: false
+  xy: 325, 726
+  size: 148, 198
+  orig: 148, 198
+  offset: 0, 0
+  index: -1
+card_joker
+  rotate: false
+  xy: 1049, 778
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: -1
+card_spades
+  rotate: false
+  xy: 466, 530
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 8
+card_spades
+  rotate: false
+  xy: 546, 936
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 10
+card_spades
   rotate: false
   xy: 1410, 972
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
-  index: -1
-cardspadesjack
+  index: 5
+card_spades
+  rotate: false
+  xy: 905, 778
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 2
+card_spades
+  rotate: false
+  xy: 467, 142
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 7
+card_spades
+  rotate: false
+  xy: 754, 548
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 4
+card_spades
+  rotate: false
+  xy: 1474, 584
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 9
+card_spades
+  rotate: false
+  xy: 899, 196
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 6
+card_spades
+  rotate: false
+  xy: 1043, 2
+  size: 140, 190
+  orig: 140, 190
+  offset: 0, 0
+  index: 3
+card_spades_ace
   rotate: false
   xy: 175, 82
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardspadesking
+card_spades_jack
   rotate: false
-  xy: 1330, 584
+  xy: 690, 972
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-cardspadesqueen
+card_spades_king
   rotate: false
-  xy: 1043, 2
+  xy: 1618, 584
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
-chatbackground
+card_spades_queen
   rotate: false
-  xy: 1763, 16
-  size: 32, 32
-  orig: 32, 32
+  xy: 898, 390
+  size: 140, 190
+  orig: 140, 190
   offset: 0, 0
   index: -1
-closebutton
+chat_text_field_background
   rotate: false
-  xy: 1799, 224
-  size: 32, 32
-  orig: 32, 32
+  xy: 1762, 584
+  size: 64, 64
+  split: 0, 0, 0, 0
+  pad: 16, 16, 4, 6
+  orig: 64, 64
   offset: 0, 0
   index: -1
-closebuttondisabled
+close_button
   rotate: false
   xy: 690, 936
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-closebuttondown
+close_button_disabled
   rotate: false
   xy: 761, 742
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-closebuttonover
+close_button_down
   rotate: false
-  xy: 1763, 52
+  xy: 833, 742
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+close_button_over
+  rotate: false
+  xy: 206, 46
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -481,23 +490,23 @@ clubs
   orig: 128, 128
   offset: 0, 0
   index: -1
-colorcircle
+color_circle
   rotate: false
   xy: 1762, 396
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
-cursorbase
+cursor_base
   rotate: false
-  xy: 1763, 88
+  xy: 170, 10
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-cursorborder
+cursor_border
   rotate: false
-  xy: 598, 1130
+  xy: 634, 1130
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -509,16 +518,16 @@ diamonds
   orig: 128, 128
   offset: 0, 0
   index: -1
-gearicon
+gear_icon
   rotate: false
-  xy: 833, 742
+  xy: 1799, 52
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-gearicondown
+gear_icon_down
   rotate: false
-  xy: 634, 1130
+  xy: 1799, 16
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -539,77 +548,77 @@ hearts
   orig: 128, 128
   offset: 0, 0
   index: -1
-help1
-  rotate: false
-  xy: 2, 327
-  size: 173, 199
-  orig: 173, 199
-  offset: 0, 0
-  index: -1
-help2
-  rotate: false
-  xy: 2, 530
-  size: 182, 198
-  orig: 182, 198
-  offset: 0, 0
-  index: -1
-help3
-  rotate: false
-  xy: 323, 336
-  size: 136, 200
-  orig: 136, 200
-  offset: 0, 0
-  index: -1
-help4
+help
   rotate: false
   xy: 2, 944
   size: 236, 218
   orig: 236, 218
   offset: 0, 0
-  index: -1
-helpicon
+  index: 4
+help
   rotate: false
-  xy: 134, 34
+  xy: 2, 530
+  size: 182, 198
+  orig: 182, 198
+  offset: 0, 0
+  index: 2
+help
+  rotate: false
+  xy: 2, 327
+  size: 173, 199
+  orig: 173, 199
+  offset: 0, 0
+  index: 1
+help
+  rotate: false
+  xy: 323, 336
+  size: 136, 200
+  orig: 136, 200
+  offset: 0, 0
+  index: 3
+help_icon
+  rotate: false
+  xy: 1799, 88
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-helpicondown
+help_icon_down
   rotate: false
   xy: 797, 742
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-helpm1
-  rotate: false
-  xy: 320, 540
-  size: 142, 182
-  orig: 142, 182
-  offset: 0, 0
-  index: -1
-helpm2
-  rotate: false
-  xy: 2, 138
-  size: 169, 185
-  orig: 169, 185
-  offset: 0, 0
-  index: -1
-helpm3
-  rotate: false
-  xy: 477, 724
-  size: 136, 200
-  orig: 136, 200
-  offset: 0, 0
-  index: -1
-helpm4
+help_m
   rotate: false
   xy: 2, 732
   size: 175, 208
   orig: 175, 208
   offset: 0, 0
-  index: -1
-hueslider
+  index: 4
+help_m
+  rotate: false
+  xy: 2, 138
+  size: 169, 185
+  orig: 169, 185
+  offset: 0, 0
+  index: 2
+help_m
+  rotate: false
+  xy: 477, 724
+  size: 136, 200
+  orig: 136, 200
+  offset: 0, 0
+  index: 3
+help_m
+  rotate: false
+  xy: 320, 540
+  size: 142, 182
+  orig: 142, 182
+  offset: 0, 0
+  index: 1
+hue_slider
   rotate: false
   xy: 242, 1130
   size: 352, 32
@@ -618,58 +627,67 @@ hueslider
   orig: 352, 32
   offset: 0, 0
   index: -1
-huesliderknob
+hue_slider_knob
   rotate: false
-  xy: 1763, 192
+  xy: 1763, 56
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
-huesliderknobdown
+hue_slider_knob_down
   rotate: false
   xy: 134, 70
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
-huesliderknobover
+hue_slider_knob_over
   rotate: false
-  xy: 1763, 124
+  xy: 134, 2
   size: 32, 64
   orig: 32, 64
   offset: 0, 0
   index: -1
 list
   rotate: false
-  xy: 1762, 448
+  xy: 1762, 516
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-menuicon
+list_selection
   rotate: false
-  xy: 1799, 188
+  xy: 1763, 192
+  size: 64, 64
+  split: 0, 0, 0, 0
+  pad: 16, 12, 8, 8
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+menu_icon
+  rotate: false
+  xy: 170, 46
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-menuicondown
+menu_icon_down
   rotate: false
-  xy: 1799, 152
+  xy: 1763, 20
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
-selectbox
+select_box
   rotate: false
-  xy: 708, 74
+  xy: 683, 6
   size: 96, 64
   split: 31, 39, 0, 0
   pad: 19, 38, 15, 17
   orig: 96, 64
   offset: 0, 0
   index: -1
-selectboxdisabled
+select_box_disabled
   rotate: false
   xy: 583, 9
   size: 96, 64
@@ -678,9 +696,9 @@ selectboxdisabled
   orig: 96, 64
   offset: 0, 0
   index: -1
-selectboxopen
+select_box_open
   rotate: false
-  xy: 683, 6
+  xy: 708, 74
   size: 96, 64
   split: 31, 39, 0, 0
   pad: 19, 38, 15, 17
@@ -701,14 +719,14 @@ spades
   orig: 128, 128
   offset: 0, 0
   index: -1
-textcursor
+text_cursor
   rotate: false
   xy: 1842, 1098
   size: 4, 64
   orig: 4, 64
   offset: 0, 0
   index: -1
-textfield
+text_field
   rotate: false
   xy: 1763, 328
   size: 64, 64
@@ -717,7 +735,7 @@ textfield
   orig: 64, 64
   offset: 0, 0
   index: -1
-textfielddisabled
+text_field_disabled
   rotate: false
   xy: 1762, 652
   size: 64, 64
@@ -726,25 +744,25 @@ textfielddisabled
   orig: 64, 64
   offset: 0, 0
   index: -1
-textfieldfocused
+text_field_focused
   rotate: false
-  xy: 1762, 584
+  xy: 1762, 448
   size: 64, 64
   split: 30, 30, 30, 30
   pad: 15, 17, 15, 17
   orig: 64, 64
   offset: 0, 0
   index: -1
-textselection
+text_selection
   rotate: false
-  xy: 1762, 516
+  xy: 1763, 260
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 window
   rotate: false
-  xy: 1763, 260
+  xy: 1763, 124
   size: 64, 64
   split: 2, 2, 50, 2
   pad: 0, 0, 50, 0

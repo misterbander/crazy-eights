@@ -23,12 +23,14 @@ class Network
 		// Create the server in a separate thread to avoid nasty lag spike
 		server = CrazyEightsServer(roomCode)
 		withContext(asyncContext) { server!!.start(port) }
+		info("Network | INFO") { "Started server on port $port" }
 		return server!!
 	}
 	
 	suspend fun createAndConnectClient(ip: String, port: Int): CrazyEightsClient
 	{
 		stopNetworkJob?.join()
+		info("Network | INFO") { "Connecting to $ip on port $port" }
 		client = CrazyEightsClient()
 		withContext(asyncContext) { client!!.connect(ip, port) }
 		return client!!

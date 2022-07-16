@@ -25,8 +25,9 @@ abstract class CrazyEightsDialog(
 	title: String,
 ) : AccessibleInputDialog(title, Scene2DSkin.defaultSkin, defaultStyle)
 {
-	protected val game: CrazyEights = screen.game
-	val closeButton: Button = scene2d.button(CLOSE_BUTTON_STYLE) {
+	protected val game: CrazyEights
+		get() = screen.game
+	private val closeButton: Button = scene2d.button(CLOSE_BUTTON_STYLE) {
 		onChange { screen.click.play(); hide() }
 	}
 	private val scaleFactor = 0.95F
@@ -36,7 +37,6 @@ abstract class CrazyEightsDialog(
 		titleTable.pad(2F, 16F, 0F, 8F)
 		titleTable.add(closeButton).right()
 		contentTable.pad(16F)
-		buttonTable.defaults().space(16F)
 		buttonTable.pad(0F, 16F, 16F, 16F)
 		
 		onKeyDown { keyCode ->
@@ -47,8 +47,6 @@ abstract class CrazyEightsDialog(
 	
 	open fun show()
 	{
-		pack()
-		setOrigin(Align.center)
 		alpha = 0F
 		scaleX = scaleFactor
 		scaleY = scaleFactor
@@ -56,6 +54,7 @@ abstract class CrazyEightsDialog(
 			screen.uiStage,
 			fadeIn(ANIMATION_DURATION, Interpolation.exp5Out) along scaleTo(1F, 1F, ANIMATION_DURATION, Interpolation.exp5Out)
 		)
+		setOrigin(Align.center)
 		centerPosition()
 	}
 	

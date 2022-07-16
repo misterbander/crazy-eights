@@ -9,16 +9,10 @@ import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 
-class UserDialog(private val room: Room) : CrazyEightsDialog(room, "User Info")
+class UserDialog(private val room: Room) : RebuildableDialog(room, "User Info")
 {
 	var user = User("")
-		set(value)
-		{
-			field = value
-			usernameLabel.txt = value.name
-			usernameLabel.color = value.color
-		}
-	private val usernameLabel = scene2d.label("", LABEL_SMALL_STYLE)
+		private set
 	private val swapSeatsButton = scene2d.textButton("Swap Seats") {
 		onChange {
 			room.click.play()
@@ -33,30 +27,27 @@ class UserDialog(private val room: Room) : CrazyEightsDialog(room, "User Info")
 			hide()
 		}
 	}
-	private val horizontalGroup = scene2d.horizontalGroup {
-		space(16F)
-		actor(swapSeatsButton)
-		actor(removeButton)
-		textButton("Cancel") {
-			onChange { room.click.play(); hide() }
-		}
-	}
 	
-	init
+	override fun build()
 	{
-		contentTable.add(usernameLabel)
-		buttonTable.apply {
-			add(horizontalGroup)
-		}
+		contentTable.add(scene2d.label(user.name, LABEL_SMALL_STYLE) {
+			txt = user.name
+			color = user.color
+		})
+		buttonTable.add(scene2d.horizontalGroup {
+			space(16F)
+			actor(swapSeatsButton)
+			if (user.isAi)
+				actor(removeButton)
+			textButton("Cancel") {
+				onChange { room.click.play(); hide() }
+			}
+		})
 	}
 	
 	fun show(user: User)
 	{
 		this.user = user
-		if (user.isAi)
-			horizontalGroup.addActorAfter(swapSeatsButton, removeButton)
-		else
-			horizontalGroup.removeActor(removeButton)
 		show()
 	}
 	

@@ -1,6 +1,7 @@
 package misterbander.crazyeights.scene2d.dialogs
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -8,105 +9,74 @@ import ktx.actors.onChange
 import ktx.async.KtxAsync
 import ktx.log.info
 import ktx.scene2d.*
+import misterbander.crazyeights.COLOR_BUTTON_STYLE
 import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.MainMenu
 import misterbander.crazyeights.Room
 import misterbander.crazyeights.net.packets.Handshake
+import misterbander.gframework.scene2d.GTextField
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 import java.net.ConnectException
 import kotlin.coroutines.cancellation.CancellationException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainMenu, "Join Room")
+class JoinRoomDialog(private val mainMenu: MainMenu) : RebuildableDialog(mainMenu, "Join Room")
 {
-	private val ipTextField = scene2d.gTextField(this@JoinRoomDialog, "", FORM_TEXT_FIELD_STYLE)
-	private val joinButton = scene2d.textButton("Join") {
-		usernameTextField.setTextFieldListener { textField, _ -> isDisabled = textField.text.isBlank() }
-		onChange {
-			mainMenu.click.play()
-			hide()
-			mainMenu.messageDialog.show("Join Room", "Joining room...", "Cancel") {
-				if (mainMenu.transition.isRunning)
-					return@show
-				info("JoinRoomDialog | INFO") { "Cancelling connection..." }
-				if (mainMenu.clientListener != null)
-				{
-					game.network.client?.removeListener(mainMenu.clientListener!!)
-					mainMenu.clientListener = null
-				}
-				joinRoomJob?.cancel()
-				game.network.stop()
-				show()
-			}
-			joinRoomJob = KtxAsync.launch {
-				val ip = ipTextField.text
-				val port = if (portTextField.text.isNotEmpty()) portTextField.text.toInt() else DEFAULT_TCP_PORT
-				try
-				{
-					val room = game.getScreen<Room>()
-					room.clientListener = room.ClientListener()
-					mainMenu.clientListener = mainMenu.ClientListener()
-					val client = if (isAdvanced)
-						game.network.createAndConnectClient(ip, port)
-					else
-					{
-						info("Client | INFO") { "Finding server with room code ${roomCodeTextField.text}" }
-						game.network.createAndConnectClientByRoomCode(roomCodeTextField.text)
-					}
-					if (!isActive)
-						throw CancellationException()
-					client.addListener(mainMenu.clientListener!!)
-					client.addListener(room.clientListener)
-					// Perform handshake by doing checking version and username availability
-					info("Client | INFO") { "Perform handshake" }
-					client.sendTCP(Handshake(data = arrayOf(game.user.name, roomCodeTextField.text)))
-				}
-				catch (e: Exception)
-				{
-					if (e !is CancellationException && joinRoomJob?.isCancelled == false)
-					{
-						if (e is ConnectException && e.message?.startsWith("Couldn't find server with room code:") == true)
-							mainMenu.messageDialog.show(
-								"Error",
-								"Couldn't find room with room code: ${roomCodeTextField.text}\n" +
-									"Either the room code is incorrect, the server is not discoverable in your " +
-									"network, or the server failed to respond in time.",
-								"OK",
-								this@JoinRoomDialog::show
-							)
-						else
-							mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
-						game.network.stop()
-					}
-				}
-			}
-		}
+	private val colorButton: ImageButton = scene2d.imageButton(COLOR_BUTTON_STYLE) {
+		onChange { mainMenu.click.play(); colorPickerDialog.show() }
 	}
 	
+	private val colorPickerDialog = ColorPickerDialog(mainMenu, colorButton)
+	
+	private var ipAddress = ""
+	private var port = "11530"
+	private var roomCode = ""
+	private var showAdvancedOptions = false
 	private var joinRoomJob: Job? = null
 	
-	init
+	override fun build()
 	{
+		val joinButton = scene2d.textButton("Join") {
+			isDisabled = game.user.name.isEmpty()
+			onChange {
+				mainMenu.click.play()
+				hide()
+				joinRoom()
+			}
+		}
 		contentTable.add(scene2d.table {
 			defaults().left().space(16F)
 			label("Username:", LABEL_SMALL_STYLE)
-			actor(usernameTextField).cell(preferredWidth = 416F)
-			actor(colorButton)
+			gTextField(this@JoinRoomDialog, game.user.name, FORM_TEXT_FIELD_STYLE) {
+				maxLength = 20
+				setTextFieldListener { textField, _ ->
+					game.user = game.user.copy(name = textField.text)
+					joinButton.isDisabled = textField.text.isEmpty()
+				}
+			}.cell(preferredWidth = 416F)
+			actor(colorButton) { image.color.fromHsv(game.user.color.toHsv(FloatArray(3))[0], 0.8F, 0.8F) }
 			row()
-			if (isAdvanced)
+			if (showAdvancedOptions)
 			{
 				label("Server IP Address:", LABEL_SMALL_STYLE)
-				actor(ipTextField).cell(preferredWidth = 416F)
+				gTextField(this@JoinRoomDialog, ipAddress, FORM_TEXT_FIELD_STYLE) {
+					setTextFieldListener { textField, _ -> ipAddress = textField.text }
+				}.cell(preferredWidth = 416F)
 				row()
 				label("Server Port:", LABEL_SMALL_STYLE)
-				actor(portTextField).cell(preferredWidth = 416F)
+				gTextField(this@JoinRoomDialog, port, FORM_TEXT_FIELD_STYLE) {
+					textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
+					setTextFieldListener { textField, _ -> port = textField.text }
+				}.cell(preferredWidth = 416F)
 				row()
 			}
 			label("Room Code:", LABEL_SMALL_STYLE)
-			actor(roomCodeTextField).cell(preferredWidth = 416F)
+			gTextField(this@JoinRoomDialog, roomCode, FORM_TEXT_FIELD_STYLE) {
+				setTextFieldListener { textField, _ -> roomCode = textField.text }
+			}.cell(preferredWidth = 416F)
 			textButton("How to Join?") {
 				onChange {
 					mainMenu.click.play()
@@ -117,14 +87,11 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 		buttonTable.add(scene2d.table {
 			defaults().space(16F)
 			actor(joinButton).cell(preferredWidth = 248F)
-			textButton(if (isAdvanced) "Simple" else "Advanced") {
+			textButton(if (showAdvancedOptions) "Simple" else "Advanced") {
 				onChange {
 					mainMenu.click.play()
-					hide()
-					if (isAdvanced)
-						mainMenu.joinRoomDialog.show()
-					else
-						mainMenu.advancedJoinRoomDialog.show()
+					showAdvancedOptions = !showAdvancedOptions
+					rebuild()
 				}
 			}.cell(preferredWidth = 224F)
 			textButton("Cancel") {
@@ -134,9 +101,67 @@ class JoinRoomDialog(mainMenu: MainMenu, isAdvanced: Boolean) : PlayDialog(mainM
 		addListener(UnfocusListener(this))
 	}
 	
-	override fun show()
+	private fun joinRoom()
 	{
-		super.show()
-		joinButton.isDisabled = usernameTextField.text.isBlank()
+		mainMenu.messageDialog.show("Join Room", "Joining room...", "Cancel") {
+			if (mainMenu.transition.isRunning)
+				return@show
+			info("JoinRoomDialog | INFO") { "Cancelling connection..." }
+			if (mainMenu.clientListener != null)
+			{
+				game.network.client?.removeListener(mainMenu.clientListener!!)
+				mainMenu.clientListener = null
+			}
+			joinRoomJob?.cancel()
+			game.network.stop()
+			show()
+		}
+		joinRoomJob = KtxAsync.launch {
+			val port = if (port.isNotEmpty()) port.toInt() else DEFAULT_TCP_PORT
+			try
+			{
+				val room = game.getScreen<Room>()
+				room.clientListener = room.ClientListener()
+				mainMenu.clientListener = mainMenu.ClientListener()
+				val client = if (showAdvancedOptions)
+					game.network.createAndConnectClient(ipAddress, port)
+				else
+				{
+					info("Client | INFO") { "Finding server with room code $roomCode" }
+					game.network.createAndConnectClientByRoomCode(roomCode)
+				}
+				if (!isActive)
+					throw CancellationException()
+				client.addListener(mainMenu.clientListener!!)
+				client.addListener(room.clientListener)
+				// Perform handshake by doing checking version and username availability
+				info("Client | INFO") { "Perform handshake" }
+				client.sendTCP(Handshake(data = arrayOf(game.user.name, roomCode)))
+			}
+			catch (e: Exception)
+			{
+				if (e !is CancellationException && joinRoomJob?.isCancelled == false)
+				{
+					if (e is ConnectException && e.message?.startsWith("Couldn't find server with room code:") == true)
+						mainMenu.messageDialog.show(
+							"Error",
+							"Couldn't find room with room code: $roomCode\n" +
+									"Either the room code is incorrect, the server is not discoverable in your " +
+									"network, or the server failed to respond in time.",
+							"OK",
+							this@JoinRoomDialog::show
+						)
+					else
+						mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
+					game.network.stop()
+				}
+			}
+		}
+	}
+	
+	override fun hide()
+	{
+		super.hide()
+		game.savePreferences()
 	}
 }

@@ -37,7 +37,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			))
 		}
 	}
-	private val drawTwosSelectBox = scene2d.selectBox<String>() {
+	private val drawTwosSelectBox = scene2d.selectBox<String> {
 		items = this@GameSettingsDialog.items
 		selected = Rank.TWO.toString()
 		selection.setProgrammaticChangeEvents(false)
@@ -45,7 +45,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(drawTwos = selected?.toRank()), game.user.name))
 		}
 	}
-	private val skipsSelectBox = scene2d.selectBox<String>() {
+	private val skipsSelectBox = scene2d.selectBox<String> {
 		items = this@GameSettingsDialog.items
 		selected = Rank.QUEEN.toString()
 		selection.setProgrammaticChangeEvents(false)
@@ -53,7 +53,7 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(skips = selected?.toRank()), game.user.name))
 		}
 	}
-	private val reversesSelectBox = scene2d.selectBox<String>() {
+	private val reversesSelectBox = scene2d.selectBox<String> {
 		items = this@GameSettingsDialog.items
 		selected = Rank.ACE.toString()
 		selection.setProgrammaticChangeEvents(false)
@@ -61,7 +61,6 @@ class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game
 			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(reverses = selected?.toRank()), game.user.name))
 		}
 	}
-	
 	private val addAiButton = scene2d.textButton("Add AI") {
 		onChange {
 			room.click.play()

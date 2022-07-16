@@ -150,10 +150,6 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 	}
 	
 	// UI
-	private val gameMenuDialog = GameMenuDialog(this)
-	val userDialog = UserDialog(this)
-	val gameSettingsDialog = GameSettingsDialog(this)
-	
 	val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
 		onChange { click.play(); gameMenuDialog.show() }
 	}
@@ -163,6 +159,10 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		background = Scene2DSkin.defaultSkin["chat_text_field_background"]
 		isVisible = false
 	}
+	
+	private val gameMenuDialog = GameMenuDialog(this)
+	val userDialog = UserDialog(this)
+	val gameSettingsDialog = GameSettingsDialog(this)
 	
 	val debugInfo = scene2d.label("", LABEL_TINY_STYLE)
 //	val gizmo1 = Gizmo(game.shapeDrawer, Color.RED)

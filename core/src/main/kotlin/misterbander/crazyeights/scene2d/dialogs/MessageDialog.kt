@@ -6,43 +6,41 @@ import misterbander.crazyeights.CrazyEightsScreen
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.gframework.util.wrap
 
-class MessageDialog(screen: CrazyEightsScreen) : CrazyEightsDialog(screen, "")
+class MessageDialog(screen: CrazyEightsScreen) : RebuildableDialog(screen, "")
 {
-	private val messageLabel = scene2d.label("", LABEL_SMALL_STYLE)
-	private val textButton = scene2d.textButton("") {
-		onChange {
-			screen.click.play()
-			actionlessHide()
-			buttonAction?.invoke()
-		}
-	}
-	private var hideAction: (() -> Unit)? = null
-	private var buttonAction: (() -> Unit)? = null
+	private var message = ""
+	private var buttonText = ""
+	private var hideAction: () -> Unit = {}
+	private var buttonAction: () -> Unit = {}
 	
-	init
+	override fun build()
 	{
-		contentTable.add(messageLabel)
-		buttonTable.add(textButton).prefWidth(224F)
+		contentTable.add(scene2d.label(game.msJhengHeiUiSmall.wrap(message, 800), LABEL_SMALL_STYLE))
+		buttonTable.add(scene2d.textButton(buttonText) {
+			onChange {
+				screen.click.play()
+				hide(false)
+				buttonAction()
+			}
+		}).prefWidth(224F)
 	}
 	
-	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)? = null) =
-		show(title, message, buttonText, hideAction, hideAction)
-	
-	fun show(title: String, message: String, buttonText: String, hideAction: (() -> Unit)?, buttonAction: (() -> Unit)?)
+	fun show(title: String, message: String, buttonText: String, hideAction: () -> Unit = {}, buttonAction: () -> Unit = {})
 	{
 		titleLabel.setText(title)
-		messageLabel.setText(messageLabel.style.font.wrap(message, 800))
-		textButton.setText(buttonText)
+		this.message = message
+		this.buttonText = buttonText
 		this.hideAction = hideAction
 		this.buttonAction = buttonAction
 		show()
 	}
 	
-	override fun hide()
+	override fun hide() = hide(true)
+	
+	fun hide(runHideAction: Boolean)
 	{
 		super.hide()
-		hideAction?.invoke()
+		if (runHideAction)
+			hideAction()
 	}
-	
-	fun actionlessHide() = super.hide()
 }

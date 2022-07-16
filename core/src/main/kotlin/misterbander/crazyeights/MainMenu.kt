@@ -34,12 +34,6 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
 	}
 	
-	val createRoomDialog = CreateRoomDialog(this, false)
-	val advancedCreateRoomDialog = CreateRoomDialog(this, true)
-	val joinRoomDialog = JoinRoomDialog(this, false)
-	val advancedJoinRoomDialog = JoinRoomDialog(this, true)
-	val messageDialog = MessageDialog(this)
-	
 	private val mainTable: Table by lazy {
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
@@ -69,6 +63,10 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 		}
 	}
 	private var activeTable: Table
+	
+	private val createRoomDialog = CreateRoomDialog(this)
+	val joinRoomDialog = JoinRoomDialog(this)
+	val messageDialog = MessageDialog(this)
 	
 	var clientListener: ClientListener? = null
 	
@@ -103,9 +101,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 		playTable.isVisible = false
 		
 		keyboardHeightObservers += createRoomDialog
-		keyboardHeightObservers += advancedCreateRoomDialog
 		keyboardHeightObservers += joinRoomDialog
-		keyboardHeightObservers += advancedJoinRoomDialog
 	}
 	
 	private fun showTable(table: Table)
@@ -154,7 +150,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 				is TabletopState -> Gdx.app.postRunnable {
 					val room = game.getScreen<Room>()
 					room.tabletop.setState(`object`)
-					messageDialog.actionlessHide()
+					messageDialog.hide(false)
 					game.client!!.removeListener(this)
 					transition.start(targetScreen = room)
 				}

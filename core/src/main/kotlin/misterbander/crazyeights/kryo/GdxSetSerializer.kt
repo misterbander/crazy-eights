@@ -39,8 +39,7 @@ class GdxSetSerializer : Serializer<GdxSet<*>>()
 		input.readBoolean() // Currently unused
 		val objectSet = create(length)
 		kryo.reference(objectSet)
-		for (i in 0 until length)
-			objectSet.add(kryo.readClassAndObject(input))
+		repeat(length) { objectSet.add(kryo.readClassAndObject(input)) }
 		return objectSet
 	}
 	

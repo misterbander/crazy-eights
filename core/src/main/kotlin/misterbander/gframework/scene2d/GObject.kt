@@ -37,12 +37,10 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 		for (module: GModule<*> in modules.values())
 		{
 			module.update(delta)
-			for (i in 0 until screen.fixedUpdateCount)
-				module.fixedUpdate()
+			repeat(screen.fixedUpdateCount) { module.fixedUpdate() }
 		}
 		update(delta)
-		for (i in 0 until screen.fixedUpdateCount)
-			fixedUpdate()
+		repeat(screen.fixedUpdateCount) { fixedUpdate() }
 	}
 	
 	/**

@@ -16,8 +16,7 @@ class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 			return moves[0]
 		
 		val rootNode = Node()
-		for (i in 0 until 2500)
-		{
+		repeat(2500) {
 			var node = rootNode
 			
 			// Determinize

@@ -43,8 +43,7 @@ open class GdxMapSerializer : Serializer<GdxMap<*, *>>()
 		input.readBoolean() // Currently unused
 		val map = create(length)
 		kryo.reference(map)
-		for (i in 0 until length)
-		{
+		repeat(length) {
 			val key = kryo.readClassAndObject(input)
 			val value = kryo.readClassAndObject(input)
 			map.put(key, value)

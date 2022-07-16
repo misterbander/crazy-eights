@@ -41,8 +41,7 @@ class GdxArraySerializer : Serializer<GdxArray<*>>()
 		val cls = kryo.readClass(input).type
 		val array = create(ordered, length, cls)
 		kryo.reference(array)
-		for (i in 0 until length)
-			array.add(kryo.readClassAndObject(input))
+		repeat(length) { array.add(kryo.readClassAndObject(input)) }
 		return array
 	}
 	

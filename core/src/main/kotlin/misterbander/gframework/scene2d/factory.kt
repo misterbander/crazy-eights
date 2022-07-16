@@ -20,7 +20,7 @@ import ktx.scene2d.*
 inline fun <S> KWidget<S>.gTextField(
 	accessibleInputDialog: AccessibleInputDialog? = null,
 	text: String = "",
-	style: String,
+	style: String = defaultStyle,
 	skin: Skin = Scene2DSkin.defaultSkin,
 	init: (@Scene2dDsl GTextField).(S) -> Unit = {}
 ): GTextField = actor(GTextField(accessibleInputDialog, text, skin, style), init)

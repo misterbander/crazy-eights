@@ -28,7 +28,7 @@ dependencies {
 	api "io.github.libktx:ktx-style:$ktxVersion"
 	api "space.earlygrey:shapedrawer:$shapeDrawerVersion"
 	testImplementation 'junit:junit:4.13.2'
-	testImplementation 'org.jetbrains.kotlin:kotlin-test:1.6.0'
+	testImplementation 'org.jetbrains.kotlin:kotlin-test:1.6.21'
 }
 
 apply plugin: 'kotlin-noarg'

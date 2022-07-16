@@ -7,7 +7,7 @@ import misterbander.crazyeights.CrazyEights
 import misterbander.gframework.GScreen
 import misterbander.gframework.scene2d.KeyboardHeightObserver
 
-/** Launches the Android application.  */
+/** Launches the Android application. */
 class AndroidLauncher : AndroidApplication(), KeyboardHeightObserver
 {
 	private lateinit var crazyEights: CrazyEights

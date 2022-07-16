@@ -8,11 +8,11 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import ktx.actors.txt
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.gframework.scene2d.GObject
 
-class Debug(private val room: Room) : GObject<CrazyEights>(room)
+class Debug(private val room: RoomScreen) : GObject<CrazyEights>(room)
 {
 	private val lockedObjects = GdxArray<GObject<*>>()
 	

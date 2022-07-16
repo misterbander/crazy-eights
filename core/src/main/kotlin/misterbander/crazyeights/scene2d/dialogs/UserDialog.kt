@@ -4,12 +4,12 @@ import ktx.actors.onChange
 import ktx.actors.txt
 import ktx.scene2d.*
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 
-class UserDialog(private val room: Room) : RebuildableDialog(room, "User Info")
+class UserDialog(private val room: RoomScreen) : RebuildableDialog(room, "User Info")
 {
 	var user = User("")
 		private set

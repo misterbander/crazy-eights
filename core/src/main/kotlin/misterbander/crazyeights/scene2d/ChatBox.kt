@@ -24,13 +24,13 @@ import ktx.style.*
 import misterbander.crazyeights.CHAT_TEXT_FIELD_STYLE
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.Chat
 import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.textSize
 import kotlin.math.min
 
-class ChatBox(private val room: Room) : Table()
+class ChatBox(private val room: RoomScreen) : Table()
 {
 	private val game: CrazyEights
 		get() = room.game

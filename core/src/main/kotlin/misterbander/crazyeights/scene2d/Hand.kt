@@ -1,10 +1,10 @@
 package misterbander.crazyeights.scene2d
 
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.gframework.scene2d.GObject
 
-abstract class Hand(room: Room) : GObject<CrazyEights>(room)
+abstract class Hand(room: RoomScreen) : GObject<CrazyEights>(room)
 {
 	abstract val cardGroup: CardGroup
 	

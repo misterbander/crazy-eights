@@ -4,7 +4,7 @@ import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.scene2d.Card
@@ -15,7 +15,7 @@ import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 
 class Ownable(
-	private val room: Room,
+	private val room: RoomScreen,
 	private val id: Int,
 	draggable: Draggable
 ) : GModule<CrazyEights>(draggable.parent)

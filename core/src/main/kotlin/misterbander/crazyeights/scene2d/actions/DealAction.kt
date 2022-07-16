@@ -5,12 +5,12 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction
 import ktx.actors.plusAssign
 import ktx.actors.then
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.MyHand
 
-class DealAction(private val room: Room, private val hands: Array<Hand>) : RunnableAction()
+class DealAction(private val room: RoomScreen, private val hands: Array<Hand>) : RunnableAction()
 {
 	private var finished = false
 	

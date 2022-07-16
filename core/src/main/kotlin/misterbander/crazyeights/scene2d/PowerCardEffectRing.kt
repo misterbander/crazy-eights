@@ -3,10 +3,10 @@ package misterbander.crazyeights.scene2d
 import com.badlogic.gdx.graphics.g2d.Batch
 import ktx.actors.alpha
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.gframework.scene2d.GObject
 
-class PowerCardEffectRing(room: Room) : GObject<CrazyEights>(room)
+class PowerCardEffectRing(room: RoomScreen) : GObject<CrazyEights>(room)
 {
 	private var radius = 1F
 	private var thickness = 56F

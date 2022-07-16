@@ -1,6 +1,6 @@
 package misterbander.crazyeights.net.packets
 
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.model.NoArg
 import misterbander.crazyeights.net.CrazyEightsServer
@@ -8,7 +8,7 @@ import misterbander.crazyeights.net.CrazyEightsServer
 @NoArg
 data class RulesetUpdateEvent(val ruleset: Ruleset, val changerUsername: String = "")
 
-fun Room.onRulesetUpdate(event: RulesetUpdateEvent)
+fun RoomScreen.onRulesetUpdate(event: RulesetUpdateEvent)
 {
 	val (ruleset, changerUsername) = event
 	if (changerUsername.isNotEmpty())

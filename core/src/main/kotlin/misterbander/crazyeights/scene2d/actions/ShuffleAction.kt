@@ -6,13 +6,13 @@ import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction
 import ktx.actors.along
 import ktx.actors.plusAssign
 import ktx.actors.then
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.gframework.util.shuffle
 
 class ShuffleAction(
-	private val room: Room,
+	private val room: RoomScreen,
 	private val seed: Long
 ) : RunnableAction()
 {

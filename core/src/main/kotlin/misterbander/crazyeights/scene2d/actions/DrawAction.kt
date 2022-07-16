@@ -5,13 +5,13 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction
 import ktx.actors.plusAssign
 import ktx.actors.then
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.MyHand
 import kotlin.math.min
 
-class DrawAction(private val room: Room, private val hand: Hand, private val drawCount: Int) : RunnableAction()
+class DrawAction(private val room: RoomScreen, private val hand: Hand, private val drawCount: Int) : RunnableAction()
 {
 	private var finished = false
 	

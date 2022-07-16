@@ -13,7 +13,7 @@ import ktx.actors.then
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Draggable
@@ -24,7 +24,7 @@ import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
 
 class CardHolder(
-	private val room: Room,
+	private val room: RoomScreen,
 	val id: Int,
 	x: Float,
 	y: Float,

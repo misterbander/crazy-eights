@@ -9,13 +9,13 @@ import ktx.math.component2
 import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 
-class MyHand(private val room: Room) : Hand(room), DragTarget
+class MyHand(private val room: RoomScreen) : Hand(room), DragTarget
 {
 	val offsetCenterY = 48F
 	override val cardGroup = CardGroup(room, y = offsetCenterY, type = ServerCardGroup.Type.SPREAD)

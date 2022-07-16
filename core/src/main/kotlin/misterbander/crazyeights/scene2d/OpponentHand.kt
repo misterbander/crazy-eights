@@ -18,7 +18,7 @@ import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.Highlightable
@@ -29,7 +29,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class OpponentHand(
-	private val room: Room,
+	private val room: RoomScreen,
 	var realX: Float = 0F,
 	var realY: Float = 0F,
 	rotation: Float = 0F,

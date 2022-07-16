@@ -4,10 +4,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import ktx.actors.onChange
 import ktx.scene2d.*
 import misterbander.crazyeights.HUE_SLIDER_STYLE
-import misterbander.crazyeights.MainMenu
+import misterbander.crazyeights.MainMenuScreen
 
 class ColorPickerDialog(
-	private val mainMenu: MainMenu,
+	private val mainMenu: MainMenuScreen,
 	private val colorButton: ImageButton
 ) : RebuildableDialog(mainMenu, "Choose Your Color")
 {

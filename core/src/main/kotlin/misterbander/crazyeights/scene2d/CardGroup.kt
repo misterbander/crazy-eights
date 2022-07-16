@@ -10,7 +10,7 @@ import ktx.collections.*
 import ktx.math.component1
 import ktx.math.component2
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
@@ -26,7 +26,7 @@ import misterbander.gframework.scene2d.GObject
 import kotlin.math.round
 
 class CardGroup(
-	private val room: Room,
+	private val room: RoomScreen,
 	val id: Int = -1,
 	x: Float = 0F,
 	y: Float = 0F,

@@ -2,10 +2,10 @@ package misterbander.crazyeights.scene2d.dialogs
 
 import ktx.actors.onChange
 import ktx.scene2d.*
-import misterbander.crazyeights.MainMenu
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.MainMenuScreen
+import misterbander.crazyeights.RoomScreen
 
-class GameMenuDialog(room: Room) : CrazyEightsDialog(room, "Game Menu")
+class GameMenuDialog(room: RoomScreen) : CrazyEightsDialog(room, "Game Menu")
 {
 	init
 	{
@@ -22,7 +22,7 @@ class GameMenuDialog(room: Room) : CrazyEightsDialog(room, "Game Menu")
 					room.selfDisconnect = true
 					game.client?.removeListener(room.clientListener)
 					game.network.stop()
-					room.transition.start(targetScreen = game.getScreen<MainMenu>())
+					room.transition.start(targetScreen = game.getScreen<MainMenuScreen>())
 				}
 			}
 		})

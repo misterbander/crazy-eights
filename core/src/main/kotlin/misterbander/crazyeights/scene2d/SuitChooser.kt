@@ -11,14 +11,14 @@ import ktx.actors.alpha
 import ktx.actors.onClick
 import ktx.actors.plusAssign
 import ktx.scene2d.*
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.scene2d.SuitChooser.SuitButton.Type
 import space.earlygrey.shapedrawer.ShapeDrawer
 import space.earlygrey.shapedrawer.scene2d.ShapeDrawerDrawable
 
-class SuitChooser(private val room: Room, isTouchable: Boolean) : Group()
+class SuitChooser(private val room: RoomScreen, isTouchable: Boolean) : Group()
 {
 	private val diamondsButton = SuitButton(this, Type.TOP_LEFT, Suit.DIAMONDS, room.game.shapeDrawer)
 	private val clubsButton = SuitButton(this, Type.TOP_RIGHT, Suit.CLUBS, room.game.shapeDrawer)

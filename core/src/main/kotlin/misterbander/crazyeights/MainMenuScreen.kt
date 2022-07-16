@@ -28,7 +28,7 @@ import misterbander.crazyeights.scene2d.dialogs.CreateRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.JoinRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.MessageDialog
 
-class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
+class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 {
 	private val logo = game.assetStorage[Textures.title].apply {
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
@@ -148,7 +148,7 @@ class MainMenu(game: CrazyEights) : CrazyEightsScreen(game), Listener
 					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 				}
 				is TabletopState -> Gdx.app.postRunnable {
-					val room = game.getScreen<Room>()
+					val room = game.getScreen<RoomScreen>()
 					room.tabletop.setState(`object`)
 					messageDialog.hide(false)
 					game.client!!.removeListener(this)

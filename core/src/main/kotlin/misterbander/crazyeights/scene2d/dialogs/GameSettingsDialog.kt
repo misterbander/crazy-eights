@@ -8,7 +8,7 @@ import ktx.collections.*
 import ktx.scene2d.*
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.game.Ruleset
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.net.packets.AiAddEvent
@@ -19,7 +19,7 @@ import misterbander.gframework.scene2d.GTextField
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 
-class GameSettingsDialog(private val room: Room) : CrazyEightsDialog(room, "Game Settings")
+class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room, "Game Settings")
 {
 	private val items = GdxArray(Rank.values())
 		.filter { it != Rank.EIGHT }

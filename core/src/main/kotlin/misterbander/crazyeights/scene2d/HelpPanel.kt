@@ -8,9 +8,9 @@ import ktx.app.Platform
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 
-class HelpPanel(room: Room) : Table()
+class HelpPanel(room: RoomScreen) : Table()
 {
 	init
 	{

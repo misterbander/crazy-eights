@@ -10,13 +10,13 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.LABEL_TINY_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
 
 class CrazyEightsCursor(
-	room: Room,
+	room: RoomScreen,
 	user: User,
 	noLabel: Boolean = false
 ) : GObject<CrazyEights>(room)

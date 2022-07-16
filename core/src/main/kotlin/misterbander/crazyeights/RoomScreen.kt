@@ -102,7 +102,7 @@ import misterbander.gframework.util.SmoothAngleInterpolator
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.toPixmap
 
-class Room(game: CrazyEights) : CrazyEightsScreen(game)
+class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 {
 	// Sounds
 	val cardSlide = game.assetStorage[Sounds.cardSlide]
@@ -233,7 +233,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		uiStage += scene2d.table {
 			setFillParent(true)
 			stack {
-				val helpPanel = actor(HelpPanel(this@Room))
+				val helpPanel = actor(HelpPanel(this@RoomScreen))
 				table {
 					// UI
 					actor(menuButton).cell(pad = 16F).inCell.top()
@@ -415,9 +415,9 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 		
 		override fun disconnected(connection: Connection)
 		{
-			if (game.shownScreen != this@Room)
+			if (game.shownScreen != this@RoomScreen)
 				return
-			val mainMenu = game.getScreen<MainMenu>()
+			val mainMenu = game.getScreen<MainMenuScreen>()
 			if (!selfDisconnect)
 			{
 				mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
@@ -450,7 +450,7 @@ class Room(game: CrazyEights) : CrazyEightsScreen(game)
 						cursorsMap[pointer]!!.setPosition(x, y)
 					else
 					{
-						val cursor = CrazyEightsCursor(this@Room, tabletop.users[username]!!)
+						val cursor = CrazyEightsCursor(this@RoomScreen, tabletop.users[username]!!)
 						cursorsMap[pointer] = cursor
 						tabletop.cursors += cursor
 						addUprightGObject(cursor)

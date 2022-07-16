@@ -10,12 +10,12 @@ import ktx.math.component2
 import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.EFFECT_TEXT_LABEL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 
-class EffectText(room: Room, text: String, targetHand: Hand? = null, delay: Float = 0.5F) : GObject<CrazyEights>(room)
+class EffectText(room: RoomScreen, text: String, targetHand: Hand? = null, delay: Float = 0.5F) : GObject<CrazyEights>(room)
 {
 	// Modules
 	private val smoothMovable: SmoothMovable

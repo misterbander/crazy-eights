@@ -11,7 +11,7 @@ import ktx.actors.plusAssign
 import ktx.app.Platform
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.model.ServerCardHolder
@@ -23,7 +23,7 @@ import misterbander.crazyeights.scene2d.modules.Ownable
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 
-class Tabletop(val room: Room)
+class Tabletop(val room: RoomScreen)
 {
 	val game: CrazyEights
 		get() = room.game

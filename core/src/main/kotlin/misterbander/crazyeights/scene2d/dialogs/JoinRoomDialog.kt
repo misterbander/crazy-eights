@@ -13,8 +13,8 @@ import misterbander.crazyeights.COLOR_BUTTON_STYLE
 import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
 import misterbander.crazyeights.LABEL_SMALL_STYLE
-import misterbander.crazyeights.MainMenu
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.MainMenuScreen
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.gframework.scene2d.GTextField
 import misterbander.gframework.scene2d.UnfocusListener
@@ -23,7 +23,7 @@ import java.net.ConnectException
 import kotlin.coroutines.cancellation.CancellationException
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class JoinRoomDialog(private val mainMenu: MainMenu) : RebuildableDialog(mainMenu, "Join Room")
+class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(mainMenu, "Join Room")
 {
 	private val colorButton: ImageButton = scene2d.imageButton(COLOR_BUTTON_STYLE) {
 		onChange { mainMenu.click.play(); colorPickerDialog.show() }
@@ -120,7 +120,7 @@ class JoinRoomDialog(private val mainMenu: MainMenu) : RebuildableDialog(mainMen
 			val port = if (port.isNotEmpty()) port.toInt() else DEFAULT_TCP_PORT
 			try
 			{
-				val room = game.getScreen<Room>()
+				val room = game.getScreen<RoomScreen>()
 				room.clientListener = room.ClientListener()
 				mainMenu.clientListener = mainMenu.ClientListener()
 				val client = if (showAdvancedOptions)

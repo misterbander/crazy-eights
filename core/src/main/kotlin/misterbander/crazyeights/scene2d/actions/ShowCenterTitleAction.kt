@@ -4,10 +4,10 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction
 import ktx.actors.plusAssign
 import ktx.actors.txt
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 
 class ShowCenterTitleAction(
-	private val room: Room,
+	private val room: RoomScreen,
 	private val title: String,
 	private val duration: Float = -1F
 ) : RunnableAction()

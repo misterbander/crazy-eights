@@ -15,11 +15,11 @@ import ktx.actors.then
 import ktx.scene2d.*
 import misterbander.crazyeights.DESATURATED_RED
 import misterbander.crazyeights.POWER_CARD_LABEL_STYLE
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.model.ServerCard.Suit
 
 class PowerCardEffect(
-	room: Room,
+	room: RoomScreen,
 	card: Card,
 	action: PowerCardEffect.() -> Action = { defaultAction }
 ) : Group()

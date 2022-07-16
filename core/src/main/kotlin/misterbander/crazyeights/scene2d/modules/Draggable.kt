@@ -7,7 +7,7 @@ import ktx.math.component1
 import ktx.math.component2
 import ktx.math.vec2
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.Room
+import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.kryo.objectMoveEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.scene2d.DragTarget
@@ -17,7 +17,7 @@ import misterbander.gframework.util.tempVec
 import java.util.function.BooleanSupplier
 
 open class Draggable(
-	private val room: Room,
+	private val room: RoomScreen,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
 ) : GModule<CrazyEights>(smoothMovable.parent)

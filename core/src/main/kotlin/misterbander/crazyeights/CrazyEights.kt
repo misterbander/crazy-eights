@@ -139,9 +139,9 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 				user.color.fromHsv(MathUtils.random()*360, 0.8F, 0.8F)
 			savePreferences()
 			
-			addScreen(MainMenu(this@CrazyEights))
-			addScreen(Room(this@CrazyEights))
-			setScreen<MainMenu>()
+			addScreen(MainMenuScreen(this@CrazyEights))
+			addScreen(RoomScreen(this@CrazyEights))
+			setScreen<MainMenuScreen>()
 		}
 	}
 	

@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 import misterbander.crazyeights.CrazyEights
+import misterbander.gframework.GFrameworkDelegator
 import misterbander.gframework.GScreen
 import misterbander.gframework.scene2d.KeyboardHeightObserver
 
@@ -17,8 +18,10 @@ class AndroidLauncher : AndroidApplication(), KeyboardHeightObserver
 	{
 		super.onCreate(savedInstanceState)
 		val args = intent.extras?.getString("args")
-		crazyEights = CrazyEights(args?.let { arrayOf(it) } ?: emptyArray())
-		initialize(crazyEights, AndroidApplicationConfiguration())
+		initialize(GFrameworkDelegator {
+			crazyEights = CrazyEights(args?.let { arrayOf(it) } ?: emptyArray())
+			crazyEights
+		}, AndroidApplicationConfiguration())
 		
 		keyboardHeightProvider = KeyboardHeightProvider(this)
 		

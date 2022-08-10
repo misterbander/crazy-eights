@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.math.MathUtils
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -27,8 +28,10 @@ import misterbander.gframework.GFramework
 class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 {
 	// Fonts
-	private val msJhengHeiUiGenerator by lazy { assetStorage[Fonts.msJhengHeiUi] }
-	private val twCenMtGenerator by lazy { assetStorage[Fonts.twCenMt] }
+	private val msJhengHeiUiGenerator: FreeTypeFontGenerator
+		get() = assetStorage[Fonts.msJhengHeiUi]
+	private val twCenMtGenerator: FreeTypeFontGenerator
+		get() = assetStorage[Fonts.twCenMt]
 	val msJhengHeiUi by lazy {
 		msJhengHeiUiGenerator.generateFont {
 			size = 40

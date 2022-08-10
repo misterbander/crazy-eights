@@ -14,9 +14,9 @@ import ktx.freetype.async.registerFreeTypeFontLoaders
 import space.earlygrey.shapedrawer.ShapeDrawer
 
 /**
- * Framework built on top of KTX.
+ * Framework built on top of KTX designed to be simple yet flexible.
  *
- * `GFramework` extends [KtxGame] and serves to be the main game class. It defines [PolygonSpriteBatch], [ShapeRenderer],
+ * `GFramework` serves to be the main game class. It stores references to a [PolygonSpriteBatch], a [ShapeRenderer], a
  * [ShapeDrawer], and an [AssetStorage].
  *
  * To start, create a class that extends `GFramework` and override the [create] method. Load your resources with
@@ -26,20 +26,21 @@ import space.earlygrey.shapedrawer.ShapeDrawer
  */
 abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 {
-	val batch by lazy { PolygonSpriteBatch() }
-	val shapeRenderer by lazy { ShapeRenderer() }
-	val shapeDrawer by lazy {
+	val batch = PolygonSpriteBatch()
+	val shapeRenderer = ShapeRenderer()
+	val shapeDrawer: ShapeDrawer
+	val assetStorage = AssetStorage(newAsyncContext(Runtime.getRuntime().availableProcessors(), "AssetStorage-Thread")).apply {
+		registerFreeTypeFontLoaders()
+	}
+	
+	init
+	{
 		val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply { setColor(Color.WHITE); fill() }
 		val texture = Texture(pixmap)
 		texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
 		val region = TextureRegion(texture)
 		pixmap.dispose()
-		ShapeDrawer(batch, region)
-	}
-	val assetStorage by lazy {
-		AssetStorage(newAsyncContext(Runtime.getRuntime().availableProcessors(), "AssetStorage-Thread")).apply {
-			registerFreeTypeFontLoaders()
-		}
+		shapeDrawer = ShapeDrawer(batch, region)
 	}
 	
 	override fun dispose()

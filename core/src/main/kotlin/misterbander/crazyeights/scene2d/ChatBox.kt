@@ -147,7 +147,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 	}
 	
 	private fun BitmapFont.chatTextWidth(message: String): Float =
-		min(textSize(message).x + 32, room.uiViewport.worldWidth - room.menuButton.width - 64)
+		min(textSize(message).x, room.uiViewport.worldWidth - room.menuButton.width - 64)
 	
 	fun clearChats()
 	{

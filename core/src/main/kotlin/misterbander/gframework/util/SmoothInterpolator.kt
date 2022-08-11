@@ -6,7 +6,7 @@ import kotlin.reflect.KProperty
  * Wraps a float value and provides a [lerp] method that can smoothly interpolate the encapsulated float towards a
  * target value.
  * @param value initial value for the wrapped float
- * @property smoothingFactor the smoothing factor. Higher smoothing factor means slower lerping.
+ * @param smoothingFactor the smoothing factor. Higher smoothing factor means slower lerping.
  */
 @Suppress("LeakingThis")
 abstract class SmoothInterpolator(value: Float, var smoothingFactor: Float = 2.5F)

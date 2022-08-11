@@ -5,30 +5,32 @@ import misterbander.gframework.GFramework
 import misterbander.gframework.GScreen
 
 /**
- * [GLayer] handling the rendering of transition effects and provides event callbacks or automatic switching of screens
+ * [GLayer] handling the rendering of transition effects and provides event callbacks and automatic switching of screens
  * when the transition ends.
  *
- * This default implementation draws nothing. You can implement your own transitions by extending this class and
- * overriding [render] to draw the transitions.
+ * You can implement your own transitions by extending this class and overriding [render] to draw the transitions.
  *
- * All events to the parent's stage and uiStage will be cancelled when an out transition is playing.
- * @param screen the parent [GScreen]
+ * All events to the parent screen's `stage` and `uiStage` will be cancelled when an out transition is playing.
  */
-open class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : GLayer
+abstract class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : GLayer
 {
 	/** Whether the transition is currently playing. Will be set to true when [start] is called. */
 	var isRunning = false
 		protected set
+	
 	/**
 	 * True if the transition is being played right after switching to this screen. False if the transition is being
 	 * played right before switching to another screen.
 	 */
 	protected var isTransitioningIn = false
+	
 	/** Elapsed time in seconds after the transition begins. Used for calculating [progress]. */
 	protected var time = 0F
+	
 	/** How long the transition lasts in seconds. */
 	protected open val duration: Float
 		get() = 0F
+	
 	/** Progress of the transition from 0 to 1. Calculated by dividing the elapsed time by the duration. */
 	val progress: Float
 		get() = if (duration == 0F) 0F else time/duration
@@ -62,15 +64,14 @@ open class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : G
 	 * Begins the transition and switch to another screen when the transition ends.
 	 * @param progress progress to start the transition, ranges from 0 to 1
 	 * @param targetScreen the screen the game will switch to when the transition ends
-	 * @param startTargetScreenTransition if true, then the 'in' transition will be played right after switching to the
-	 * target screen
+	 * @param targetScreenTransition [TransitionLayer] of the target screen. If not null, then the 'in' transition will
+	 * be played right after switching to the target screen.
 	 */
-	fun start(progress: Float = 0F, targetScreen: GScreen<*>, startTargetScreenTransition: Boolean = true)
+	fun start(progress: Float = 0F, targetScreen: GScreen<*>, targetScreenTransition: TransitionLayer<*>?)
 	{
 		start(progress) {
 			screen.game.setScreen(targetScreen::class.java)
-			if (startTargetScreenTransition)
-				targetScreen.transition.start(isTransitioningIn = true)
+			targetScreenTransition?.start(isTransitioningIn = true)
 		}
 	}
 	
@@ -94,5 +95,6 @@ open class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>) : G
 	 * Renders the transition. Draw your own transition effects here. You can use [progress] which indicates the current
 	 * phase of the transition.
 	 */
-	override fun render(delta: Float) = Unit
+	abstract override fun render(delta: Float)
 }
+

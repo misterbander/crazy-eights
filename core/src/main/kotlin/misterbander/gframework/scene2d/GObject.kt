@@ -16,7 +16,7 @@ import misterbander.gframework.scene2d.module.GModule
  *
  * `GObject` also defines [destroy], which can be used to delay removal. Useful for safely removing [GObject]s during
  * collision callbacks where creation and removal of objects are prohibited.
- * @property screen the parent [GScreen]
+ * @param screen the parent [GScreen]
  */
 abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 {
@@ -37,10 +37,10 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 		for (module: GModule<*> in modules.values())
 		{
 			module.update(delta)
-			repeat(screen.fixedUpdateCount) { module.fixedUpdate() }
+			repeat(game.fixedUpdateCount) { module.fixedUpdate() }
 		}
 		update(delta)
-		repeat(screen.fixedUpdateCount) { fixedUpdate() }
+		repeat(game.fixedUpdateCount) { fixedUpdate() }
 	}
 	
 	/**

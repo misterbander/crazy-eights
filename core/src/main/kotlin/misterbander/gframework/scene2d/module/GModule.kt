@@ -6,7 +6,7 @@ import misterbander.gframework.scene2d.GObject
 
 /**
  * Modules can be added to [GObject]s to add custom behavior.
- * @property parent the parent [GObject] this module is attached to
+ * @param parent the parent [GObject] this module is attached to
  */
 abstract class GModule<T : GFramework>(val parent: GObject<T>)
 {

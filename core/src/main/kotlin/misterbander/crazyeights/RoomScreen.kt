@@ -130,22 +130,20 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 	}
 	var cameraAngle by cameraAngleInterpolator
 	
-	override val mainLayer by lazy {
-		object : StageLayer(game, camera, viewport, false)
+	override val mainLayer = object : StageLayer(game, viewport, false)
+	{
+		override fun postRender(delta: Float)
 		{
-			override fun postRender(delta: Float)
-			{
-				// TODO add proper ui for cam adjustments
-				val dAngle = 45*delta
-				if (Gdx.input.isKeyPressed(Input.Keys.LEFT_BRACKET))
-					cameraAngle += dAngle
-				if (Gdx.input.isKeyPressed(Input.Keys.RIGHT_BRACKET))
-					cameraAngle -= dAngle
-				
-				cameraAngleInterpolator.lerp(delta)
-				camera.update()
-				super.postRender(delta)
-			}
+			// TODO add proper ui for cam adjustments
+			val dAngle = 45*delta
+			if (Gdx.input.isKeyPressed(Input.Keys.LEFT_BRACKET))
+				cameraAngle += dAngle
+			if (Gdx.input.isKeyPressed(Input.Keys.RIGHT_BRACKET))
+				cameraAngle -= dAngle
+			
+			cameraAngleInterpolator.lerp(delta)
+			camera.update()
+			super.postRender(delta)
 		}
 	}
 	
@@ -264,7 +262,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 		stage += passButton
 		stage += tabletop.cursors
 		stage += tabletop.myCursors
-		
+
 //		stage += gizmo1
 //		stage += gizmo2
 //		stage += gizmo3
@@ -423,7 +421,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 				mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
 				game.network.stop()
 			}
-			transition.start(targetScreen = mainMenu)
+			transition.start(targetScreen = mainMenu, targetScreenTransition = mainMenu.transition)
 		}
 		
 		@Suppress("UNCHECKED_CAST")

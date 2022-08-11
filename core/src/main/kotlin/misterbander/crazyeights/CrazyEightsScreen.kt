@@ -11,12 +11,12 @@ abstract class CrazyEightsScreen(game: CrazyEights) : GScreen<CrazyEights>(game)
 {
 	val click = game.assetStorage.get<Sound>("sounds/click.wav")
 	
-	val transitionCamera = OrthographicCamera().apply { setToOrtho(false) }
-	val transitionViewport = ExtendViewport(1280F, 720F, transitionCamera)
+	val transition by lazy {
+		SmoothWipeTransition(this, ExtendViewport(1280F, 720F, OrthographicCamera().apply { setToOrtho(false) }))
+	}
+	override val layers by lazy { arrayOf(mainLayer, uiLayer, transition) }
 	
-	override val transition by lazy { SmoothWipeTransition(this) }
-	
-	protected val ignoreTouchDown = object : KtxInputListener()
+	protected val ignoreTouchDownListener = object : KtxInputListener()
 	{
 		override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
 		{

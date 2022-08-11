@@ -17,43 +17,54 @@ import ktx.app.KtxScreen
 import ktx.collections.*
 import misterbander.gframework.layer.GLayer
 import misterbander.gframework.layer.StageLayer
-import misterbander.gframework.layer.TransitionLayer
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.KeyboardHeightObserver
 
 /**
- * `GScreen`s are extensions of [KtxScreen]s. By default, it consists of three [GLayer]s: one for the main layer, one
- * for the UI layer, and one for the transition layer. The main [GLayer] and the UI [GLayer] each hold a [Stage] which
- * can be used for the world and UI.
+ * `GScreen`s are extensions of [KtxScreen]s that supports [GLayer]s.
  *
- * Two cameras and two viewports are also defined, one camera and one viewport each used by the main layer and the UI
- * layer. The cameras and viewports can be overridden to use your own camera and/or viewport.
+ * `GScreen` provides two default [GLayer]s: [mainLayer] and [uiLayer]. [mainLayer] and [uiLayer] each hold a [Stage]
+ * which can be used for the game world and UI respectively. These [GLayer]s can be overridden to use your own custom
+ * implementations.
+ *
+ * [viewport] and [uiViewport] are also defined for use by [mainLayer] and [uiLayer]. Both default to [ExtendViewport]s
+ * but you can specify to use your own viewports.
  *
  * You can also override the layers to reorder or add your own [GLayer]s.
  *
- * @property game parent GFramework instance
+ * @param game the parent [GFramework] instance
+ * @param viewport Primary viewport to project stage contents in [mainLayer]. Defaults to [ExtendViewport].
+ * @param uiViewport Secondary viewport to project stage contents in [uiLayer]. Also defaults to [ExtendViewport].
  */
-abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
+abstract class GScreen<T : GFramework>(
+	val game: T,
+	val viewport: Viewport = ExtendViewport(1280F, 720F),
+	val uiViewport: ExtendViewport = ExtendViewport(1280F, 720F)
+) : KtxScreen
 {
-	/** Main camera used by [stage] and projected through [viewport] in the main layer. Defaults to an [OrthographicCamera]. */
-	open val camera: Camera = OrthographicCamera()
-	/** Secondary camera used by [uiStage] and projected through [uiViewport] in the UI layer. */
-	open val uiCamera = OrthographicCamera()
-	/** Primary viewport to project [camera] contents in the main layer. Defaults to [ExtendViewport]. */
-	open val viewport: Viewport by lazy { ExtendViewport(1280F, 720F, camera) }
-	/** Secondary viewport to project [uiCamera] contents in the UI layer. Also defaults to [ExtendViewport]. */
-	open val uiViewport by lazy { ExtendViewport(1280F, 720F, uiCamera) }
+	/** Main camera used by [viewport] to project contents of [stage] in [mainLayer]. */
+	val camera: Camera
+		get() = viewport.camera
+	/** Secondary camera used by [uiViewport] to project contents of [uiStage] in [uiLayer]. */
+	val uiCamera: OrthographicCamera
+		get() = uiViewport.camera as OrthographicCamera
 	
-	/** All the [GLayer]s in the [GScreen]. Can be overridden to customize the layers. */
-	protected open val layers by lazy { arrayOf(mainLayer, uiLayer, transition) }
-	protected open val mainLayer by lazy { StageLayer(game, camera, viewport, false) }
-	protected open val uiLayer by lazy { StageLayer(game, uiCamera, uiViewport, true) }
-	open val transition by lazy { TransitionLayer(this) }
+	protected open val mainLayer = StageLayer(game, viewport, false)
+	protected open val uiLayer = StageLayer(game, uiViewport, true)
+	/**
+	 * All the [GLayer]s in the screen.
+	 *
+	 * [GLayer]s are ordered by their order of rendering, so [GLayer]s will render on top of other [GLayer]s that come
+	 * before it in the array.
+	 *
+	 * Can be overridden to customize the layers.
+	 */
+	protected open val layers: Array<GLayer> by lazy { arrayOf(mainLayer, uiLayer) }
 	
-	/** Main stage in the main layer for generic purposes. */
+	/** Main stage in [mainLayer]. */
 	val stage: Stage
 		get() = mainLayer.stage
-	/** Secondary stage in the UI layer optimized for UI. */
+	/** Secondary stage in [uiLayer] meant for UI. */
 	val uiStage: Stage
 		get() = uiLayer.stage
 	
@@ -66,10 +77,6 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 	val scheduledAddingGObjects = OrderedMap<GObject<*>, Group>()
 	val scheduledRemovalGObjects = OrderedSet<GObject<*>>()
 	
-	private var deltaAccumulator = 0F
-	var fixedUpdateCount = 0
-		private set
-	
 	override fun show()
 	{
 		Gdx.input.inputProcessor = InputMultiplexer(uiStage, stage)
@@ -77,14 +84,6 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 	
 	override fun render(delta: Float)
 	{
-		deltaAccumulator += delta
-		fixedUpdateCount = 0
-		while (deltaAccumulator >= 1/60F)
-		{
-			deltaAccumulator -= 1/60F
-			fixedUpdateCount++
-		}
-		
 		clearScreen()
 		layers.forEach { it.update(delta) }
 		layers.forEach { it.render(delta) }
@@ -115,11 +114,10 @@ abstract class GScreen<T : GFramework>(val game: T) : KtxScreen
 	}
 	
 	/**
-	 * Schedules the [GObject] to be added into the world as a child of a specified [Group]. The [GObject] will be added
-	 * at the end of the next world time step. Useful during collision callbacks where creation and removal of objects
-	 * are prohibited.
-	 * @param gObject the [GObject] to spawn
-	 * @param parent the parent group to add the [GObject], defaults to [stage] root
+	 * Schedules [gObject] to be added into the world as a child of [parent].
+	 *
+	 * [gObject] will be added at the end of the next world time step. Useful during collision callbacks where creation
+	 * and removal of objects are prohibited.
 	 */
 	fun scheduleSpawnGObject(gObject: GObject<*>, parent: Group = stage.root)
 	{

@@ -1,5 +1,6 @@
 package misterbander.gframework
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
@@ -33,6 +34,10 @@ abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 		registerFreeTypeFontLoaders()
 	}
 	
+	private var deltaAccumulator = 0F
+	var fixedUpdateCount = 0
+		private set
+	
 	init
 	{
 		val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply { setColor(Color.WHITE); fill() }
@@ -41,6 +46,18 @@ abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 		val region = TextureRegion(texture)
 		pixmap.dispose()
 		shapeDrawer = ShapeDrawer(batch, region)
+	}
+	
+	override fun render()
+	{
+		deltaAccumulator += Gdx.graphics.deltaTime
+		fixedUpdateCount = 0
+		while (deltaAccumulator >= 1/60F)
+		{
+			deltaAccumulator -= 1/60F
+			fixedUpdateCount++
+		}
+		super.render()
 	}
 	
 	override fun dispose()

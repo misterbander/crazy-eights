@@ -33,7 +33,6 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	private val logo = game.assetStorage[Textures.title].apply {
 		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
 	}
-	
 	private val mainTable: Table by lazy {
 		scene2d.table {
 			defaults().prefWidth(224F).space(16F)
@@ -106,12 +105,12 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	
 	private fun showTable(table: Table)
 	{
-		uiStage.addCaptureListener(ignoreTouchDown)
+		uiStage.addCaptureListener(ignoreTouchDownListener)
 		activeTable += alpha(0F) then Actions.run {
 			activeTable.isVisible = false
 			table.isVisible = true
 			table += fadeIn(ANIMATION_DURATION, Interpolation.exp5Out) then Actions.run {
-				uiStage.removeCaptureListener(ignoreTouchDown)
+				uiStage.removeCaptureListener(ignoreTouchDownListener)
 				activeTable = table
 			}
 		}
@@ -152,7 +151,7 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 					room.tabletop.setState(`object`)
 					messageDialog.hide(false)
 					game.client!!.removeListener(this)
-					transition.start(targetScreen = room)
+					transition.start(targetScreen = room, targetScreenTransition = room.transition)
 				}
 			}
 		}

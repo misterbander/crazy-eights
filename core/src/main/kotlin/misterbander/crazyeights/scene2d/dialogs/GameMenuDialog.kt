@@ -22,7 +22,8 @@ class GameMenuDialog(room: RoomScreen) : CrazyEightsDialog(room, "Game Menu")
 					room.selfDisconnect = true
 					game.client?.removeListener(room.clientListener)
 					game.network.stop()
-					room.transition.start(targetScreen = game.getScreen<MainMenuScreen>())
+					val mainMenu = game.getScreen<MainMenuScreen>()
+					room.transition.start(targetScreen = mainMenu, targetScreenTransition = mainMenu.transition)
 				}
 			}
 		})

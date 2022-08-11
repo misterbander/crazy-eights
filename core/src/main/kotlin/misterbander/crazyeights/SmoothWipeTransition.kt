@@ -3,16 +3,17 @@ package misterbander.crazyeights
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.graphics.use
 import misterbander.gframework.layer.TransitionLayer
 
 class SmoothWipeTransition(
-	private val crazyEightsScreen: CrazyEightsScreen
-) : TransitionLayer<CrazyEights>(crazyEightsScreen)
+	screen: CrazyEightsScreen,
+	private val transitionViewport: Viewport
+) : TransitionLayer<CrazyEights>(screen)
 {
 	private val game: CrazyEights
 		get() = screen.game
-	
 	override val duration: Float
 		get() = 0.4F
 	
@@ -21,26 +22,26 @@ class SmoothWipeTransition(
 		super.update(delta)
 		if (isTransitioningIn)
 		{
-			screen.uiCamera.zoom = Interpolation.exp5Out.apply(1.1F, 1F, progress)
 			(screen.camera as OrthographicCamera).zoom = Interpolation.exp5Out.apply(1.2F, 1F, progress)
+			screen.uiCamera.zoom = Interpolation.exp5Out.apply(1.1F, 1F, progress)
 		}
 		else
 		{
-			screen.uiCamera.zoom = Interpolation.exp5In.apply(1F, 1.1F, progress)
 			(screen.camera as OrthographicCamera).zoom = Interpolation.exp5In.apply(1F, 1.2F, progress)
+			screen.uiCamera.zoom = Interpolation.exp5In.apply(1F, 1.1F, progress)
 		}
 	}
 	
-	override fun resize(width: Int, height: Int) = crazyEightsScreen.transitionViewport.update(width, height, true)
+	override fun resize(width: Int, height: Int) = transitionViewport.update(width, height, true)
 	
 	override fun render(delta: Float)
 	{
 		val shapeDrawer = game.shapeDrawer
-		val width = crazyEightsScreen.transitionViewport.worldWidth
-		val height = crazyEightsScreen.transitionViewport.worldHeight
+		val width = transitionViewport.worldWidth
+		val height = transitionViewport.worldHeight
 		if (isTransitioningIn)
 		{
-			game.batch.use(crazyEightsScreen.transitionCamera) {
+			game.batch.use(transitionViewport.camera) {
 				shapeDrawer.update()
 				shapeDrawer.filledRectangle(2*progress*width, 0F, width, height, Color.BLACK)
 				shapeDrawer.filledRectangle(
@@ -51,7 +52,7 @@ class SmoothWipeTransition(
 		}
 		else
 		{
-			game.batch.use(crazyEightsScreen.transitionCamera) {
+			game.batch.use(transitionViewport.camera) {
 				shapeDrawer.update()
 				shapeDrawer.filledRectangle((2*progress - 2)*width, 0F, width, height, Color.BLACK)
 				shapeDrawer.filledRectangle(
@@ -62,5 +63,5 @@ class SmoothWipeTransition(
 		}
 	}
 	
-	override fun postRender(delta: Float) = crazyEightsScreen.transitionCamera.update()
+	override fun postRender(delta: Float) = transitionViewport.camera.update()
 }

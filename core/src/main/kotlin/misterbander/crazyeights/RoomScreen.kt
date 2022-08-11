@@ -13,11 +13,14 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
+import kotlinx.coroutines.launch
 import ktx.actors.KtxInputListener
 import ktx.actors.onChange
 import ktx.actors.onKeyDown
 import ktx.actors.plusAssign
 import ktx.app.Platform
+import ktx.async.KtxAsync
+import ktx.async.skipFrame
 import ktx.collections.*
 import ktx.graphics.use
 import ktx.log.info
@@ -184,27 +187,31 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 	}
 	
-	val fallbackActor: Actor = object : Actor()
+	val inputManager = object : Actor()
 	{
 		init
 		{
-			apply {
-				addListener(object : KtxInputListener()
+			val inputManager = this
+			addListener(object : KtxInputListener()
+			{
+				override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
 				{
-					override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: Int): Boolean
-					{
-						uiStage.keyboardFocus = this@apply
-						uiStage.scrollFocus = null
-						Gdx.input.setOnscreenKeyboardVisible(false)
-						return false
-					}
-				})
-				onKeyDown { keyCode ->
-					if (keyCode == Input.Keys.BACK)
-						gameMenuDialog.show()
-					else if (keyCode == Input.Keys.T)
-						Gdx.app.postRunnable { chatBox.setFocused(true) }
+					uiStage.keyboardFocus = inputManager
+					uiStage.scrollFocus = null
+					Gdx.input.setOnscreenKeyboardVisible(false)
+					return false
 				}
+			})
+			onKeyDown { keyCode ->
+				if (keyCode == Input.Keys.BACK)
+					gameMenuDialog.show()
+				else if (keyCode == Input.Keys.T)
+					KtxAsync.launch {
+						// On Linux, skip at least 2 frames to ignore the last T press so we don't get a 't' character inserted
+						// into the chat box
+						repeat(2) { skipFrame() }
+						chatBox.setFocused(true)
+					}
 			}
 		}
 		
@@ -226,8 +233,8 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 	
 	init
 	{
-		uiStage += fallbackActor
-		uiStage.keyboardFocus = fallbackActor
+		uiStage += inputManager
+		uiStage.keyboardFocus = inputManager
 		uiStage += scene2d.table {
 			setFillParent(true)
 			stack {

@@ -46,7 +46,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 			{
 				game.client?.sendTCP(Chat(game.user, "<${game.user.name}> $text"))
 				text = ""
-				uiStage.keyboardFocus = room.fallbackActor
+				uiStage.keyboardFocus = room.inputManager
 				uiStage.scrollFocus = null
 			}
 		}
@@ -91,7 +91,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 		}
 		else
 		{
-			uiStage.keyboardFocus = room.fallbackActor
+			uiStage.keyboardFocus = room.inputManager
 			uiStage.scrollFocus = null
 		}
 	}

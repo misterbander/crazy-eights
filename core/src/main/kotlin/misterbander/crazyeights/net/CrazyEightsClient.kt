@@ -4,8 +4,8 @@ import com.badlogic.gdx.utils.OrderedSet
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.ClientDiscoveryHandler
 import com.esotericsoftware.kryonet.Listener
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
@@ -72,7 +72,7 @@ class CrazyEightsClient
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
-	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
+	fun stop(): Job = KtxAsync.launch(asyncContext) {
 		if (!isStopped)
 		{
 			isStopped = true

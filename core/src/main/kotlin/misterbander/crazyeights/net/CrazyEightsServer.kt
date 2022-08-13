@@ -8,7 +8,6 @@ import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
 import com.esotericsoftware.kryonet.ServerDiscoveryHandler
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -255,7 +254,7 @@ class CrazyEightsServer(private val roomCode: String)
 	}
 	
 	@Suppress("BlockingMethodInNonBlockingContext")
-	fun stopAsync(): Deferred<Unit> = KtxAsync.async(asyncContext) {
+	fun stop(): Job = KtxAsync.launch(asyncContext) {
 		if (!isStopped)
 		{
 			startServerJob.join()

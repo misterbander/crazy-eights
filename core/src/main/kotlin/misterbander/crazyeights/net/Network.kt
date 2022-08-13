@@ -47,10 +47,9 @@ class Network
 	fun stop()
 	{
 		stopNetworkJob = KtxAsync.launch {
-			val stopServerJob = server?.stopAsync()
-			val stopClientJob = client?.stopAsync()
-			stopServerJob?.await()
-			stopClientJob?.await()
+			val stopServerJob = server?.stop()
+			client?.stop()
+			stopServerJob?.join()
 			info("Network | INFO") { "Network stopped" }
 			server = null
 			client = null

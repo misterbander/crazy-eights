@@ -239,11 +239,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 			setFillParent(true)
 			stack {
 				val helpPanel = actor(HelpPanel(this@RoomScreen))
-				table {
-					// UI
-					actor(menuButton).cell(pad = 16F).inCell.top()
-					actor(chatBox).cell(expandX = true, fillX = true, maxHeight = 310F, pad = 16F)
-					row()
+				container(
 					verticalGroup {
 						space(16F)
 						imageButton(HELP_BUTTON_STYLE) {
@@ -252,11 +248,19 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 						imageButton(SETTINGS_BUTTON_STYLE) {
 							onChange { click.play(); gameSettingsDialog.show() }
 						}
-					}.cell(expand = true, colspan = 2, pad = 16F).inCell.bottom().right()
+					}
+				) {
+					pad(16F).bottom().right()
 				}
 				container(debugInfo) { top().left().padTop(128F).padLeft(16F) }
 				table { actor(centerTitleContainer).cell(growX = true) }
 			}.cell(grow = true)
+		}
+		uiStage += scene2d.table {
+			setFillParent(true)
+			top()
+			actor(menuButton).cell(pad = 16F).inCell.top()
+			actor(chatBox).cell(expandX = true, fillX = true, pad = 16F)
 		}
 		
 		stage += tabletop.playDirectionIndicator

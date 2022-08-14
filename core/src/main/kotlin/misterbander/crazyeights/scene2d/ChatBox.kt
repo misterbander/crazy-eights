@@ -4,12 +4,15 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.actions.Actions.*
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import ktx.actors.onKey
@@ -37,6 +40,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 	private val uiStage: Stage
 		get() = room.uiStage
 	
+	private val padVertical = game.notoSansScSmall.let { it.lineHeight - it.textSize(FreeTypeFontGenerator.DEFAULT_CHARS).y + it.descent*2 }/2
 	private val chatTextField = scene2d.gTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
 		messageText = if (Platform.isMobile) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
@@ -62,6 +66,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 		}
 	}
 	private val chatHistory = scene2d.verticalGroup {
+		pad(padVertical, 16F, padVertical, 16F).space(padVertical*2)
 		grow()
 		onTouchDown { Gdx.input.setOnscreenKeyboardVisible(false) }
 	}
@@ -70,6 +75,10 @@ class ChatBox(private val room: RoomScreen) : Table()
 		isVisible = false
 	}
 	private val chatPopup = scene2d.verticalGroup { columnAlign(Align.left) }
+	private val chatPopupScrollPane = ScrollPane(chatPopup).apply {
+		touchable = Touchable.disabled
+		setSmoothScrolling(false)
+	}
 	
 	init
 	{
@@ -77,8 +86,8 @@ class ChatBox(private val room: RoomScreen) : Table()
 		add(chatTextField)
 		row()
 		add(scene2d.stack {
-			container(chatPopup).top().left()
-			actor(chatHistoryScrollPane)
+			container(chatPopupScrollPane).top().left().maxHeight(game.notoSansScSmall.lineHeight*7)
+			container(chatHistoryScrollPane).fill().maxHeight(game.notoSansScSmall.lineHeight*7)
 		}).left()
 	}
 	
@@ -123,11 +132,11 @@ class ChatBox(private val room: RoomScreen) : Table()
 		chatPopup += scene2d.container(chatLabel) {
 			background = Scene2DSkin.defaultSkin["background"]
 			width(chatLabel.style.font.chatTextWidth(message))
-			pad(4F, 16F, 4F, 16F)
+			pad(padVertical, 16F, padVertical, 16F)
 			this += delay(10F) then alpha(0F, 1F) then Actions.removeActor(this)
 		}
 		
-		if (chatPopup.children.size == 7) // Maximum 6 children
+		if (chatPopup.children.size == 8) // Maximum 7 children
 		{
 			val firstChatPopup: Actor = chatPopup.removeActorAt(0, false)
 			firstChatPopup.clear()
@@ -137,17 +146,22 @@ class ChatBox(private val room: RoomScreen) : Table()
 		val chatHistoryLabel = scene2d.label(message, LABEL_SMALL_STYLE) {
 			wrap = true
 			if (color != null)
-				this.color = color.cpy()
+				this.color = color
 		}
-		chatHistory.pad(4F, 16F, 4F, 16F).space(8F)
 		chatHistory += chatHistoryLabel
-		chatHistoryScrollPane.validate()
-		chatHistoryScrollPane.validate()
-		chatHistoryScrollPane.scrollPercentY = 1F
+		chatHistoryScrollPane.apply {
+			validate()
+			validate()
+			scrollPercentY = 1F
+		}
+		chatPopupScrollPane.apply {
+			validate()
+			validate()
+			scrollPercentY = 1F
+		}
 	}
 	
-	private fun BitmapFont.chatTextWidth(message: String): Float =
-		min(textSize(message).x, room.uiViewport.worldWidth - room.menuButton.width - 64)
+	private fun BitmapFont.chatTextWidth(message: String): Float = min(textSize(message).x, chatTextField.width - 33F)
 	
 	fun clearChats()
 	{

@@ -20,8 +20,8 @@ object Textures
 
 object Fonts
 {
-	val msJhengHeiUi = assetDescriptor<FreeTypeFontGenerator>("fonts/ms_jhenghei_ui_light.ttc")
-	val twCenMt = assetDescriptor<FreeTypeFontGenerator>("fonts/tw_cen_mt_bold.ttf")
+	val notoSansSc = assetDescriptor<FreeTypeFontGenerator>("fonts/noto_sans_sc_light.otf")
+	val montserrat = assetDescriptor<FreeTypeFontGenerator>("fonts/montserrat_bold.ttf")
 }
 
 object Sounds

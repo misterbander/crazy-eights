@@ -15,7 +15,7 @@ class MessageDialog(screen: CrazyEightsScreen) : RebuildableDialog(screen, "")
 	
 	override fun build()
 	{
-		contentTable.add(scene2d.label(game.msJhengHeiUiSmall.wrap(message, 800), LABEL_SMALL_STYLE))
+		contentTable.add(scene2d.label(game.notoSansScSmall.wrap(message, 800), LABEL_SMALL_STYLE))
 		buttonTable.add(scene2d.textButton(buttonText) {
 			onChange {
 				screen.click.play()

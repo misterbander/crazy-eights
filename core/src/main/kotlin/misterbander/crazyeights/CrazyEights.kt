@@ -28,52 +28,52 @@ import misterbander.gframework.GFramework
 class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 {
 	// Fonts
-	private val msJhengHeiUiGenerator: FreeTypeFontGenerator
-		get() = assetStorage[Fonts.msJhengHeiUi]
-	private val twCenMtGenerator: FreeTypeFontGenerator
-		get() = assetStorage[Fonts.twCenMt]
-	val msJhengHeiUi by lazy {
-		msJhengHeiUiGenerator.generateFont {
+	private val notoSansScGenerator: FreeTypeFontGenerator
+		get() = assetStorage[Fonts.notoSansSc]
+	private val montserratGenerator: FreeTypeFontGenerator
+		get() = assetStorage[Fonts.montserrat]
+	val notoSansSc by lazy {
+		notoSansScGenerator.generateFont {
 			size = 40
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val msJhengHeiUiSmall by lazy {
-		msJhengHeiUiGenerator.generateFont {
+	val notoSansScSmall by lazy {
+		notoSansScGenerator.generateFont {
 			size = 25
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val msJhengHeiUiTiny by lazy {
-		msJhengHeiUiGenerator.generateFont {
+	val notoSansScTiny by lazy {
+		notoSansScGenerator.generateFont {
 			size = 15
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val msJhengHeiUiLarge by lazy {
-		msJhengHeiUiGenerator.generateFont {
+	val notoSansScLarge by lazy {
+		notoSansScGenerator.generateFont {
 			size = 64
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val twCenMt by lazy {
-		twCenMtGenerator.generateFont {
+	val montserrat by lazy {
+		montserratGenerator.generateFont {
 			size = 128
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
 			incremental = true
 		}
 	}
-	val twCenMtOutlined by lazy {
-		twCenMtGenerator.generateFont {
+	val montserratOutlined by lazy {
+		montserratGenerator.generateFont {
 			size = 108
 			minFilter = Texture.TextureFilter.Linear
 			magFilter = Texture.TextureFilter.Linear
@@ -107,8 +107,8 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 			val assets = listOf(
 				assetStorage.loadAsync(TextureAtlases.gui),
 				assetStorage.loadAsync(Textures.title),
-				assetStorage.loadAsync(Fonts.msJhengHeiUi),
-				assetStorage.loadAsync(Fonts.twCenMt),
+				assetStorage.loadAsync(Fonts.notoSansSc),
+				assetStorage.loadAsync(Fonts.montserrat),
 				assetStorage.loadAsync(Sounds.click),
 				assetStorage.loadAsync(Sounds.cardSlide),
 				assetStorage.loadAsync(Sounds.dramatic),
@@ -119,12 +119,12 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 			assets.joinAll()
 			Scene2DSkin.defaultSkin = skin {
 				addRegions(assetStorage[TextureAtlases.gui])
-				add("ms_jhenghei_ui", msJhengHeiUi)
-				add("ms_jhenghei_ui_small", msJhengHeiUiSmall)
-				add("ms_jhenghei_ui_tiny", msJhengHeiUiTiny)
-				add("ms_jhenghei_ui_large", msJhengHeiUiLarge)
-				add("tw_cen_mt", twCenMt)
-				add("tw_cen_mt_outlined", twCenMtOutlined)
+				add("noto_sans_sc", notoSansSc)
+				add("noto_sans_sc_small", notoSansScSmall)
+				add("noto_sans_sc_tiny", notoSansScTiny)
+				add("noto_sans_sc_large", notoSansScLarge)
+				add("montserrat", montserrat)
+				add("montserrat_outlined", montserratOutlined)
 				load(Gdx.files.internal("textures/skin.json"))
 			}
 			

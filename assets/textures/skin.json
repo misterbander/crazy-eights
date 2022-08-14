@@ -66,29 +66,29 @@
   },
   "LabelStyle": {
     "label_small": {
-      "font": "ms_jhenghei_ui_small",
+      "font": "noto_sans_sc_small",
       "fontColor": "white"
     },
     "label_tiny": {
-      "font": "ms_jhenghei_ui_tiny",
+      "font": "noto_sans_sc_tiny",
       "fontColor": "white"
     },
     "center_title_label": {
-      "font": "ms_jhenghei_ui_large",
+      "font": "noto_sans_sc_large",
       "fontColor": "white"
     },
     "effect_text_label": {
-      "font": "tw_cen_mt_outlined",
+      "font": "montserrat_outlined",
       "fontColor": "white"
     },
     "power_card_label": {
-      "font": "tw_cen_mt",
+      "font": "montserrat",
       "fontColor": "white"
     }
   },
   "ListStyle": {
     "default": {
-      "font": "ms_jhenghei_ui_small",
+      "font": "noto_sans_sc_small",
       "fontColorSelected": "white",
       "fontColorUnselected": "white",
       "selection": "list_selection",
@@ -103,7 +103,7 @@
   },
   "SelectBoxStyle": {
     "default": {
-      "font": "ms_jhenghei_ui_small",
+      "font": "noto_sans_sc_small",
       "fontColor": "white",
       "background": "select_box",
       "scrollStyle": "default",
@@ -122,7 +122,7 @@
   },
   "TextButtonStyle": {
     "default": {
-      "font": "ms_jhenghei_ui",
+      "font": "noto_sans_sc",
       "fontColor": "white",
       "downFontColor": "black",
       "disabledFontColor": "gray",
@@ -135,13 +135,13 @@
   "WindowStyle": {
     "default": {
       "background": "window",
-      "titleFont": "ms_jhenghei_ui_small",
+      "titleFont": "noto_sans_sc_small",
       "titleFontColor": "white"
     }
   },
   "misterbander.gframework.scene2d.GTextField$GTextFieldStyle": {
     "default": {
-      "font": "ms_jhenghei_ui_small",
+      "font": "noto_sans_sc_small",
       "fontColor": "white",
       "messageFontColor": "gray",
       "focusedFontColor": "white",

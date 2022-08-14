@@ -692,7 +692,7 @@ jsonData: {
 	freeTypeFonts: [
 		{
 			class: com.ray3k.skincomposer.data.FreeTypeFontData
-			name: ms_jhenghei_ui
+			name: montserrat
 			previewTTF: IBMPlexSerif-Medium
 			useCustomSerializer: false
 			size: 16
@@ -720,7 +720,7 @@ jsonData: {
 		}
 		{
 			class: com.ray3k.skincomposer.data.FreeTypeFontData
-			name: ms_jhenghei_ui_large
+			name: montserrat_outlined
 			previewTTF: IBMPlexSerif-Medium
 			useCustomSerializer: false
 			size: 16
@@ -748,7 +748,7 @@ jsonData: {
 		}
 		{
 			class: com.ray3k.skincomposer.data.FreeTypeFontData
-			name: ms_jhenghei_ui_small
+			name: noto_sans_sc
 			previewTTF: IBMPlexSerif-Medium
 			useCustomSerializer: false
 			size: 16
@@ -776,7 +776,7 @@ jsonData: {
 		}
 		{
 			class: com.ray3k.skincomposer.data.FreeTypeFontData
-			name: ms_jhenghei_ui_tiny
+			name: noto_sans_sc_large
 			previewTTF: IBMPlexSerif-Medium
 			useCustomSerializer: false
 			size: 16
@@ -804,7 +804,7 @@ jsonData: {
 		}
 		{
 			class: com.ray3k.skincomposer.data.FreeTypeFontData
-			name: tw_cen_mt
+			name: noto_sans_sc_small
 			previewTTF: IBMPlexSerif-Medium
 			useCustomSerializer: false
 			size: 16
@@ -832,7 +832,7 @@ jsonData: {
 		}
 		{
 			class: com.ray3k.skincomposer.data.FreeTypeFontData
-			name: tw_cen_mt_outlined
+			name: noto_sans_sc_tiny
 			previewTTF: IBMPlexSerif-Medium
 			useCustomSerializer: false
 			size: 16
@@ -1792,7 +1792,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: ms_jhenghei_ui
+						value: noto_sans_sc
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -1980,7 +1980,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: ms_jhenghei_ui_small
+						value: noto_sans_sc_small
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -2007,7 +2007,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: ms_jhenghei_ui_tiny
+						value: noto_sans_sc_tiny
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -2034,7 +2034,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: ms_jhenghei_ui_large
+						value: noto_sans_sc_large
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -2061,7 +2061,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: tw_cen_mt_outlined
+						value: montserrat_outlined
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -2088,7 +2088,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: tw_cen_mt
+						value: montserrat
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -2123,7 +2123,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: titleFont
 						optional: false
-						value: ms_jhenghei_ui_small
+						value: noto_sans_sc_small
 					}
 					titleFontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -3023,7 +3023,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: ms_jhenghei_ui_small
+						value: noto_sans_sc_small
 					}
 					fontColorSelected: {
 						type: com.badlogic.gdx.graphics.Color
@@ -3108,7 +3108,7 @@ jsonData: {
 						type: com.badlogic.gdx.graphics.g2d.BitmapFont
 						name: font
 						optional: false
-						value: ms_jhenghei_ui_small
+						value: noto_sans_sc_small
 					}
 					fontColor: {
 						type: com.badlogic.gdx.graphics.Color
@@ -3503,7 +3503,7 @@ jsonData: {
 						{
 							name: font
 							type: FONT
-							value: ms_jhenghei_ui_small
+							value: noto_sans_sc_small
 						}
 						{
 							name: fontColor
@@ -3783,7 +3783,7 @@ preferences: {
 	}
 }
 saveFile: "/home/misterbander/Java_Stuff/libGDX/Crazy Eights/assets/textures/skin.scmp"
-version: 51
+version: 52
 sceneComposer: {
 	children: [
 		{

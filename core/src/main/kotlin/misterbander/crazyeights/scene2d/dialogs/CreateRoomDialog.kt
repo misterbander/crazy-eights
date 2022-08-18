@@ -50,9 +50,9 @@ class CreateRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog
 			label("Username:", LABEL_SMALL_STYLE)
 			gTextField(this@CreateRoomDialog, game.user.name, FORM_TEXT_FIELD_STYLE) {
 				maxLength = 20
-				setTextFieldListener { textField, _ ->
-					game.user = game.user.copy(name = textField.text)
-					createButton.isDisabled = textField.text.isEmpty()
+				onChange {
+					game.user = game.user.copy(name = text)
+					createButton.isDisabled = text.isEmpty()
 				}
 			}.cell(preferredWidth = 416F)
 			actor(colorButton) { image.color.fromHsv(game.user.color.toHsv(FloatArray(3))[0], 0.8F, 0.8F) }
@@ -62,13 +62,13 @@ class CreateRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog
 				label("Server Port:", LABEL_SMALL_STYLE)
 				gTextField(this@CreateRoomDialog, port, FORM_TEXT_FIELD_STYLE) {
 					textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
-					setTextFieldListener { textField, _ -> port = textField.text }
+					onChange {  port = text }
 				}.cell(preferredWidth = 416F)
 				row()
 			}
 			label("Room Code:", LABEL_SMALL_STYLE)
 			gTextField(this@CreateRoomDialog, roomCode, FORM_TEXT_FIELD_STYLE) {
-				setTextFieldListener { textField, _ -> roomCode = textField.text }
+				onChange {  roomCode = text }
 			}.cell(preferredWidth = 416F)
 		})
 		buttonTable.add(scene2d.table {

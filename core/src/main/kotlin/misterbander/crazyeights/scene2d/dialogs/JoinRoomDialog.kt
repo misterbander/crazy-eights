@@ -52,9 +52,9 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 			label("Username:", LABEL_SMALL_STYLE)
 			gTextField(this@JoinRoomDialog, game.user.name, FORM_TEXT_FIELD_STYLE) {
 				maxLength = 20
-				setTextFieldListener { textField, _ ->
-					game.user = game.user.copy(name = textField.text)
-					joinButton.isDisabled = textField.text.isEmpty()
+				onChange {
+					game.user = game.user.copy(name = text)
+					joinButton.isDisabled = text.isEmpty()
 				}
 			}.cell(preferredWidth = 416F)
 			actor(colorButton) { image.color.fromHsv(game.user.color.toHsv(FloatArray(3))[0], 0.8F, 0.8F) }
@@ -63,19 +63,19 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 			{
 				label("Server IP Address:", LABEL_SMALL_STYLE)
 				gTextField(this@JoinRoomDialog, ipAddress, FORM_TEXT_FIELD_STYLE) {
-					setTextFieldListener { textField, _ -> ipAddress = textField.text }
+					onChange {  ipAddress = text }
 				}.cell(preferredWidth = 416F)
 				row()
 				label("Server Port:", LABEL_SMALL_STYLE)
 				gTextField(this@JoinRoomDialog, port, FORM_TEXT_FIELD_STYLE) {
 					textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
-					setTextFieldListener { textField, _ -> port = textField.text }
+					onChange {  port = text }
 				}.cell(preferredWidth = 416F)
 				row()
 			}
 			label("Room Code:", LABEL_SMALL_STYLE)
 			gTextField(this@JoinRoomDialog, roomCode, FORM_TEXT_FIELD_STYLE) {
-				setTextFieldListener { textField, _ -> roomCode = textField.text }
+				onChange {  roomCode = text }
 			}.cell(preferredWidth = 416F)
 			textButton("How to Join?") {
 				onChange {

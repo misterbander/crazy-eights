@@ -13,6 +13,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ktx.async.KtxAsync
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
@@ -95,6 +96,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
 import java.security.MessageDigest
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class CrazyEightsServer(private val roomCode: String)
 {
 	private val asyncContext = newSingleThreadAsyncContext("CrazyEightsServer-AsyncExecutor-Thread")
@@ -146,8 +148,14 @@ class CrazyEightsServer(private val roomCode: String)
 					deck += ServerCard(newId(), rank = rank, suit = suit)
 			}
 		}
-		val drawStackHolder = ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
-		val discardPileHolder = ServerCardHolder(newId(), x = 740F, y = 360F, cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE))
+		val drawStackHolder =
+			ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
+		val discardPileHolder = ServerCardHolder(
+			newId(),
+			x = 740F,
+			y = 360F,
+			cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE)
+		)
 		tabletop = ServerTabletop(this, drawStackHolder, discardPileHolder)
 		tabletop.addServerObject(drawStackHolder)
 		tabletop.addServerObject(discardPileHolder)
@@ -157,17 +165,10 @@ class CrazyEightsServer(private val roomCode: String)
 	
 	fun newId(): Int = maxId++
 	
-	fun start(port: Int)
-	{
-		try
-		{
-			server.start()
-			server.bind(port, DEFAULT_UDP_PORT)
-		}
-		finally
-		{
-			startServerJob.complete()
-		}
+	suspend fun start(port: Int) = withContext(asyncContext) {
+		info("Server | INFO") { "Starting server on TCP port $port and UDP port $DEFAULT_UDP_PORT..." }
+		server.bind(port, DEFAULT_UDP_PORT)
+		server.start()
 	}
 	
 	/**
@@ -253,17 +254,20 @@ class CrazyEightsServer(private val roomCode: String)
 		})
 	}
 	
-	@Suppress("BlockingMethodInNonBlockingContext")
-	fun stop(): Job = KtxAsync.launch(asyncContext) {
-		if (!isStopped)
-		{
-			startServerJob.join()
+	suspend fun stop()
+	{
+		withContext(asyncContext) {
+			if (isStopped)
+				return@withContext
+			info("Server | INFO") { "Stopping server..." }
 			isStopped = true
 			aiJobs.forEach { it.cancel() }
 			aiJobs.clear()
 			server.stop()
 			server.dispose()
 		}
+		asyncContext.dispose()
+		info("Server | INFO") { "Server stopped!" }
 	}
 	
 	private inner class ServerListener : Listener
@@ -363,7 +367,7 @@ class CrazyEightsServer(private val roomCode: String)
 					ktx.log.error("Server | ERROR") { "$connection attempted to send objects before handshake" }
 				return
 			}
-			
+
 //			if (`object` !is FrameworkMessage.KeepAlive && `object` !is CursorPosition && `object` !is ObjectMoveEvent && `object` !is ObjectRotateEvent)
 //				println("Server $`object`")
 			when (`object`)
@@ -376,9 +380,11 @@ class CrazyEightsServer(private val roomCode: String)
 					connection.sendTCP(tabletop.toTabletopState())
 					connection.sendTCP(RulesetUpdateEvent(ruleset))
 					if (isGameStarted)
-						connection.sendTCP(serverGameState!!.toGameState(
-							if (tabletop.suitChooser != null) EightsPlayedEvent(tabletop.suitChooser!!) else null
-						))
+						connection.sendTCP(
+							serverGameState!!.toGameState(
+								if (tabletop.suitChooser != null) EightsPlayedEvent(tabletop.suitChooser!!) else null
+							)
+						)
 					server.sendToAllTCP(UserJoinedEvent(`object`))
 					info("Server | INFO") { "${`object`.name} joined the game" }
 				}
@@ -409,9 +415,10 @@ class CrazyEightsServer(private val roomCode: String)
 				is PassEvent -> pass()
 				is SuitDeclareEvent -> onSuitDeclare(connection, `object`)
 				is ResetDeckEvent -> tabletop.onResetDeck()
-				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()?.forEach {
-					it.runnable()
-				}
+				is CrazyEightsClient.BufferEnd -> runLater.remove((connection.arbitraryData as User).name)?.values()
+					?.forEach {
+						it.runnable()
+					}
 			}
 			
 			tabletop.updateDebugStrings()

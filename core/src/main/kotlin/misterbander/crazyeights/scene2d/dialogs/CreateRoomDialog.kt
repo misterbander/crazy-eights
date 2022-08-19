@@ -62,13 +62,13 @@ class CreateRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog
 				label("Server Port:", LABEL_SMALL_STYLE)
 				gTextField(this@CreateRoomDialog, port, FORM_TEXT_FIELD_STYLE) {
 					textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
-					onChange {  port = text }
+					onChange { port = text }
 				}.cell(preferredWidth = 416F)
 				row()
 			}
 			label("Room Code:", LABEL_SMALL_STYLE)
 			gTextField(this@CreateRoomDialog, roomCode, FORM_TEXT_FIELD_STYLE) {
-				onChange {  roomCode = text }
+				onChange { roomCode = text }
 			}.cell(preferredWidth = 416F)
 		})
 		buttonTable.add(scene2d.table {
@@ -112,7 +112,13 @@ class CreateRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog
 					throw CancellationException()
 				val room = game.getScreen<RoomScreen>()
 				room.clientListener = room.ClientListener()
-				val client = game.network.createAndConnectClient("localhost", port)
+				val client = game.network.createAndConnectClient(
+					"localhost",
+					port,
+					timeout = 500,
+					retryInterval = 500,
+					maxRetries = 10
+				)
 				client.addListener(mainMenu.ClientListener())
 				client.addListener(room.clientListener)
 				// Perform handshake by doing checking version and username availability

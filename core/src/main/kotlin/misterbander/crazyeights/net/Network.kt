@@ -2,14 +2,11 @@ package misterbander.crazyeights.net
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import ktx.async.KtxAsync
-import ktx.async.newSingleThreadAsyncContext
-import ktx.log.info
 
 class Network
 {
-	private val asyncContext = newSingleThreadAsyncContext("Network-AsyncExecutor-Thread")
 	var server: CrazyEightsServer? = null
 		private set
 	var client: CrazyEightsClient? = null
@@ -19,20 +16,25 @@ class Network
 	suspend fun createAndStartServer(roomCode: String, port: Int): CrazyEightsServer
 	{
 		stopNetworkJob?.join()
-		info("Network | INFO") { "Starting server on port $port..." }
-		// Create the server in a separate thread to avoid nasty lag spike
 		server = CrazyEightsServer(roomCode)
-		withContext(asyncContext) { server!!.start(port) }
-		info("Network | INFO") { "Started server on port $port" }
+		// Start the server in a separate thread to avoid nasty lag spike
+		server!!.start(port)
+		yield()
 		return server!!
 	}
 	
-	suspend fun createAndConnectClient(ip: String, port: Int): CrazyEightsClient
+	suspend fun createAndConnectClient(
+		hostAddress: String,
+		port: Int,
+		timeout: Int = 3000,
+		retryInterval: Long = 3000,
+		maxRetries: Int = Int.MAX_VALUE
+	): CrazyEightsClient
 	{
 		stopNetworkJob?.join()
-		info("Network | INFO") { "Connecting to $ip on port $port" }
 		client = CrazyEightsClient()
-		withContext(asyncContext) { client!!.connect(ip, port) }
+		client!!.connect(hostAddress, port, timeout, retryInterval, maxRetries)
+		yield()
 		return client!!
 	}
 	
@@ -40,19 +42,18 @@ class Network
 	{
 		stopNetworkJob?.join()
 		client = CrazyEightsClient()
-		withContext(asyncContext) { client!!.discoverHostByRoomCode(roomCode) }
+		client!!.discoverHostByRoomCode(roomCode)
 		return client!!
 	}
 	
 	fun stop()
 	{
 		stopNetworkJob = KtxAsync.launch {
-			val stopServerJob = server?.stop()
-			client?.stop()
-			stopServerJob?.join()
-			info("Network | INFO") { "Network stopped" }
+			val client = client
+			KtxAsync.launch { client?.stop() }
+			this@Network.client = null
+			server?.stop()
 			server = null
-			client = null
 		}
 	}
 }

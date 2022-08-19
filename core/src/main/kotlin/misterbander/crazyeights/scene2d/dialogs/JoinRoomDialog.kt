@@ -31,7 +31,7 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 	
 	private val colorPickerDialog = ColorPickerDialog(mainMenu, colorButton)
 	
-	private var ipAddress = ""
+	private var serverAddress = ""
 	private var port = "11530"
 	private var roomCode = ""
 	private var showAdvancedOptions = false
@@ -61,9 +61,9 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 			row()
 			if (showAdvancedOptions)
 			{
-				label("Server IP Address:", LABEL_SMALL_STYLE)
-				gTextField(this@JoinRoomDialog, ipAddress, FORM_TEXT_FIELD_STYLE) {
-					onChange {  ipAddress = text }
+				label("Server Address:", LABEL_SMALL_STYLE)
+				gTextField(this@JoinRoomDialog, serverAddress, FORM_TEXT_FIELD_STYLE) {
+					onChange {  serverAddress = text }
 				}.cell(preferredWidth = 416F)
 				row()
 				label("Server Port:", LABEL_SMALL_STYLE)
@@ -124,7 +124,7 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 				room.clientListener = room.ClientListener()
 				mainMenu.clientListener = mainMenu.ClientListener()
 				val client = if (showAdvancedOptions)
-					game.network.createAndConnectClient(ipAddress, port)
+					game.network.createAndConnectClient(serverAddress, port, maxRetries = 5)
 				else
 				{
 					info("Client | INFO") { "Finding server with room code $roomCode" }

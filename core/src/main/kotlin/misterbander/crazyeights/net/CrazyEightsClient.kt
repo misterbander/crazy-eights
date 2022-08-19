@@ -4,11 +4,14 @@ import com.badlogic.gdx.utils.OrderedSet
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.ClientDiscoveryHandler
 import com.esotericsoftware.kryonet.Listener
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ktx.async.KtxAsync
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import ktx.async.newSingleThreadAsyncContext
 import ktx.collections.*
+import ktx.log.info
 import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.kryo.objectMoveEventPool
@@ -20,6 +23,7 @@ import java.net.ConnectException
 import java.net.DatagramPacket
 import java.security.MessageDigest
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class CrazyEightsClient
 {
 	val outgoingPacketBuffer = OrderedSet<Any>()
@@ -33,17 +37,53 @@ class CrazyEightsClient
 	}
 	@Volatile private var isStopped = false
 	
-	fun connect(hostAddress: String, port: Int)
-	{
-		client.start()
-		// Temporary workaround to avoid crashing the application by catching the annoying
-		// java.nio.channels.ClosedSelectorException caused when closing the server
-		client.updateThread.setUncaughtExceptionHandler { _, e: Throwable -> e.printStackTrace() }
-		client.connect(500, hostAddress, port, DEFAULT_UDP_PORT)
+	suspend fun connect(
+		hostAddress: String,
+		port: Int,
+		timeout: Int = 3000,
+		retryInterval: Long = 3000,
+		maxRetries: Int = Int.MAX_VALUE
+	) = coroutineScope {
+		info("Client | INFO") { "Connecting to $hostAddress on TCP port $port and UDP port $DEFAULT_UDP_PORT..." }
+		var connected = false
+		var retries = 0
+		while (!connected && retries < maxRetries)
+		{
+			yield()
+			if (retries > 0)
+				info("Client | INFO") { "Retrying... (Retried $retries ${if (retries == 1) "time" else "times"})" }
+			val connectJob = launch(asyncContext) {
+				client.start()
+				// Temporary workaround to avoid crashing the application by catching the annoying
+				// java.nio.channels.ClosedSelectorException caused when closing the server
+				client.updateThread.setUncaughtExceptionHandler { _, e: Throwable -> e.printStackTrace() }
+				try
+				{
+					client.connect(timeout, hostAddress, port, DEFAULT_UDP_PORT)
+					connected = true
+				}
+				catch (e: Exception)
+				{
+					if (retries == maxRetries - 1)
+					{
+						yield()
+						throw e
+					}
+				}
+			}
+			val waitToRetryJob = launch {
+				delay(retryInterval)
+				info("Client | INFO") { "Client connection too slow! Aborting..." }
+				client.stop()
+				connectJob.cancel()
+			}
+			connectJob.join()
+			waitToRetryJob.cancel()
+			retries++
+		}
 	}
 	
-	fun discoverHostByRoomCode(roomCode: String)
-	{
+	suspend fun discoverHostByRoomCode(roomCode: String) = coroutineScope {
 		var found = false
 		client.setDiscoveryHandler(object : ClientDiscoveryHandler
 		{
@@ -59,26 +99,31 @@ class CrazyEightsClient
 				if (digest.contentEquals(datagramPacket.data))
 				{
 					found = true
-					connect(datagramPacket.address.hostAddress, DEFAULT_TCP_PORT)
+					launch { connect(datagramPacket.address.hostAddress, DEFAULT_TCP_PORT, maxRetries = 5) }
 				}
 			}
 		})
 		repeat(4) {
-			client.discoverHosts(DEFAULT_UDP_PORT, 5000)
+			yield()
+			withContext(asyncContext) { client.discoverHosts(DEFAULT_UDP_PORT, 5000) }
 			if (found || isStopped)
-				return
+				return@coroutineScope
 		}
 		throw ConnectException("Couldn't find server with room code: $roomCode")
 	}
 	
-	@Suppress("BlockingMethodInNonBlockingContext")
-	fun stop(): Job = KtxAsync.launch(asyncContext) {
-		if (!isStopped)
-		{
+	suspend fun stop()
+	{
+		withContext(asyncContext) {
+			if (isStopped)
+				return@withContext
+			info("Client | INFO") { "Stopping client..." }
 			isStopped = true
 			client.stop()
 			client.dispose()
 		}
+		asyncContext.dispose()
+		info("Client | INFO") { "Client stopped!" }
 	}
 	
 	fun sendTCP(`object`: Any)

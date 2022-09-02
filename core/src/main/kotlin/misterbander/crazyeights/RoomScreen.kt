@@ -116,23 +116,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 	val brightenShader = game.assetStorage[Shaders.brighten]
 	private val vignetteShader = game.assetStorage[Shaders.vignette]
 	
-	// Camera and layers
-	val cameraAngleInterpolator = object : SmoothAngleInterpolator(0F)
-	{
-		override var value: Float = 0F
-		private var prevCameraAngle = 0F
-		
-		override fun lerp(delta: Float)
-		{
-			super.lerp(delta)
-			(camera as OrthographicCamera).rotate(-prevCameraAngle + value)
-			prevCameraAngle = value
-			
-			uprightActors.forEach { it.makeUpright() }
-		}
-	}
-	var cameraAngle by cameraAngleInterpolator
-	
+	// Layers
 	override val mainLayer = object : StageLayer(game, viewport, false)
 	{
 		override fun postRender(delta: Float)
@@ -174,6 +158,15 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 	
 	private val uprightActors = GdxSet<Actor>()
 	private val originalRotationMap = ObjectFloatMap<Actor>()
+	private var prevCameraAngle = 0F
+	private var currentCameraAngle = 0F
+	val cameraAngleInterpolator = SmoothAngleInterpolator(0F, get = ::currentCameraAngle) { value ->
+		currentCameraAngle = value
+		(camera as OrthographicCamera).rotate(-prevCameraAngle + value)
+		prevCameraAngle = value
+		uprightActors.forEach { it.makeUpright() }
+	}
+	var cameraAngle by cameraAngleInterpolator
 	
 	val passButton = scene2d.textButton("Pass") {
 		setOrigin(Align.center)
@@ -339,7 +332,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 						tabletop.cursors += cursor
 						addUprightGObject(cursor)
 						cursor
-					}?.overwritePosition(inputX, inputY)
+					}?.snapPosition(inputX, inputY)
 				}
 				
 				if (shouldSyncServer)
@@ -399,7 +392,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 	{
 		val uprightAngle = -cameraAngleInterpolator.value + originalRotationMap[this, 0F]
 		if (this is GObject<*> && hasModule<SmoothMovable>())
-			getModule<SmoothMovable>()!!.rotationInterpolator.overwrite(uprightAngle)
+			getModule<SmoothMovable>()!!.rotationInterpolator.snap(uprightAngle)
 		else
 			rotation = uprightAngle
 	}
@@ -407,7 +400,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 	override fun hide()
 	{
 		// Reset camera
-		cameraAngleInterpolator.overwrite(0F)
+		cameraAngleInterpolator.snap(0F)
 		
 		// Reset room state
 		chatBox.clearChats()
@@ -463,7 +456,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 						cursorsMap[pointer] = cursor
 						tabletop.cursors += cursor
 						addUprightGObject(cursor)
-						cursor.overwritePosition(x, y)
+						cursor.snapPosition(x, y)
 					}
 					cursorPositionPool.free(packet)
 				}

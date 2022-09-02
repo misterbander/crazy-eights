@@ -4,13 +4,19 @@ import com.badlogic.gdx.math.MathUtils
 import ktx.math.vec2
 
 /**
- * Wraps an angle in degrees and provides a [lerp] method that can smoothly interpolate the encapsulated angle
- * towards a target value. The angle lerping direction is always towards the smaller angle between the current angle
- * and the target angle.
- * @param value initial value for the wrapped angle
+ * Provides a [lerp] method that interprets a float property or field as an angle of a vector in degrees and smoothly
+ * interpolates it to a target angle.
+ * @param initialValue initial value for the float property or field
  * @param smoothingFactor the smoothing factor. Higher smoothing factor means slower lerping.
+ * @param get getter to return the float property or field
+ * @param set setter to set the float property or field
  */
-abstract class SmoothAngleInterpolator(value: Float, smoothingFactor: Float = 2.5F) : SmoothInterpolator(value, smoothingFactor)
+open class SmoothAngleInterpolator(
+	initialValue: Float,
+	smoothingFactor: Float = 2.5F,
+	get: () -> Float,
+	set: (Float) -> Unit
+) : SmoothInterpolator(initialValue, smoothingFactor, get, set)
 {
 	private val angleVec = vec2(x = 1F)
 	private val targetAngleVec = vec2(x = 1F)

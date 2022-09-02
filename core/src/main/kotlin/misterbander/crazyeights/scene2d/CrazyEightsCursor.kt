@@ -34,7 +34,7 @@ class CrazyEightsCursor(
 		base = Scene2DSkin.defaultSkin["cursor_base"]
 		border = Scene2DSkin.defaultSkin["cursor_border"]
 		setSize(base.regionWidth.toFloat(), base.regionHeight.toFloat())
-		overwritePosition(room.uiViewport.minWorldWidth/2, room.uiViewport.minWorldHeight/2)
+		snapPosition(room.uiViewport.minWorldWidth/2, room.uiViewport.minWorldHeight/2)
 		if (!noLabel)
 		{
 			this += scene2d.container {
@@ -53,8 +53,8 @@ class CrazyEightsCursor(
 	
 	override fun setPosition(x: Float, y: Float) = smoothMovable.setPosition(x - originX, y - originY)
 	
-	fun overwritePosition(x: Float, y: Float) =
-		smoothMovable.overwritePosition(x - originX, y - originY)
+	fun snapPosition(x: Float, y: Float) =
+		smoothMovable.snapPosition(x - originX, y - originY)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

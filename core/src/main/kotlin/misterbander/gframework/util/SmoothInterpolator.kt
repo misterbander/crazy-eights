@@ -3,31 +3,34 @@ package misterbander.gframework.util
 import kotlin.reflect.KProperty
 
 /**
- * Wraps a float value and provides a [lerp] method that can smoothly interpolate the encapsulated float towards a
- * target value.
- * @param value initial value for the wrapped float
+ * Provides a [lerp] method that can smoothly interpolate a float property or field towards a target value.
+ * @param initialValue initial value for the float property or field
  * @param smoothingFactor the smoothing factor. Higher smoothing factor means slower lerping.
+ * @param get getter to return the float property or field
+ * @param set setter to set the float property or field
  */
-@Suppress("LeakingThis")
-abstract class SmoothInterpolator(value: Float, var smoothingFactor: Float = 2.5F)
+open class SmoothInterpolator(
+	initialValue: Float,
+	var smoothingFactor: Float = 2.5F,
+	private val get: () -> Float,
+	private val set: (Float) -> Unit
+)
 {
-	/**
-	 * The float value. You can use a backing field, or set it to interpolate any float variable/field.
-	 */
-	abstract var value: Float
+	var value: Float
+		get() = get()
+		set(value) = set(value)
 	/** Target value to lerp to. */
-	var target = value
+	var target = initialValue
 	
 	init
 	{
-		this.value = value
+		set(initialValue)
 	}
 	
 	/**
-	 * Sets both the value and target without lerping.
-	 * @param value the value to set to
+	 * Directly snaps the float property or field to [value] without lerping.
 	 */
-	fun overwrite(value: Float)
+	fun snap(value: Float)
 	{
 		this.value = value
 		target = value
@@ -47,7 +50,7 @@ abstract class SmoothInterpolator(value: Float, var smoothingFactor: Float = 2.5
 	}
 	
 	/**
-	 * Lerps the wrapped float to the target value. Should be called every frame.
+	 * Lerps the float property or field to the target value. Should be called every frame.
 	 * @param delta the time in seconds since the last render
 	 */
 	open fun lerp(delta: Float)

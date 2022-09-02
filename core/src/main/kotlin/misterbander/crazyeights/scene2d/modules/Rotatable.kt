@@ -138,7 +138,7 @@ open class Rotatable(
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(pointerCenterX - centerOffsetVec.x, pointerCenterY - centerOffsetVec.y))
 				
 				// Apply final position and rotation
-				smoothMovable.overwritePosition(newX, newY)
+				smoothMovable.snapPosition(newX, newY)
 				setRotation(initialRotation + dAngle, isImmediate = true)
 				
 				val ownable = parent.getModule<Ownable>()
@@ -165,7 +165,7 @@ open class Rotatable(
 	{
 		val newRotation = rotation + if (isRelative) smoothMovable.rotation else 0F
 		if (isImmediate)
-			smoothMovable.rotationInterpolator.overwrite(newRotation)
+			smoothMovable.rotationInterpolator.snap(newRotation)
 		else
 			smoothMovable.rotation = newRotation
 		justRotated = true

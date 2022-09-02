@@ -61,7 +61,7 @@ open class Draggable(
 				dragPositionVec.set(unrotatedDragPositionVec)
 				dragPositionVec.rotateDeg(-parent.rotation)
 				val (newX, newY) = parent.localToParentCoordinates(tempVec.set(x, y).sub(dragPositionVec))
-				smoothMovable.overwritePosition(newX, newY)
+				smoothMovable.snapPosition(newX, newY)
 				val ownable = parent.getModule<Ownable>()
 				ownable?.myHand?.arrange() ?: game.client?.apply {
 					val objectMoveEvent = removeFromOutgoingPacketBuffer<ObjectMoveEvent> { it.id == lockable.id }

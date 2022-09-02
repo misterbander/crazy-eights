@@ -54,7 +54,7 @@ class CrazyEightsCursor(
 	override fun setPosition(x: Float, y: Float) = smoothMovable.setPosition(x - originX, y - originY)
 	
 	fun overwritePosition(x: Float, y: Float) =
-		smoothMovable.overwritePosition(x - originX, y - originY)
+		smoothMovable.snapPosition(x - originX, y - originY)
 	
 	override fun draw(batch: Batch, parentAlpha: Float)
 	{

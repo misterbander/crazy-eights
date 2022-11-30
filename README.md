@@ -3,10 +3,6 @@
 
 ### [Download the app here](https://github.com/misterbander/crazy-eights/releases).
 
-This project is created as part of my thesis. If you have any feedback, you can leave one at https://forms.office.com/r/LXrC4umeu3.
-
-Thanks and have fun!
-
 ## Description
 
 Cross-platform online multiplayer Crazy Eights software made using [KTX](https://github.com/libktx/ktx). Available for **Windows**, **macOS**, **Linux** and **Android**! (Sorry iOS users :(, I don't have a Mac to build an iOS version, but you could build your own from source if you want to)

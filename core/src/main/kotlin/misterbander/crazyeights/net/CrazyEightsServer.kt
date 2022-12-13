@@ -329,32 +329,38 @@ class CrazyEightsServer(private val roomCode: String)
 					if (versionString != VERSION_STRING) // Version check
 					{
 						connection.sendTCP(HandshakeReject("Incorrect version! Your Crazy Eights version is $versionString. Server version is $VERSION_STRING."))
+						connection.close()
 						return
 					}
 					if (data?.size != 2) // Data integrity check
 					{
 						connection.sendTCP(HandshakeReject("Incorrect handshake data format! Expecting 2 arguments but found ${data?.size}. This is a bug and shouldn't be happening, please notify the developer."))
+						connection.close()
 						return
 					}
 					val (username, roomCode) = data
 					if (roomCode != this@CrazyEightsServer.roomCode) // Verify room code
 					{
 						connection.sendTCP(HandshakeReject("Incorrect room code."))
+						connection.close()
 						return
 					}
 					if (tabletop.users.size >= 6) // Capacity check
 					{
 						connection.sendTCP(HandshakeReject("Room is already full (Max 6 players)."))
+						connection.close()
 						return
 					}
 					if (tabletop.users[username] != null) // Check username collision
 					{
 						connection.sendTCP(HandshakeReject("Username conflict! Username $username is already taken."))
+						connection.close()
 						return
 					}
 					if (username.isBlank())
 					{
 						connection.sendTCP(HandshakeReject("Illegal username \"\"."))
+						connection.close()
 						return
 					}
 					
@@ -364,7 +370,10 @@ class CrazyEightsServer(private val roomCode: String)
 					info("Server | INFO") { "Successful handshake from $connection" }
 				}
 				else
+				{
+					connection.close()
 					ktx.log.error("Server | ERROR") { "$connection attempted to send objects before handshake" }
+				}
 				return
 			}
 

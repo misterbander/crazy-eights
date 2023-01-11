@@ -428,7 +428,6 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 			transition.start(targetScreen = mainMenu, targetScreenTransition = mainMenu.transition)
 		}
 		
-		@Suppress("UNCHECKED_CAST")
 		override fun processPacket(packet: Any)
 		{
 			val idToGObjectMap = tabletop.idToGObjectMap

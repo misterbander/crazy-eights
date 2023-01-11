@@ -66,7 +66,7 @@ class Card(
 	
 	// Modules
 	override val smoothMovable = SmoothMovable(this, x, y, rotation)
-	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
+	override val lockable: Lockable = object : Lockable(this, id, lockHolder, smoothMovable)
 	{
 		override fun longPress(): Boolean
 		{
@@ -115,14 +115,14 @@ class Card(
 				room.tabletop.myHand.sendUpdates()
 		}
 	}
-	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
+	override val draggable: Draggable = object : Draggable(this, room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
 			get() = cardGroup == null || !cardGroup!!.lockable.justLongPressed && !UIUtils.shift()
 		
 		override fun pan() = separateFromCardGroup()
 	}
-	override val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
+	override val rotatable: Rotatable = object : Rotatable(this, smoothMovable, lockable, draggable)
 	{
 		override fun pinch() = separateFromCardGroup()
 	}
@@ -131,7 +131,7 @@ class Card(
 		override val shouldExpand: Boolean
 			get() = super.shouldExpand && (cardGroup == null || !cardGroup!!.lockable.isLocked)
 	}
-	val ownable = Ownable(room, id, draggable)
+	val ownable = Ownable(this, room, id)
 	
 	init
 	{

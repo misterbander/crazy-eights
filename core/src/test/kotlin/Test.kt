@@ -4,9 +4,9 @@ import misterbander.crazyeights.game.toCard
 import misterbander.crazyeights.model.ServerCard
 import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.model.ServerCard.Suit
-import org.junit.Test
 import java.io.File
-import java.nio.file.Paths
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class Test
@@ -26,18 +26,12 @@ class Test
 	@Test
 	fun `Test Oracle agent responses`()
 	{
-		val path = Paths.get("").toAbsolutePath().toString()
-		println(path)
 		val states = readTestStates(Ruleset(declareSuitsOnEights = false))
-		val expectedActions = File("test/oracle_actions.txt").readLines()
-		
+		val expectedActions = File("src/test/resources/oracle_actions.txt").readLines()
 		assertEquals(states.size, expectedActions.size)
-		val agent = OracleAgent()
 		
-		for (i in states.indices)
-		{
-			val actionStr = agent.getMove(states[i]).toString()
-			assertEquals(expectedActions[i], actionStr, "Action does not match for Game #${i + 1}")
-		}
+		val agent = OracleAgent()
+		val actionStrs = states.map { agent.getMove(it).toString() }
+		assertContentEquals(expectedActions, actionStrs)
 	}
 }

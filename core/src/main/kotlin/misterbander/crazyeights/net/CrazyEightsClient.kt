@@ -23,7 +23,6 @@ import java.net.ConnectException
 import java.net.DatagramPacket
 import java.security.MessageDigest
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class CrazyEightsClient
 {
 	val outgoingPacketBuffer = OrderedSet<Any>()

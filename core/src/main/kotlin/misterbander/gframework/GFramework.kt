@@ -1,11 +1,7 @@
 package misterbander.gframework
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.Pixmap
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
-import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
@@ -29,7 +25,7 @@ abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 {
 	val batch = PolygonSpriteBatch()
 	val shapeRenderer = ShapeRenderer()
-	val shapeDrawer: ShapeDrawer
+	val shapeDrawer = ShapeDrawer(batch)
 	val assetStorage = AssetStorage(newAsyncContext(Runtime.getRuntime().availableProcessors(), "AssetStorage-Thread")).apply {
 		registerFreeTypeFontLoaders()
 	}
@@ -37,16 +33,6 @@ abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 	private var deltaAccumulator = 0F
 	var fixedUpdateCount = 0
 		private set
-	
-	init
-	{
-		val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply { setColor(Color.WHITE); fill() }
-		val texture = Texture(pixmap)
-		texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
-		val region = TextureRegion(texture)
-		pixmap.dispose()
-		shapeDrawer = ShapeDrawer(batch, region)
-	}
 	
 	override fun render()
 	{

@@ -45,7 +45,7 @@ class CardGroup(
 	
 	// Modules
 	override val smoothMovable = SmoothMovable(this, x, y, rotation)
-	override val lockable: Lockable = object : Lockable(id, lockHolder, smoothMovable)
+	override val lockable: Lockable = object : Lockable(this, id, lockHolder, smoothMovable)
 	{
 		override fun lock(user: User)
 		{
@@ -61,14 +61,14 @@ class CardGroup(
 			super.unlock(sideEffects)
 		}
 	}
-	override val draggable: Draggable = object : Draggable(room, smoothMovable, lockable)
+	override val draggable: Draggable = object : Draggable(this, room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
 			get() = ownable.myHand == null && (UIUtils.shift() || lockable.justLongPressed) && !room.isGameStarted
 		
 		override fun pan() = detachFromCardHolder()
 	}
-	override val rotatable: Rotatable = object : Rotatable(smoothMovable, lockable, draggable)
+	override val rotatable: Rotatable = object : Rotatable(this, smoothMovable, lockable, draggable)
 	{
 		override fun pinch() = detachFromCardHolder()
 	}
@@ -81,7 +81,7 @@ class CardGroup(
 		override val shouldExpand: Boolean
 			get() = lockable.isLocked
 	}
-	val ownable = Ownable(room, id, draggable)
+	val ownable = Ownable(this, room, id)
 	
 	init
 	{

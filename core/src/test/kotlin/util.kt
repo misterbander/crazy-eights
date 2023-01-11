@@ -20,7 +20,7 @@ fun main()
 fun readTestStates(ruleset: Ruleset = Ruleset()): Array<ServerGameState>
 {
 	val states = GdxArray<ServerGameState>()
-	File("test/random_states.txt").forEachLine { line ->
+	File("src/test/resources/random_states.txt").forEachLine { line ->
 		states += createState(ruleset, stateStr = line, agent1 = agent1, agent2 = agent2)
 	}
 	return states.toArray(ServerGameState::class.java)

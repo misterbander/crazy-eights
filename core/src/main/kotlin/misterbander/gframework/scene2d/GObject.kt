@@ -22,7 +22,7 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 {
 	val game: T
 		get() = screen.game
-	val modules = OrderedMap<Class<out GModule<*>>, GModule<*>>()
+	val modules = OrderedMap<Class<out GModule>, GModule>()
 	private var isAlive = false
 	
 	/**
@@ -34,13 +34,14 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		for (module: GModule<*> in modules.values())
-		{
-			module.update(delta)
-			repeat(game.fixedUpdateCount) { module.fixedUpdate() }
-		}
+		modules.values().forEach { it.update(delta) }
 		update(delta)
-		repeat(game.fixedUpdateCount) { fixedUpdate() }
+	}
+	
+	fun fixedAct()
+	{
+		modules.values().forEach { it.fixedUpdate() }
+		fixedUpdate()
 	}
 	
 	/**
@@ -62,28 +63,29 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 	open fun fixedUpdate() = Unit
 	
 	/**
-	 * Returns whether this `GObject` contains a module of the specified class.
-	 * @param U concrete class of the module
-	 * @return True if this `GObject` contains a module of the specified class, false otherwise.
+	 * @return True if this `GObject` contains a module of the specified class [U], false otherwise.
 	 */
-	inline fun <reified U : GModule<*>> hasModule(): Boolean = getModule<U>() != null
+	inline fun <reified U : GModule> hasModule(): Boolean = getModule<U>() != null
 	
 	/**
-	 * Returns the module of the specified class.
-	 * @param U concrete class of the module
-	 * @return The module of the specified class. If the module of the specified class does not exist, then null is
+	 * @return The module of the specified class [U]. If the module of the specified class does not exist, then null is
 	 * returned.
 	 */
-	inline fun <reified U : GModule<*>> getModule(): U? = modules[U::class.java] as U?
+	inline fun <reified U : GModule> getModule(): U? = modules[U::class.java] as U?
 	
 	/**
-	 * Adds a module of the specified class to this `GObject`.
-	 * @param U concrete class of the module
+	 * Adds a module of the specified class [U] to this `GObject`.
 	 */
-	inline operator fun <reified U : GModule<*>> GObject<*>.plusAssign(module: U)
+	inline operator fun <reified U : GModule> plusAssign(module: U)
 	{
 		modules[U::class.java] = module
 	}
+	
+	/**
+	 * @return Removes the module of the specified class [U] and then returns it. If the module of the specified class
+	 * does not exist, then null is returned.
+	 */
+	inline fun <reified U : GModule> removeModule() : U? = modules.remove(U::class.java) as U?
 	
 	/**
 	 * Marks this `GObject` for removal. This does not immediately remove the `GObject` from the world, it will be
@@ -111,7 +113,6 @@ abstract class GObject<T : GFramework>(val screen: GScreen<T>) : Group()
 		super.setStage(stage)
 		if (!isAlive && isShown())
 		{
-			modules.values().forEach { it.onSpawn() }
 			onSpawn()
 			isAlive = true
 		}

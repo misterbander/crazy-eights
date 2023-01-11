@@ -96,7 +96,6 @@ import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
 import java.security.MessageDigest
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class CrazyEightsServer(private val roomCode: String)
 {
 	private val asyncContext = newSingleThreadAsyncContext("CrazyEightsServer-AsyncExecutor-Thread")
@@ -316,7 +315,6 @@ class CrazyEightsServer(private val roomCode: String)
 			}
 		}
 		
-		@Suppress("UNCHECKED_CAST")
 		override fun received(connection: Connection, `object`: Any)
 		{
 			if (isStopped)

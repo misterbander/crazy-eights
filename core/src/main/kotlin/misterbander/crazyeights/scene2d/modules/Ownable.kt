@@ -11,15 +11,18 @@ import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.Groupable
 import misterbander.crazyeights.scene2d.MyHand
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 
 class Ownable(
+	private val parent: GObject<CrazyEights>,
 	private val room: RoomScreen,
-	private val id: Int,
-	draggable: Draggable
-) : GModule<CrazyEights>(draggable.parent)
+	private val id: Int
+) : GModule
 {
+	private val game: CrazyEights
+		get() = parent.game
 	val myHand: MyHand?
 		get() = parent.firstAscendant(MyHand::class.java)
 	val isOwned: Boolean

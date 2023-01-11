@@ -7,18 +7,19 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import misterbander.gframework.GFramework
+import misterbander.gframework.scene2d.fixedAct
 import space.earlygrey.shapedrawer.ShapeDrawer
 
 /**
- * A [GLayer] encapsulating a [Stage]. On every frame, it first calls [Stage.act] in [update]. Then it sets the projection
- * matrices of the game's [Batch], [ShapeRenderer], [ShapeDrawer] before drawing the stage in [render]. And finally,
- * [Camera.update] is called in [postRender].
+ * A [GLayer] encapsulating a [Stage]. On every frame, it first calls [Stage.act] and [Stage.fixedAct] in [update].
+ * Then it sets the projection matrices of the game's [Batch], [ShapeRenderer], [ShapeDrawer] before drawing the stage
+ * in [render]. And finally, [Camera.update] is called in [postRender].
  * @param game parent [GFramework] instance
  * @param viewport viewport for the stage
  * @param centerOnResize if true, then the camera will be recentered on screen resize
  */
 open class StageLayer(
-	private val game: GFramework,
+	protected val game: GFramework,
 	private val viewport: Viewport,
 	private val centerOnResize: Boolean
 ) : GLayer
@@ -39,7 +40,11 @@ open class StageLayer(
 		}
 	}
 	
-	override fun update(delta: Float) = stage.act(delta)
+	override fun update(delta: Float)
+	{
+		stage.act(delta)
+		repeat(game.fixedUpdateCount) { stage.fixedAct() }
+	}
 	
 	override fun render(delta: Float)
 	{

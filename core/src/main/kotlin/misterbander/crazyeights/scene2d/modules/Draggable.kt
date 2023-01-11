@@ -12,16 +12,20 @@ import misterbander.crazyeights.kryo.objectMoveEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.scene2d.DragTarget
 import misterbander.gframework.scene2d.GActorGestureListener
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 import java.util.function.BooleanSupplier
 
 open class Draggable(
+	private val parent: GObject<CrazyEights>,
 	private val room: RoomScreen,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable
-) : GModule<CrazyEights>(smoothMovable.parent)
+) : GModule
 {
+	private val game: CrazyEights
+		get() = parent.game
 	val unrotatedDragPositionVec = vec2()
 	val dragPositionVec = vec2()
 	var justDragged = false

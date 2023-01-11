@@ -9,15 +9,19 @@ import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
 import misterbander.gframework.scene2d.GActorGestureListener
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
 import java.util.function.BooleanSupplier
 
 open class Lockable(
+	private val parent: GObject<CrazyEights>,
 	val id: Int,
 	lockHolder: User? = null,
 	private val smoothMovable: SmoothMovable
-) : GModule<CrazyEights>(smoothMovable.parent)
+) : GModule
 {
+	private val game: CrazyEights
+		get() = parent.game
 	var lockHolder: User? = lockHolder
 		private set
 	

@@ -15,7 +15,7 @@ import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
-import misterbander.gframework.scene2d.GTextField
+import misterbander.gframework.scene2d.GTextWidget
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 
@@ -26,7 +26,7 @@ class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room,
 		.map { if (it == Rank.NO_RANK) "Off" else it.toString() }
 	
 	private val maxDrawCountTextField = scene2d.gTextField(this, "3", FORM_TEXT_FIELD_STYLE) {
-		textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
+		filter = GTextWidget.GTextWidgetFilter.DigitsOnlyFilter()
 		onKeyboardFocus { focused ->
 			if (focused)
 				return@onKeyboardFocus

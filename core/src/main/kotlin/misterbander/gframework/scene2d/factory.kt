@@ -4,6 +4,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Tree.Node
 import ktx.scene2d.*
+import ktx.scene2d.defaultStyle
+import ktx.style.*
 
 /**
  * @param accessibleInputDialog optional [AccessibleInputDialog] to put the text field in. If specified, an adjust focus
@@ -23,4 +25,9 @@ inline fun <S> KWidget<S>.gTextField(
 	style: String = defaultStyle,
 	skin: Skin = Scene2DSkin.defaultSkin,
 	init: (@Scene2dDsl GTextField).(S) -> Unit = {}
-): GTextField = actor(GTextField(accessibleInputDialog, text, skin, style), init)
+): GTextField
+{
+	val actor = actor(GTextField(text, skin[style]), init)
+	accessibleInputDialog?.addFocusListener(actor)
+	return actor
+}

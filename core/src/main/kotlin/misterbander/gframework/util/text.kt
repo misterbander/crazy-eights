@@ -5,29 +5,43 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.IntMap
+import com.badlogic.gdx.utils.Pools
 import com.badlogic.gdx.utils.StringBuilder
+import ktx.collections.*
 
 typealias GdxStringBuilder = StringBuilder
 
-private val glyph = GlyphLayout()
+/**
+ * Inserts multiple specified strings each at their specified offsets.
+ * @param strs mapping of indices to strings to be inserted
+ */
+fun GdxStringBuilder.insertMany(strs: IntMap<String>)
+{
+	val offsets = obtain<GdxIntArray>()
+	strs.keys().toArray(offsets)
+	offsets.sort()
+	offsets.reverse()
+	for (i in 0 until offsets.size)
+		insert(offsets[i], strs[offsets[i]])
+	offsets.clear()
+	Pools.free(offsets)
+}
 
 /**
- * Returns the dimensions of a text in pixels based on the [BitmapFont].
- * @param text the text
- * @return A [Vector2] containing the dimensions of the text, in pixels. The returned [Vector2] is not safe for reuse.
+ * @return A [Vector2] containing the width and height of the [text], in pixels. The returned [Vector2] is not safe for reuse.
  */
 fun BitmapFont.textSize(text: String): Vector2
 {
+	val glyph = obtain<GlyphLayout>()
 	glyph.setText(this, text)
 	tempVec.set(glyph.width, glyph.height)
+	Pools.free(glyph)
 	return tempVec
 }
 
 /**
- * Wraps a string to fit within a specified width in pixels, adding line feeds between words where necessary.
- * @param text the text
- * @param targetWidth the width of the wrapped text
- * @return A string wrapped within the specified width.
+ * Wraps [text] to fit within [targetWidth] in pixels, adding line feeds between words where necessary.
  */
 fun BitmapFont.wrap(text: String, targetWidth: Int): String
 {
@@ -52,14 +66,10 @@ fun BitmapFont.wrap(text: String, targetWidth: Int): String
 }
 
 /**
- * Draws a text using a [BitmapFont] centered at a specified position.
- * @param batch the [Batch] to draw with
- * @param str the text to draw
- * @param x the center x position
- * @param y the center y position
+ * Draws [text] centered at ([x], [y]).
  */
-fun BitmapFont.drawCenter(batch: Batch, str: CharSequence, x: Float, y: Float)
+fun BitmapFont.drawCenter(batch: Batch, text: CharSequence, x: Float, y: Float)
 {
-	val textSize = textSize(str.toString())
-	draw(batch, str, x - textSize.x/2, y + textSize.y/2, textSize.x, Align.center, false)
+	val textSize = textSize(text.toString())
+	draw(batch, text, x - textSize.x/2, y + textSize.y/2, textSize.x, Align.center, false)
 }

@@ -15,16 +15,21 @@ import misterbander.crazyeights.kryo.objectRotateEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.gframework.scene2d.GActorGestureListener
+import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
 import misterbander.gframework.util.tempVec
 import java.util.function.BooleanSupplier
 
 open class Rotatable(
+	private val parent: GObject<CrazyEights>,
 	private val smoothMovable: SmoothMovable,
 	private val lockable: Lockable,
 	draggable: Draggable
-) : GModule<CrazyEights>(smoothMovable.parent)
+) : GModule
 {
+	private val game: CrazyEights
+		get() = parent.game
+	
 	var initialRotation = 0F
 	var justRotated = false
 	var isPinching = false

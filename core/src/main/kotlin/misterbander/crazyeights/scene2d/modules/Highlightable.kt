@@ -9,7 +9,7 @@ import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
 
-open class Highlightable(parent: GObject<CrazyEights>) : GModule<CrazyEights>(parent)
+open class Highlightable(private val parent: GObject<CrazyEights>) : GModule
 {
 	private val clickListener: ClickListener
 	protected var over = false

@@ -44,7 +44,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 	private val chatTextField = scene2d.gTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
 		messageText = if (Platform.isMobile) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
-		setFocusTraversal(false)
+		focusTraversal = false
 		onKey { character ->
 			if ((character == '\r' || character == '\n') && text.isNotEmpty())
 			{

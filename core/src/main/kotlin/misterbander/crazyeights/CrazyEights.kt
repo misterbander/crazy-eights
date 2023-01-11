@@ -117,6 +117,9 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 				assetStorage.loadAsync(Shaders.vignette)
 			)
 			assets.joinAll()
+			
+			shapeDrawer.setTextureRegion(assetStorage[TextureAtlases.gui].findRegion("pixel"))
+			
 			Scene2DSkin.defaultSkin = skin {
 				addRegions(assetStorage[TextureAtlases.gui])
 				add("noto_sans_sc", notoSansSc)

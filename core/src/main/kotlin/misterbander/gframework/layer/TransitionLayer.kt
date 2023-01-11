@@ -97,4 +97,3 @@ abstract class TransitionLayer<T : GFramework>(protected val screen: GScreen<T>)
 	 */
 	abstract override fun render(delta: Float)
 }
-

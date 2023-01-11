@@ -16,13 +16,12 @@ import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.MainMenuScreen
 import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.net.packets.Handshake
-import misterbander.gframework.scene2d.GTextField
+import misterbander.gframework.scene2d.GTextWidget
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 import java.net.ConnectException
 import kotlin.coroutines.cancellation.CancellationException
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(mainMenu, "Join Room")
 {
 	private val colorButton: ImageButton = scene2d.imageButton(COLOR_BUTTON_STYLE) {
@@ -68,7 +67,7 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 				row()
 				label("Server Port:", LABEL_SMALL_STYLE)
 				gTextField(this@JoinRoomDialog, port, FORM_TEXT_FIELD_STYLE) {
-					textFieldFilter = GTextField.GTextFieldFilter.DigitsOnlyFilter()
+					filter = GTextWidget.GTextWidgetFilter.DigitsOnlyFilter()
 					onChange {  port = text }
 				}.cell(preferredWidth = 416F)
 				row()

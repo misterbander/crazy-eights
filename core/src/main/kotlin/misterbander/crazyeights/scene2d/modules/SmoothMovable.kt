@@ -11,7 +11,7 @@ class SmoothMovable(
 	x: Float = parent.x,
 	y: Float = parent.y,
 	rotation: Float = parent.rotation
-) : GModule<CrazyEights>(parent)
+) : GModule
 {
 	val xInterpolator = SmoothInterpolator(x, get = { parent.x }) { parent.x = it }
 	var x by xInterpolator

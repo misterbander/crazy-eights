@@ -322,14 +322,14 @@ card_hearts_jack
   index: -1
 card_hearts_king
   rotate: false
-  xy: 1765, 773
+  xy: 1742, 385
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
   index: -1
 card_hearts_queen
   rotate: false
-  xy: 1742, 385
+  xy: 1765, 773
   size: 140, 190
   orig: 140, 190
   offset: 0, 0
@@ -676,6 +676,13 @@ menu_icon_down
   xy: 681, 737
   size: 32, 32
   orig: 32, 32
+  offset: 0, 0
+  index: -1
+pixel
+  rotate: false
+  xy: 2, 6
+  size: 2, 2
+  orig: 2, 2
   offset: 0, 0
   index: -1
 select_box

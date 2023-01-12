@@ -2,7 +2,7 @@ package misterbander.crazyeights
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -21,6 +21,7 @@ import ktx.collections.*
 import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*
+import ktx.style.*
 import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
@@ -30,38 +31,32 @@ import misterbander.crazyeights.scene2d.dialogs.MessageDialog
 
 class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 {
-	private val logo = game.assetStorage[Textures.title].apply {
-		setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
-	}
-	private val mainTable: Table by lazy {
-		scene2d.table {
-			defaults().prefWidth(224F).space(16F)
-			textButton("Play") {
-				onChange { click.play(); showTable(playTable) }
-			}
-			row()
-			textButton("Quit") {
-				onChange { click.play(); Gdx.app.exit() }
-			}
+	private val logo: TextureRegion = Scene2DSkin.defaultSkin["title"]
+	private val mainTable: Table = scene2d.table {
+		defaults().prefWidth(224F).space(16F)
+		textButton("Play") {
+			onChange { click.play(); showTable(playTable) }
+		}
+		row()
+		textButton("Quit") {
+			onChange { click.play(); Gdx.app.exit() }
 		}
 	}
-	private val playTable: Table by lazy {
-		scene2d.table {
-			defaults().prefWidth(224F).space(16F)
-			textButton("Create Room") {
-				onChange { click.play(); createRoomDialog.show() }
-			}
-			row()
-			textButton("Join Room") {
-				onChange { click.play(); joinRoomDialog.show() }
-			}
-			row()
-			textButton("Cancel") {
-				onChange { click.play(); showTable(mainTable) }
-			}
+	private val playTable: Table = scene2d.table {
+		defaults().prefWidth(224F).space(16F)
+		textButton("Create Room") {
+			onChange { click.play(); createRoomDialog.show() }
+		}
+		row()
+		textButton("Join Room") {
+			onChange { click.play(); joinRoomDialog.show() }
+		}
+		row()
+		textButton("Cancel") {
+			onChange { click.play(); showTable(mainTable) }
 		}
 	}
-	private var activeTable: Table
+	private var activeTable = mainTable
 	
 	private val createRoomDialog = CreateRoomDialog(this)
 	val joinRoomDialog = JoinRoomDialog(this)
@@ -71,8 +66,7 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	
 	init
 	{
-		activeTable = mainTable
-		val fallbackActor = Actor().apply {
+		val inputManager = Actor().apply {
 			onKeyDown { keyCode ->
 				if (keyCode != Input.Keys.BACK)
 					return@onKeyDown
@@ -82,8 +76,8 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 					Gdx.app.exit()
 			}
 		}
-		uiStage += fallbackActor
-		uiStage.keyboardFocus = fallbackActor
+		uiStage += inputManager
+		uiStage.keyboardFocus = inputManager
 		uiStage += scene2d.table {
 			setFillParent(true)
 			image(logo).cell(pad = 16F).inCell.top()

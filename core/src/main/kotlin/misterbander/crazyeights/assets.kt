@@ -2,7 +2,6 @@ package misterbander.crazyeights
 
 import com.badlogic.gdx.assets.loaders.ShaderProgramLoader
 import com.badlogic.gdx.audio.Sound
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -11,11 +10,6 @@ import ktx.assets.assetDescriptor
 object TextureAtlases
 {
 	val gui = assetDescriptor<TextureAtlas>("textures/gui.atlas")
-}
-
-object Textures
-{
-	val title = assetDescriptor<Texture>("textures/title.png")
 }
 
 object Fonts

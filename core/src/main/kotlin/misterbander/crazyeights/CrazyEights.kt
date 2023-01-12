@@ -106,7 +106,6 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 		KtxAsync.launch {
 			val assets = listOf(
 				assetStorage.loadAsync(TextureAtlases.gui),
-				assetStorage.loadAsync(Textures.title),
 				assetStorage.loadAsync(Fonts.notoSansSc),
 				assetStorage.loadAsync(Fonts.montserrat),
 				assetStorage.loadAsync(Sounds.click),

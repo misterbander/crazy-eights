@@ -7,9 +7,9 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
 import ktx.actors.KtxInputListener
 import ktx.scene2d.*
 import ktx.style.*
-import misterbander.gframework.GScreen
+import misterbander.gframework.DefaultGScreen
 
-abstract class CrazyEightsScreen(game: CrazyEights) : GScreen<CrazyEights>(game)
+abstract class CrazyEightsScreen(game: CrazyEights) : DefaultGScreen<CrazyEights>(game)
 {
 	val notoSansScSmall: BitmapFont = Scene2DSkin.defaultSkin["noto_sans_sc_small"]
 	

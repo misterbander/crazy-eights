@@ -21,27 +21,26 @@ import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.KeyboardHeightObserver
 
 /**
- * `GScreen`s are extensions of [KtxScreen]s that supports [GLayer]s.
+ * Extension of [KtxScreen] that supports [GLayer]s, notifying soft-keyboard height changes, and delayed adding and
+ * removal of [GObject]s.
  *
- * `GScreen` provides two default [GLayer]s: [mainLayer] and [uiLayer]. [mainLayer] and [uiLayer] each hold a [Stage]
- * which can be used for the game world and UI respectively. These [GLayer]s can be overridden to use your own custom
- * implementations.
+ * `GScreen` defines two default [GLayer]s: [mainLayer] and [uiLayer]. [mainLayer] and [uiLayer] each hold a [Stage]
+ * which can be used for the game world and UI respectively.
  *
- * [viewport] and [uiViewport] are also defined for use by [mainLayer] and [uiLayer]. Both default to [ExtendViewport]s
- * but you can specify to use your own viewports.
+ * [viewport] and [uiViewport] are also defined for use by [mainLayer] and [uiLayer].
  *
- * You can also override the layers to reorder or add your own [GLayer]s.
- *
- * @param game the parent [GFramework] instance
- * @param viewport Primary viewport to project stage contents in [mainLayer]. Defaults to [ExtendViewport].
- * @param uiViewport Secondary viewport to project stage contents in [uiLayer]. Also defaults to [ExtendViewport].
+ * All [GLayer]s are processed in order specified by [layers], which can be overridden to change the order or to add
+ * your own [GLayer]s.
  */
-abstract class GScreen<T : GFramework>(
-	val game: T,
-	val viewport: Viewport = ExtendViewport(1280F, 720F),
-	val uiViewport: ExtendViewport = ExtendViewport(1280F, 720F)
-) : KtxScreen
+interface GScreen<T : GFramework> : KtxScreen
 {
+	/** The parent [GFramework] instance. */
+	val game: T
+	/** Primary viewport to project stage contents in [mainLayer]. */
+	val viewport: Viewport
+	/** Secondary viewport to project stage contents in [uiLayer]. */
+	val uiViewport: ExtendViewport
+	
 	/** Main camera used by [viewport] to project contents of [stage] in [mainLayer]. */
 	val camera: Camera
 		get() = viewport.camera
@@ -49,17 +48,15 @@ abstract class GScreen<T : GFramework>(
 	val uiCamera: OrthographicCamera
 		get() = uiViewport.camera as OrthographicCamera
 	
-	protected open val mainLayer = StageLayer(game, viewport, false)
-	protected open val uiLayer = StageLayer(game, uiViewport, true)
+	val mainLayer: StageLayer
+	val uiLayer: StageLayer
 	/**
 	 * All the [GLayer]s in the screen.
 	 *
-	 * [GLayer]s are ordered by their order of rendering, so [GLayer]s will render on top of other [GLayer]s that come
-	 * before it in the array.
-	 *
-	 * Can be overridden to customize the layers.
+	 * [GLayer]s are ordered by their order in the array, so [GLayer]s will render on top of other [GLayer]s that come
+	 * before it.
 	 */
-	protected open val layers: Array<GLayer> by lazy { arrayOf(mainLayer, uiLayer) }
+	val layers: Array<GLayer>
 	
 	/** Main stage in [mainLayer]. */
 	val stage: Stage
@@ -69,13 +66,13 @@ abstract class GScreen<T : GFramework>(
 		get() = uiLayer.stage
 	
 	/**
-	 * Convenient set of [KeyboardHeightObserver]s that you can notify soft-keyboard height changes from mobile
+	 * Convenient set of [KeyboardHeightObserver]s that you can notify soft-keyboard height changes in mobile
 	 * platforms.
 	 */
-	val keyboardHeightObservers = GdxSet<KeyboardHeightObserver>()
+	val keyboardHeightObservers: GdxSet<KeyboardHeightObserver>
 	
-	val scheduledAddingGObjects = OrderedMap<GObject<*>, Group>()
-	val scheduledRemovalGObjects = OrderedSet<GObject<*>>()
+	val scheduledAddingGObjects: OrderedMap<GObject<*>, Group>
+	val scheduledRemovalGObjects: OrderedSet<GObject<*>>
 	
 	override fun show()
 	{
@@ -105,7 +102,7 @@ abstract class GScreen<T : GFramework>(
 	 *
 	 * You can override this to change the background color.
 	 */
-	open fun clearScreen() = ScreenUtils.clear(Color.BLACK, true)
+	fun clearScreen() = ScreenUtils.clear(Color.BLACK, true)
 	
 	override fun resize(width: Int, height: Int)
 	{

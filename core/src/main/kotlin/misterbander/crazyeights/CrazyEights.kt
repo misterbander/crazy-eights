@@ -5,7 +5,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.math.MathUtils
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -27,62 +26,6 @@ import misterbander.gframework.GFramework
  */
 class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 {
-	// Fonts
-	private val notoSansScGenerator: FreeTypeFontGenerator
-		get() = assetStorage[Fonts.notoSansSc]
-	private val montserratGenerator: FreeTypeFontGenerator
-		get() = assetStorage[Fonts.montserrat]
-	val notoSansSc by lazy {
-		notoSansScGenerator.generateFont {
-			size = 40
-			minFilter = Texture.TextureFilter.Linear
-			magFilter = Texture.TextureFilter.Linear
-			incremental = true
-		}
-	}
-	val notoSansScSmall by lazy {
-		notoSansScGenerator.generateFont {
-			size = 25
-			minFilter = Texture.TextureFilter.Linear
-			magFilter = Texture.TextureFilter.Linear
-			incremental = true
-		}
-	}
-	val notoSansScTiny by lazy {
-		notoSansScGenerator.generateFont {
-			size = 15
-			minFilter = Texture.TextureFilter.Linear
-			magFilter = Texture.TextureFilter.Linear
-			incremental = true
-		}
-	}
-	val notoSansScLarge by lazy {
-		notoSansScGenerator.generateFont {
-			size = 64
-			minFilter = Texture.TextureFilter.Linear
-			magFilter = Texture.TextureFilter.Linear
-			incremental = true
-		}
-	}
-	val montserrat by lazy {
-		montserratGenerator.generateFont {
-			size = 128
-			minFilter = Texture.TextureFilter.Linear
-			magFilter = Texture.TextureFilter.Linear
-			incremental = true
-		}
-	}
-	val montserratOutlined by lazy {
-		montserratGenerator.generateFont {
-			size = 108
-			minFilter = Texture.TextureFilter.Linear
-			magFilter = Texture.TextureFilter.Linear
-			incremental = true
-			borderColor = Color.BLACK
-			borderWidth = 3F
-		}
-	}
-	
 	lateinit var user: User
 	
 	val network = Network()
@@ -104,10 +47,13 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 		KtxAsync.initiate()
 		
 		KtxAsync.launch {
+			val guiAtlasDeferred = assetStorage.loadAsync(TextureAtlases.gui)
+			val notoSansScGeneratorDeferred = assetStorage.loadAsync(Fonts.notoSansSc)
+			val montserratGeneratorDeferred = assetStorage.loadAsync(Fonts.montserrat)
 			val assets = listOf(
-				assetStorage.loadAsync(TextureAtlases.gui),
-				assetStorage.loadAsync(Fonts.notoSansSc),
-				assetStorage.loadAsync(Fonts.montserrat),
+				guiAtlasDeferred,
+				notoSansScGeneratorDeferred,
+				montserratGeneratorDeferred,
 				assetStorage.loadAsync(Sounds.click),
 				assetStorage.loadAsync(Sounds.cardSlide),
 				assetStorage.loadAsync(Sounds.dramatic),
@@ -116,11 +62,50 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 				assetStorage.loadAsync(Shaders.vignette)
 			)
 			assets.joinAll()
-			
-			shapeDrawer.setTextureRegion(assetStorage[TextureAtlases.gui].findRegion("pixel"))
+			val guiAtlas = guiAtlasDeferred.await()
+			val notoSansScGenerator = notoSansScGeneratorDeferred.await()
+			val montserratGenerator = montserratGeneratorDeferred.await()
+			val notoSansSc = notoSansScGenerator.generateFont {
+				size = 40
+				minFilter = Texture.TextureFilter.Linear
+				magFilter = Texture.TextureFilter.Linear
+				incremental = true
+			}.alsoRegister()
+			val notoSansScSmall = notoSansScGenerator.generateFont {
+				size = 25
+				minFilter = Texture.TextureFilter.Linear
+				magFilter = Texture.TextureFilter.Linear
+				incremental = true
+			}.alsoRegister()
+			val notoSansScTiny = notoSansScGenerator.generateFont {
+				size = 15
+				minFilter = Texture.TextureFilter.Linear
+				magFilter = Texture.TextureFilter.Linear
+				incremental = true
+			}.alsoRegister()
+			val notoSansScLarge = notoSansScGenerator.generateFont {
+				size = 64
+				minFilter = Texture.TextureFilter.Linear
+				magFilter = Texture.TextureFilter.Linear
+				incremental = true
+			}.alsoRegister()
+			val montserrat = montserratGenerator.generateFont {
+				size = 128
+				minFilter = Texture.TextureFilter.Linear
+				magFilter = Texture.TextureFilter.Linear
+				incremental = true
+			}.alsoRegister()
+			val montserratOutlined = montserratGenerator.generateFont {
+				size = 108
+				minFilter = Texture.TextureFilter.Linear
+				magFilter = Texture.TextureFilter.Linear
+				incremental = true
+				borderColor = Color.BLACK
+				borderWidth = 3F
+			}.alsoRegister()
 			
 			Scene2DSkin.defaultSkin = skin {
-				addRegions(assetStorage[TextureAtlases.gui])
+				addRegions(guiAtlas)
 				add("noto_sans_sc", notoSansSc)
 				add("noto_sans_sc_small", notoSansScSmall)
 				add("noto_sans_sc_tiny", notoSansScTiny)
@@ -129,6 +114,8 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 				add("montserrat_outlined", montserratOutlined)
 				load(Gdx.files.internal("textures/skin.json"))
 			}
+			
+			shapeDrawer.setTextureRegion(guiAtlas.findRegion("pixel"))
 			
 			info("CrazyEights | INFO") { "Finished loading assets!" }
 			

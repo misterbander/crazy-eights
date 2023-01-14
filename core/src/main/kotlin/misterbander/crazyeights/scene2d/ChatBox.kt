@@ -40,7 +40,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 	private val uiStage: Stage
 		get() = room.uiStage
 	
-	private val padVertical = game.notoSansScSmall.let { it.lineHeight - it.textSize(FreeTypeFontGenerator.DEFAULT_CHARS).y + it.descent*2 }/2
+	private val padVertical = room.notoSansScSmall.let { it.lineHeight - it.textSize(FreeTypeFontGenerator.DEFAULT_CHARS).y + it.descent*2 }/2
 	private val chatTextField = scene2d.gTextField(null, "", CHAT_TEXT_FIELD_STYLE) {
 		messageText = if (Platform.isMobile) "Tap here to chat..." else "Press T to chat..."
 		maxLength = 256
@@ -86,8 +86,8 @@ class ChatBox(private val room: RoomScreen) : Table()
 		add(chatTextField)
 		row()
 		add(scene2d.stack {
-			container(chatPopupScrollPane).top().left().maxHeight(game.notoSansScSmall.lineHeight*7)
-			container(chatHistoryScrollPane).fill().maxHeight(game.notoSansScSmall.lineHeight*7)
+			container(chatPopupScrollPane).top().left().maxHeight(room.notoSansScSmall.lineHeight*7)
+			container(chatHistoryScrollPane).fill().maxHeight(room.notoSansScSmall.lineHeight*7)
 		}).left()
 	}
 	

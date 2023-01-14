@@ -1,15 +1,19 @@
 package misterbander.crazyeights
 
-import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import ktx.actors.KtxInputListener
+import ktx.scene2d.*
+import ktx.style.*
 import misterbander.gframework.GScreen
 
 abstract class CrazyEightsScreen(game: CrazyEights) : GScreen<CrazyEights>(game)
 {
-	val click = game.assetStorage.get<Sound>("sounds/click.wav")
+	val notoSansScSmall: BitmapFont = Scene2DSkin.defaultSkin["noto_sans_sc_small"]
+	
+	val click = game.assetStorage[Sounds.click]
 	
 	val transition by lazy {
 		SmoothWipeTransition(this, ExtendViewport(1280F, 720F, OrthographicCamera().apply { setToOrtho(false) }))

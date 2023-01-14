@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
+import ktx.assets.DisposableContainer
+import ktx.assets.DisposableRegistry
 import ktx.assets.async.AssetStorage
 import ktx.async.newAsyncContext
 import ktx.freetype.async.registerFreeTypeFontLoaders
@@ -21,7 +23,9 @@ import space.earlygrey.shapedrawer.ShapeDrawer
  *
  * @author Mister_Bander
  */
-abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
+abstract class GFramework(
+	private val disposableContainer: DisposableContainer = DisposableContainer()
+) : KtxGame<KtxScreen>(clearScreen = false), DisposableRegistry by disposableContainer
 {
 	val batch = PolygonSpriteBatch()
 	val shapeRenderer = ShapeRenderer()
@@ -48,9 +52,10 @@ abstract class GFramework : KtxGame<KtxScreen>(clearScreen = false)
 	
 	override fun dispose()
 	{
+		super.dispose()
 		batch.dispose()
 		shapeRenderer.dispose()
 		assetStorage.dispose()
-		super.dispose()
+		disposableContainer.dispose()
 	}
 }

@@ -34,6 +34,7 @@ import misterbander.crazyeights.model.Chat
 import misterbander.crazyeights.model.CursorPosition
 import misterbander.crazyeights.model.GameState
 import misterbander.crazyeights.net.BufferedListener
+import misterbander.crazyeights.net.ListenerContainer
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
@@ -105,7 +106,7 @@ import misterbander.gframework.util.SmoothAngleInterpolator
 import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.toPixmap
 
-class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
+class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer<RoomScreen.ClientListener>
 {
 	// Sounds
 	val cardSlide = game.assetStorage[Sounds.cardSlide]
@@ -220,7 +221,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 		get() = gameState != null
 	
 	// Networking
-	var clientListener = ClientListener()
+	override var listener: ClientListener? = null
 	var selfDisconnect = false
 	private var timeSinceLastSync = 0F
 	
@@ -359,7 +360,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 		}
 		if (shouldSyncServer)
 			game.client?.flushOutgoingPacketBuffer()
-		clientListener.processPackets()
+		listener?.processPackets()
 	}
 	
 	override fun clearScreen()
@@ -380,6 +381,8 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 		vignetteShader.bind()
 		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
 	}
+	
+	
 	
 	fun addUprightGObject(actor: Actor)
 	{
@@ -411,6 +414,8 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 	}
 	
+	override fun newListener(): ClientListener = ClientListener()
+	
 	inner class ClientListener : BufferedListener()
 	{
 //		override fun connected(connection: Connection) = connection.setTimeout(0)
@@ -423,7 +428,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game)
 			if (!selfDisconnect)
 			{
 				mainMenu.messageDialog.show("Disconnected", "Server closed.", "OK")
-				game.network.stop()
+				game.net.stop()
 			}
 			transition.start(targetScreen = mainMenu, targetScreenTransition = mainMenu.transition)
 		}

@@ -23,13 +23,14 @@ import ktx.log.info
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.model.TabletopState
+import misterbander.crazyeights.net.ListenerContainer
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
 import misterbander.crazyeights.scene2d.dialogs.CreateRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.JoinRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.MessageDialog
 
-class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
+class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer<MainMenuScreen.ClientListener>
 {
 	private val logo: TextureRegion = Scene2DSkin.defaultSkin["title"]
 	private val mainTable: Table = scene2d.table {
@@ -62,7 +63,7 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 	val joinRoomDialog = JoinRoomDialog(this)
 	val messageDialog = MessageDialog(this)
 	
-	var clientListener: ClientListener? = null
+	override var listener: ClientListener? = null
 	
 	init
 	{
@@ -124,6 +125,8 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 		}
 	}
 	
+	override fun newListener(): ClientListener = ClientListener()
+	
 	inner class ClientListener : Listener
 	{
 		override fun received(connection: Connection, `object`: Any)
@@ -137,14 +140,14 @@ class MainMenuScreen(game: CrazyEights) : CrazyEightsScreen(game), Listener
 				}
 				is HandshakeReject -> Gdx.app.postRunnable {
 					info("Client | INFO") { "Handshake failed, reason: ${`object`.reason}" }
-					game.network.stop()
+					game.net.stop()
 					messageDialog.show("Error", `object`.reason, "OK", joinRoomDialog::show)
 				}
 				is TabletopState -> Gdx.app.postRunnable {
 					val room = game.getScreen<RoomScreen>()
 					room.tabletop.setState(`object`)
 					messageDialog.hide(false)
-					game.client!!.removeListener(this)
+					game.client!!.removeListener(this@MainMenuScreen)
 					transition.start(targetScreen = room, targetScreenTransition = room.transition)
 				}
 			}

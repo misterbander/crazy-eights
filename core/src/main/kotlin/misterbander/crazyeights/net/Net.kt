@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import ktx.async.KtxAsync
 
-class Network
+class Net
 {
 	var server: CrazyEightsServer? = null
 		private set
@@ -51,7 +51,7 @@ class Network
 		stopNetworkJob = KtxAsync.launch {
 			val client = client
 			KtxAsync.launch { client?.stop() }
-			this@Network.client = null
+			this@Net.client = null
 			server?.stop()
 			server = null
 		}

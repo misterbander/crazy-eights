@@ -3,7 +3,6 @@ package misterbander.crazyeights.net
 import com.badlogic.gdx.utils.OrderedSet
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.ClientDiscoveryHandler
-import com.esotericsoftware.kryonet.Listener
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -155,9 +154,9 @@ class CrazyEightsClient
 		outgoingPacketBuffer.clear()
 	}
 	
-	fun addListener(listener: Listener) = client.addListener(listener)
+	fun addListener(listenerContainer: ListenerContainer<*>) = client.addListener(listenerContainer.registerNewListener())
 	
-	fun removeListener(listener: Listener) = client.removeListener(listener)
+	fun removeListener(listenerContainer: ListenerContainer<*>) = client.removeListener(listenerContainer.unregisterListener())
 	
 	object BufferEnd
 }

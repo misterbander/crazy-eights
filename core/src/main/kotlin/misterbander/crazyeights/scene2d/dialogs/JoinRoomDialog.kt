@@ -106,13 +106,10 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 			if (mainMenu.transition.isRunning)
 				return@show
 			info("JoinRoomDialog | INFO") { "Cancelling connection..." }
-			if (mainMenu.clientListener != null)
-			{
-				game.network.client?.removeListener(mainMenu.clientListener!!)
-				mainMenu.clientListener = null
-			}
+			if (mainMenu.listener != null)
+				game.net.client?.removeListener(mainMenu)
 			joinRoomJob?.cancel()
-			game.network.stop()
+			game.net.stop()
 			show()
 		}
 		joinRoomJob = KtxAsync.launch {
@@ -120,19 +117,17 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 			try
 			{
 				val room = game.getScreen<RoomScreen>()
-				room.clientListener = room.ClientListener()
-				mainMenu.clientListener = mainMenu.ClientListener()
 				val client = if (showAdvancedOptions)
-					game.network.createAndConnectClient(serverAddress, port, maxRetries = 5)
+					game.net.createAndConnectClient(serverAddress, port, maxRetries = 5)
 				else
 				{
 					info("Client | INFO") { "Finding server with room code $roomCode" }
-					game.network.createAndConnectClientByRoomCode(roomCode)
+					game.net.createAndConnectClientByRoomCode(roomCode)
 				}
 				if (!isActive)
 					throw CancellationException()
-				client.addListener(mainMenu.clientListener!!)
-				client.addListener(room.clientListener)
+				client.addListener(mainMenu)
+				client.addListener(room)
 				// Perform handshake by doing checking version and username availability
 				info("Client | INFO") { "Perform handshake" }
 				client.sendTCP(Handshake(data = arrayOf(game.user.name, roomCode)))
@@ -152,7 +147,7 @@ class JoinRoomDialog(private val mainMenu: MainMenuScreen) : RebuildableDialog(m
 						)
 					else
 						mainMenu.messageDialog.show("Error", e.toString(), "OK", this@JoinRoomDialog::show)
-					game.network.stop()
+					game.net.stop()
 				}
 			}
 		}

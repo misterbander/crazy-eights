@@ -18,7 +18,7 @@ import ktx.style.*
 import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.CrazyEightsClient
 import misterbander.crazyeights.net.CrazyEightsServer
-import misterbander.crazyeights.net.Network
+import misterbander.crazyeights.net.Net
 import misterbander.gframework.GFramework
 
 /**
@@ -28,11 +28,11 @@ class CrazyEights(private val args: Array<String> = emptyArray()) : GFramework()
 {
 	lateinit var user: User
 	
-	val network = Network()
+	val net = Net()
 	val server: CrazyEightsServer?
-		get() = network.server
+		get() = net.server
 	val client: CrazyEightsClient?
-		get() = network.client
+		get() = net.client
 	
 	override fun create()
 	{

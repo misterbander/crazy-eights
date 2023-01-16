@@ -15,10 +15,10 @@ import ktx.preferences.get
 import ktx.preferences.set
 import ktx.scene2d.*
 import ktx.style.*
-import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.CrazyEightsClient
-import misterbander.crazyeights.net.CrazyEightsServer
 import misterbander.crazyeights.net.Net
+import misterbander.crazyeights.net.client.CrazyEightsClient
+import misterbander.crazyeights.net.server.CrazyEightsServer
+import misterbander.crazyeights.net.server.User
 import misterbander.gframework.GFramework
 
 /**

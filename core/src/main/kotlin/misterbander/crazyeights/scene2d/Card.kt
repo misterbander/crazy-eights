@@ -14,15 +14,15 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCard.Rank
-import misterbander.crazyeights.model.ServerCard.Suit
-import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.server.ServerCard
+import misterbander.crazyeights.net.server.ServerCard.Rank
+import misterbander.crazyeights.net.server.ServerCard.Suit
+import misterbander.crazyeights.net.server.User
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -43,6 +43,9 @@ class Card(
 	lockHolder: User? = null
 ) : Groupable<CardGroup>(room), DragTarget
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
+	
 	private val faceUpDrawable: Drawable =
 		Scene2DSkin.defaultSkin[if (suit == Suit.JOKER) "card_joker" else "card_${suit.name.lowercase()}_${if (rank == Rank.ACE || rank == Rank.JACK || rank == Rank.QUEEN || rank == Rank.KING) rank.name.lowercase() else rank}"]
 	private val faceDownDrawable: Drawable = Scene2DSkin.defaultSkin["card_back_red"]
@@ -97,11 +100,11 @@ class Card(
 			var shouldSendUpdates = true
 			if (isLockHolder && ownable.isOwned && !draggable.justDragged && !rotatable.justRotated && !justLongPressed)
 			{
-				if (room.isGameStarted)
+				if (tabletop.isGameStarted)
 				{
 					game.client?.apply {
 						outgoingPacketBuffer += CardGroupChangeEvent(
-							gdxArrayOf(toServerCard()), room.tabletop.discardPile!!.id, game.user.name
+							gdxArrayOf(toServerCard()), tabletop.discardPile!!.id, game.user.name
 						)
 					}
 					shouldSendUpdates = false
@@ -112,7 +115,7 @@ class Card(
 			super.unlock(true)
 			cardGroup?.arrange()
 			if (isLockHolder && ownable.isOwned && shouldSendUpdates)
-				room.tabletop.myHand.sendUpdates()
+				tabletop.myHand.sendUpdates()
 		}
 	}
 	override val draggable: Draggable = object : Draggable(this, room, smoothMovable, lockable)
@@ -165,7 +168,7 @@ class Card(
 	private fun separateFromCardGroup()
 	{
 		val cardGroup = cardGroup ?: return
-		if (cardGroup.ownable.myHand != null)
+		if (cardGroup.ownable.isOwned)
 			return
 		if (cardGroup.cardHolder != null || cardGroup.cards.size > 2)
 		{

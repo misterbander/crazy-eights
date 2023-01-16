@@ -6,11 +6,8 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Cursor
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.TextureRegion
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.utils.Align
-import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectFloatMap
 import com.esotericsoftware.kryonet.Connection
 import kotlinx.coroutines.launch
@@ -23,29 +20,24 @@ import ktx.async.KtxAsync
 import ktx.async.skipFrame
 import ktx.collections.*
 import ktx.graphics.use
-import ktx.log.info
-import ktx.math.component1
-import ktx.math.component2
 import ktx.scene2d.*
 import ktx.style.*
-import misterbander.crazyeights.game.Ruleset
-import misterbander.crazyeights.kryo.cursorPositionPool
-import misterbander.crazyeights.model.Chat
-import misterbander.crazyeights.model.CursorPosition
-import misterbander.crazyeights.model.GameState
-import misterbander.crazyeights.net.BufferedListener
 import misterbander.crazyeights.net.ListenerContainer
+import misterbander.crazyeights.net.QueuedListener
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupCreateEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.Chat
+import misterbander.crazyeights.net.packets.CursorPosition
 import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.GameEndedEvent
+import misterbander.crazyeights.net.packets.GameState
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ObjectDisownEvent
@@ -54,7 +46,6 @@ import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectOwnEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
-import misterbander.crazyeights.net.packets.PassEvent
 import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.ReversePlayedEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
@@ -64,46 +55,17 @@ import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
-import misterbander.crazyeights.net.packets.onCardFlip
-import misterbander.crazyeights.net.packets.onCardGroupChange
-import misterbander.crazyeights.net.packets.onCardGroupCreate
-import misterbander.crazyeights.net.packets.onCardGroupDetach
-import misterbander.crazyeights.net.packets.onDrawStackRefill
-import misterbander.crazyeights.net.packets.onDrawTwoPenalty
-import misterbander.crazyeights.net.packets.onDrawTwosPlayed
-import misterbander.crazyeights.net.packets.onEightsPlayed
-import misterbander.crazyeights.net.packets.onGameEnded
-import misterbander.crazyeights.net.packets.onGameStateUpdated
-import misterbander.crazyeights.net.packets.onNewGame
-import misterbander.crazyeights.net.packets.onObjectDisown
-import misterbander.crazyeights.net.packets.onObjectLock
-import misterbander.crazyeights.net.packets.onObjectMove
-import misterbander.crazyeights.net.packets.onObjectOwn
-import misterbander.crazyeights.net.packets.onObjectRotate
-import misterbander.crazyeights.net.packets.onResetDeck
-import misterbander.crazyeights.net.packets.onReversePlayed
-import misterbander.crazyeights.net.packets.onRulesetUpdate
-import misterbander.crazyeights.net.packets.onSkipsPlayed
-import misterbander.crazyeights.net.packets.onSwapSeats
-import misterbander.crazyeights.net.packets.onTouchUp
-import misterbander.crazyeights.net.packets.onUserJoined
-import misterbander.crazyeights.net.packets.onUserLeft
-import misterbander.crazyeights.scene2d.CardGroup
 import misterbander.crazyeights.scene2d.ChatBox
-import misterbander.crazyeights.scene2d.CrazyEightsCursor
 import misterbander.crazyeights.scene2d.Debug
 import misterbander.crazyeights.scene2d.HelpPanel
-import misterbander.crazyeights.scene2d.OpponentHand
 import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.crazyeights.scene2d.dialogs.GameMenuDialog
 import misterbander.crazyeights.scene2d.dialogs.GameSettingsDialog
 import misterbander.crazyeights.scene2d.dialogs.UserDialog
-import misterbander.crazyeights.scene2d.modules.Lockable
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.layer.StageLayer
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.SmoothAngleInterpolator
-import misterbander.gframework.util.tempVec
 import misterbander.gframework.util.toPixmap
 
 class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer<RoomScreen.ClientListener>
@@ -136,7 +98,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 	}
 	
 	// UI
-	val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
+	private val menuButton = scene2d.imageButton(MENU_BUTTON_STYLE) {
 		onChange { click.play(); gameMenuDialog.show() }
 	}
 	val chatBox = ChatBox(this)
@@ -169,18 +131,6 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 	}
 	var cameraAngle by cameraAngleInterpolator
 	
-	val passButton = scene2d.textButton("Pass") {
-		setOrigin(Align.center)
-		isTransform = true
-		isVisible = false
-		addUprightGObject(this)
-		onChange {
-			click.play()
-			game.client?.sendTCP(PassEvent)
-			isVisible = false
-		}
-	}
-	
 	val inputManager = object : Actor()
 	{
 		init
@@ -201,7 +151,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 					gameMenuDialog.show()
 				else if (keyCode == Input.Keys.T)
 					KtxAsync.launch {
-						// On Linux, skip at least 2 frames to ignore the last T press so we don't get a 't' character inserted
+						// On Linux, skip at least 2 frames to ignore the last T press, so we don't get a 't' character inserted
 						// into the chat box
 						repeat(2) { skipFrame() }
 						chatBox.setFocused(true)
@@ -212,13 +162,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 		override fun hit(x: Float, y: Float, touchable: Boolean): Actor = this
 	}
 	
-	// Tabletop states
 	val tabletop = Tabletop(this)
-	private val cursorPositions = IntMap<CursorPosition>()
-	var ruleset = Ruleset(firstDiscardOnDealTriggersPower = true)
-	var gameState: GameState? = null
-	val isGameStarted: Boolean
-		get() = gameState != null
 	
 	// Networking
 	override var listener: ClientListener? = null
@@ -257,16 +201,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 			actor(chatBox).cell(expandX = true, fillX = true, pad = 16F)
 		}
 		
-		stage += tabletop.playDirectionIndicator
-		stage += tabletop.cardHolders
-		stage += tabletop.opponentHands
-		stage += tabletop.cards
-		stage += tabletop.myHand
-		stage += tabletop.powerCardEffects
-		stage += tabletop.persistentPowerCardEffects
-		stage += passButton
-		stage += tabletop.cursors
-		stage += tabletop.myCursors
+		stage += tabletop
 
 //		stage += gizmo1
 //		stage += gizmo2
@@ -317,50 +252,10 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 		}
 		else
 			false
-		for (i in 0..19)
-		{
-			if (Gdx.input.isTouched(i) || Platform.isDesktop && i == 0)
-			{
-				val (inputX, inputY) = stage.screenToStageCoordinates(
-					tempVec.set(Gdx.input.getX(i).toFloat(), Gdx.input.getY(i).toFloat())
-				)
-				if (!Platform.isDesktop || i != 0)
-				{
-					val cursorsMap: IntMap<CrazyEightsCursor>? = tabletop.userToCursorsMap[game.user.name]
-					cursorsMap?.getOrPut(i) {
-						val cursor = CrazyEightsCursor(this, game.user, true)
-						cursorsMap[i] = cursor
-						tabletop.cursors += cursor
-						addUprightGObject(cursor)
-						cursor
-					}?.snapPosition(inputX, inputY)
-				}
-				
-				if (shouldSyncServer)
-				{
-					val cursorPosition = cursorPositions.getOrPut(i) { CursorPosition() }
-					if (Vector2.dst2(inputX, inputY, cursorPosition.x, cursorPosition.y) > 1)
-					{
-						cursorPosition.apply {
-							username = game.user.name
-							x = inputX
-							y = inputY
-							pointer = i
-						}
-						game.client?.sendTCP(cursorPosition)
-					}
-				}
-			}
-			else if (i in cursorPositions && cursorPositions.size > 1)
-			{
-				cursorPositions.remove(i)
-				tabletop.userToCursorsMap[game.user.name]?.remove(i)?.remove()
-				game.client?.sendTCP(TouchUpEvent(game.user.name, i))
-			}
-		}
+		tabletop.renderCursors(shouldSyncServer)
 		if (shouldSyncServer)
 			game.client?.flushOutgoingPacketBuffer()
-		listener?.processPackets()
+		listener?.handlePackets()
 	}
 	
 	override fun clearScreen()
@@ -381,8 +276,6 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 		vignetteShader.bind()
 		vignetteShader.setUniformf("u_resolution", width.toFloat(), height.toFloat())
 	}
-	
-	
 	
 	fun addUprightGObject(actor: Actor)
 	{
@@ -408,15 +301,13 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 		// Reset room state
 		chatBox.clearChats()
 		tabletop.reset()
-		passButton.isVisible = false
-		gameState = null
 		centerTitleContainer.isVisible = false
 		Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow)
 	}
 	
 	override fun newListener(): ClientListener = ClientListener()
 	
-	inner class ClientListener : BufferedListener()
+	inner class ClientListener : QueuedListener()
 	{
 //		override fun connected(connection: Connection) = connection.setTimeout(0)
 		
@@ -433,50 +324,28 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 			transition.start(targetScreen = mainMenu, targetScreenTransition = mainMenu.transition)
 		}
 		
-		override fun processPacket(packet: Any)
+		override fun handlePacket(packet: Any)
 		{
-			val idToGObjectMap = tabletop.idToGObjectMap
 			when (packet)
 			{
 				is UserJoinedEvent -> tabletop.onUserJoined(packet)
 				is UserLeftEvent -> tabletop.onUserLeft(packet)
 				is SwapSeatsEvent -> tabletop.onSwapSeats(packet)
-				is Chat ->
-				{
-					val (_, message, isSystemMessage) = packet
-					chatBox.chat(message, if (isSystemMessage) Color.YELLOW else null)
-					info("Client | CHAT") { message }
-				}
-				is CursorPosition ->
-				{
-					val (username, x, y, pointer) = packet
-					val cursorsMap = tabletop.userToCursorsMap[username]!!
-					cursorsMap[-1]?.remove()
-					if (pointer in cursorsMap)
-						cursorsMap[pointer]!!.setPosition(x, y)
-					else
-					{
-						val cursor = CrazyEightsCursor(this@RoomScreen, tabletop.users[username]!!)
-						cursorsMap[pointer] = cursor
-						tabletop.cursors += cursor
-						addUprightGObject(cursor)
-						cursor.snapPosition(x, y)
-					}
-					cursorPositionPool.free(packet)
-				}
+				is Chat -> chatBox.chat(packet.message, if (packet.isSystemMessage) Color.YELLOW else null)
+				is CursorPosition -> tabletop.onCursorMoved(packet)
 				is TouchUpEvent -> tabletop.onTouchUp(packet)
 				is ObjectLockEvent -> tabletop.onObjectLock(packet) // User attempts to lock an object
-				is ObjectUnlockEvent -> idToGObjectMap[packet.id]?.getModule<Lockable>()?.unlock()
+				is ObjectUnlockEvent -> tabletop.onObjectUnlock(packet)
 				is ObjectOwnEvent -> tabletop.onObjectOwn(packet)
 				is ObjectDisownEvent -> tabletop.onObjectDisown(packet)
-				is HandUpdateEvent -> (tabletop.userToHandMap[packet.ownerUsername] as? OpponentHand)?.flatten()
+				is HandUpdateEvent -> tabletop.updateHand(packet.ownerUsername)
 				is ObjectMoveEvent -> tabletop.onObjectMove(packet)
 				is ObjectRotateEvent -> tabletop.onObjectRotate(packet)
 				is CardFlipEvent -> tabletop.onCardFlip(packet)
 				is CardGroupCreateEvent -> tabletop.onCardGroupCreate(packet)
 				is CardGroupChangeEvent -> tabletop.onCardGroupChange(packet)
 				is CardGroupDetachEvent -> tabletop.onCardGroupDetach(packet)
-				is CardGroupDismantleEvent -> (idToGObjectMap[packet.id] as CardGroup).dismantle()
+				is CardGroupDismantleEvent -> tabletop.onCardGroupDismantle(packet)
 //				is CardGroupShuffleEvent ->
 //				{
 //					val (id, seed) = packet
@@ -484,11 +353,11 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 //					cardGroup.shuffle(seed)
 //				}
 				is NewGameEvent -> tabletop.onNewGame(packet)
-				is RulesetUpdateEvent -> onRulesetUpdate(packet)
+				is RulesetUpdateEvent -> tabletop.onRulesetUpdate(packet)
 				is GameState -> tabletop.onGameStateUpdated(packet)
 				is GameEndedEvent -> tabletop.onGameEnded(packet)
 				is EightsPlayedEvent -> tabletop.onEightsPlayed(packet)
-				is SuitDeclareEvent -> tabletop.suitChooser?.chosenSuit = packet.suit
+				is SuitDeclareEvent -> tabletop.onSuitsDeclared(packet)
 				is DrawTwosPlayedEvent -> tabletop.onDrawTwosPlayed(packet)
 				is DrawTwoPenaltyEvent -> tabletop.onDrawTwoPenalty(packet)
 				is SkipsPlayedEvent -> tabletop.onSkipsPlayed(packet)

@@ -4,18 +4,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.utils.OrderedMap
 import com.esotericsoftware.kryo.Kryo
 import ktx.collections.*
-import misterbander.crazyeights.game.Ruleset
-import misterbander.crazyeights.model.Chat
-import misterbander.crazyeights.model.CursorPosition
-import misterbander.crazyeights.model.GameState
-import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCard.Rank
-import misterbander.crazyeights.model.ServerCard.Suit
-import misterbander.crazyeights.model.ServerCardGroup
-import misterbander.crazyeights.model.ServerCardHolder
-import misterbander.crazyeights.model.TabletopState
-import misterbander.crazyeights.model.User
-import misterbander.crazyeights.net.CrazyEightsClient
+import misterbander.crazyeights.net.client.CrazyEightsClient
 import misterbander.crazyeights.net.packets.ActionLockReleaseEvent
 import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.AiRemoveEvent
@@ -26,11 +15,14 @@ import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
 import misterbander.crazyeights.net.packets.CardGroupShuffleEvent
 import misterbander.crazyeights.net.packets.CardSlideSoundEvent
+import misterbander.crazyeights.net.packets.Chat
+import misterbander.crazyeights.net.packets.CursorPosition
 import misterbander.crazyeights.net.packets.DrawStackRefillEvent
 import misterbander.crazyeights.net.packets.DrawTwoPenaltyEvent
 import misterbander.crazyeights.net.packets.DrawTwosPlayedEvent
 import misterbander.crazyeights.net.packets.EightsPlayedEvent
 import misterbander.crazyeights.net.packets.GameEndedEvent
+import misterbander.crazyeights.net.packets.GameState
 import misterbander.crazyeights.net.packets.HandUpdateEvent
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
@@ -51,6 +43,14 @@ import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
 import misterbander.crazyeights.net.packets.UserJoinedEvent
 import misterbander.crazyeights.net.packets.UserLeftEvent
+import misterbander.crazyeights.net.server.ServerCard
+import misterbander.crazyeights.net.server.ServerCard.Rank
+import misterbander.crazyeights.net.server.ServerCard.Suit
+import misterbander.crazyeights.net.server.ServerCardGroup
+import misterbander.crazyeights.net.server.ServerCardHolder
+import misterbander.crazyeights.net.server.TabletopState
+import misterbander.crazyeights.net.server.User
+import misterbander.crazyeights.net.server.game.Ruleset
 
 fun Kryo.registerClasses()
 {

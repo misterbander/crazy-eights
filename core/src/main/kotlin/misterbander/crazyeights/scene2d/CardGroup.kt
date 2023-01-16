@@ -11,11 +11,11 @@ import ktx.math.component1
 import ktx.math.component2
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCardGroup
-import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
 import misterbander.crazyeights.net.packets.CardGroupDetachEvent
 import misterbander.crazyeights.net.packets.CardGroupDismantleEvent
+import misterbander.crazyeights.net.server.ServerCardGroup
+import misterbander.crazyeights.net.server.User
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -38,6 +38,9 @@ class CardGroup(
 	lockHolder: User? = null
 ) : Groupable<CardGroup>(room), DragTarget
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
+	
 	val cardHolder: CardHolder?
 		get() = parent as? CardHolder
 	private val ghosts = GdxMap<Groupable<CardGroup>, CardGhost>()
@@ -64,7 +67,7 @@ class CardGroup(
 	override val draggable: Draggable = object : Draggable(this, room, smoothMovable, lockable)
 	{
 		override val canDrag: Boolean
-			get() = ownable.myHand == null && (UIUtils.shift() || lockable.justLongPressed) && !room.isGameStarted
+			get() = !ownable.isOwned && (UIUtils.shift() || lockable.justLongPressed) && !tabletop.isGameStarted
 		
 		override fun pan() = detachFromCardHolder()
 	}
@@ -75,7 +78,7 @@ class CardGroup(
 	override val highlightable = object : Highlightable(this)
 	{
 		override val shouldHighlight: Boolean
-			get() = over && UIUtils.shift() && ownable.myHand == null && !room.isGameStarted
+			get() = over && UIUtils.shift() && !ownable.isOwned && !tabletop.isGameStarted
 				|| lockable.isLockHolder || forceHighlight
 		
 		override val shouldExpand: Boolean
@@ -144,23 +147,23 @@ class CardGroup(
 	
 	operator fun minusAssign(groupable: Groupable<CardGroup>)
 	{
-		groupable.transformToGroupCoordinates(room.tabletop.cards)
+		groupable.transformToGroupCoordinates(tabletop.cards)
 		highlightable.cancel()
 		cardHolder?.highlightable?.cancel()
 		cards -= groupable
-		room.tabletop.cards += groupable
+		tabletop.cards += groupable
 		ghosts.remove(groupable)?.remove()
 	}
 	
 	private fun detachFromCardHolder()
 	{
 		val cardHolder = cardHolder ?: return
-		transformToGroupCoordinates(room.tabletop.cards)
+		transformToGroupCoordinates(tabletop.cards)
 		game.client?.apply {
 			outgoingPacketBuffer += CardGroupDetachEvent(cardHolder.id, changerUsername = game.user.name)
 		}
 		cardHolder.highlightable.cancel()
-		room.tabletop.cards += this
+		tabletop.cards += this
 		setScrollFocus()
 		
 		if (type == ServerCardGroup.Type.PILE)
@@ -172,8 +175,8 @@ class CardGroup(
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean
 	{
-		if (room.isGameStarted)
-			return gObject is Card && this != room.tabletop.drawStack
+		if (tabletop.isGameStarted)
+			return gObject is Card && this != tabletop.drawStack
 		return gObject is Card || gObject is CardGroup
 	}
 	
@@ -273,7 +276,7 @@ class CardGroup(
 	{
 		while (cards.isNotEmpty())
 			this -= cards.first()
-		room.tabletop.idToGObjectMap.remove(id)
+		tabletop.idToGObjectMap.remove(id)
 		remove()
 	}
 	

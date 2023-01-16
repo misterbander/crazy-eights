@@ -9,9 +9,12 @@ import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.Hand
 import misterbander.crazyeights.scene2d.MyHand
+import misterbander.crazyeights.scene2d.Tabletop
 
 class DealAction(private val room: RoomScreen, private val hands: Array<Hand>) : RunnableAction()
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
 	private var finished = false
 	
 	override fun act(delta: Float): Boolean
@@ -22,8 +25,8 @@ class DealAction(private val room: RoomScreen, private val hands: Array<Hand>) :
 	
 	override fun run()
 	{
-		val drawStack = room.tabletop.drawStack!!
-		val discardPile = room.tabletop.discardPile!!
+		val drawStack = tabletop.drawStack!!
+		val discardPile = tabletop.discardPile!!
 		val size = hands.size
 		var i = 0
 		
@@ -50,7 +53,7 @@ class DealAction(private val room: RoomScreen, private val hands: Array<Hand>) :
 			topCard.isFaceUp = true
 			discardPile.arrange()
 			finished = true
-			room.tabletop.myHand.setDarkened { room.gameState!!.currentPlayer != room.game.user.name }
+			tabletop.myHand.setDarkened { tabletop.gameState!!.currentPlayer != room.game.user.name }
 		})
 	}
 }

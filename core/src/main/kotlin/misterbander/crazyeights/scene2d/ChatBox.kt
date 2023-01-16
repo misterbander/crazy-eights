@@ -22,13 +22,14 @@ import ktx.actors.onTouchDown
 import ktx.actors.plusAssign
 import ktx.actors.then
 import ktx.app.Platform
+import ktx.log.info
 import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CHAT_TEXT_FIELD_STYLE
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.Chat
+import misterbander.crazyeights.net.packets.Chat
 import misterbander.gframework.scene2d.gTextField
 import misterbander.gframework.util.textSize
 import kotlin.math.min
@@ -127,7 +128,7 @@ class ChatBox(private val room: RoomScreen) : Table()
 		val chatLabel = scene2d.label(message, LABEL_SMALL_STYLE) {
 			wrap = true
 			if (color != null)
-				this.color = color.cpy()
+				this.color = color
 		}
 		chatPopup += scene2d.container(chatLabel) {
 			background = Scene2DSkin.defaultSkin["background"]
@@ -159,6 +160,8 @@ class ChatBox(private val room: RoomScreen) : Table()
 			validate()
 			scrollPercentY = 1F
 		}
+		
+		info("Client | CHAT") { message }
 	}
 	
 	private fun BitmapFont.chatTextWidth(message: String): Float = min(textSize(message).x, chatTextField.width - 33F)

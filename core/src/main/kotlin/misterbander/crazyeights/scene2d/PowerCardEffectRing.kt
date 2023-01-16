@@ -17,7 +17,7 @@ class PowerCardEffectRing(room: RoomScreen) : GObject<CrazyEights>(room)
 	
 	init
 	{
-		val discardPileHolder = room.tabletop.discardPileHolder!!
+		val discardPileHolder = room.tabletop.discardPileHolder
 		setPosition(discardPileHolder.x, discardPileHolder.y)
 	}
 	

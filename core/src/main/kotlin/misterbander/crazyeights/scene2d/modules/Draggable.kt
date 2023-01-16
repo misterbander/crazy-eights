@@ -11,6 +11,7 @@ import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.kryo.objectMoveEventPool
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.scene2d.DragTarget
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
@@ -26,8 +27,12 @@ open class Draggable(
 {
 	private val game: CrazyEights
 		get() = parent.game
+	private val tabletop: Tabletop
+		get() = room.tabletop
 	val unrotatedDragPositionVec = vec2()
 	val dragPositionVec = vec2()
+	open val canDrag: Boolean
+		get() = true
 	var justDragged = false
 	private var currentDragTarget: DragTarget? = null
 	
@@ -102,16 +107,13 @@ open class Draggable(
 	
 	open fun pan() = Unit
 	
-	open val canDrag: Boolean
-		get() = true
-	
 	fun updateDragTarget(x: Float, y: Float)
 	{
 		currentDragTarget?.highlightable?.forceHighlight = false
 		currentDragTarget = null
-		val dragTarget = room.tabletop.hitDragTarget(x, y)
+		val dragTarget = tabletop.hitDragTarget(x, y)
 		if (parent.getModule<Ownable>()?.isOwned == true)
-			currentDragTarget = room.tabletop.myHand
+			currentDragTarget = tabletop.myHand
 		else if (dragTarget?.canAccept(parent) == true)
 		{
 			currentDragTarget = dragTarget

@@ -22,7 +22,7 @@ class EffectText(room: RoomScreen, text: String, targetHand: Hand? = null, delay
 	
 	init
 	{
-		val discardPileHolder = room.tabletop.discardPileHolder!!
+		val discardPileHolder = room.tabletop.discardPileHolder
 		setPosition(discardPileHolder.x, discardPileHolder.y)
 		smoothMovable = SmoothMovable(this)
 		setScale(0F)

@@ -37,5 +37,5 @@ test {
 apply plugin: 'kotlin-noarg'
 
 noArg {
-	annotation("misterbander.crazyeights.model.NoArg")
+	annotation("misterbander.crazyeights.net.packets.NoArg")
 }

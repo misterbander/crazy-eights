@@ -1,9 +1,9 @@
-import misterbander.crazyeights.game.Ruleset
-import misterbander.crazyeights.game.ai.OracleAgent
-import misterbander.crazyeights.game.toCard
-import misterbander.crazyeights.model.ServerCard
-import misterbander.crazyeights.model.ServerCard.Rank
-import misterbander.crazyeights.model.ServerCard.Suit
+import misterbander.crazyeights.net.server.ServerCard
+import misterbander.crazyeights.net.server.ServerCard.Rank
+import misterbander.crazyeights.net.server.ServerCard.Suit
+import misterbander.crazyeights.net.server.game.Ruleset
+import misterbander.crazyeights.net.server.game.ai.OracleAgent
+import misterbander.crazyeights.net.server.game.toCard
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

@@ -11,7 +11,7 @@ import ktx.style.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.LABEL_TINY_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.server.User
 import misterbander.crazyeights.scene2d.modules.SmoothMovable
 import misterbander.gframework.scene2d.GObject
 

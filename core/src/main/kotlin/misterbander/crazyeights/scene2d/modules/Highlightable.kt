@@ -15,7 +15,6 @@ open class Highlightable(private val parent: GObject<CrazyEights>) : GModule
 	protected var over = false
 		private set
 	var forceHighlight = false
-	
 	open val shouldHighlight: Boolean
 		get() = over || parent.getModule<Lockable>()?.isLockHolder == true || forceHighlight
 	open val shouldExpand: Boolean

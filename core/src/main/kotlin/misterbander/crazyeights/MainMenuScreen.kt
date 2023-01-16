@@ -22,10 +22,10 @@ import ktx.graphics.use
 import ktx.log.info
 import ktx.scene2d.*
 import ktx.style.*
-import misterbander.crazyeights.model.TabletopState
 import misterbander.crazyeights.net.ListenerContainer
 import misterbander.crazyeights.net.packets.Handshake
 import misterbander.crazyeights.net.packets.HandshakeReject
+import misterbander.crazyeights.net.server.TabletopState
 import misterbander.crazyeights.scene2d.dialogs.CreateRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.JoinRoomDialog
 import misterbander.crazyeights.scene2d.dialogs.MessageDialog

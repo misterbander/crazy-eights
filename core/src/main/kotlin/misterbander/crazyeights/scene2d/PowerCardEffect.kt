@@ -16,7 +16,7 @@ import ktx.scene2d.*
 import misterbander.crazyeights.DESATURATED_RED
 import misterbander.crazyeights.POWER_CARD_LABEL_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCard.Suit
+import misterbander.crazyeights.net.server.ServerCard.Suit
 
 class PowerCardEffect(
 	room: RoomScreen,
@@ -44,7 +44,7 @@ class PowerCardEffect(
 	
 	init
 	{
-		val discardPileHolder = room.tabletop.discardPileHolder!!
+		val discardPileHolder = room.tabletop.discardPileHolder
 		setPosition(discardPileHolder.x, discardPileHolder.y)
 		
 		this += shineImage

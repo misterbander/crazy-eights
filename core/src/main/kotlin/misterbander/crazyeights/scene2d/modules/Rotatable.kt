@@ -29,7 +29,6 @@ open class Rotatable(
 {
 	private val game: CrazyEights
 		get() = parent.game
-	
 	var initialRotation = 0F
 	var justRotated = false
 	var isPinching = false

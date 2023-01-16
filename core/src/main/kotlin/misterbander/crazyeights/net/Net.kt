@@ -4,6 +4,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import ktx.async.KtxAsync
+import misterbander.crazyeights.net.client.CrazyEightsClient
+import misterbander.crazyeights.net.server.CrazyEightsServer
 
 class Net
 {

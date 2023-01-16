@@ -10,12 +10,12 @@ import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCardGroup
 import misterbander.crazyeights.net.packets.HandUpdateEvent
+import misterbander.crazyeights.net.server.ServerCardGroup
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.util.tempVec
 
-class MyHand(private val room: RoomScreen) : Hand(room), DragTarget
+class MyHand(room: RoomScreen) : Hand(room), DragTarget
 {
 	val offsetCenterY = 48F
 	override val cardGroup = CardGroup(room, y = offsetCenterY, type = ServerCardGroup.Type.SPREAD)
@@ -36,7 +36,7 @@ class MyHand(private val room: RoomScreen) : Hand(room), DragTarget
 	{
 		val (handX, handY) = stage.screenToStageCoordinates(tempVec.set(Gdx.graphics.width.toFloat()/2, Gdx.graphics.height.toFloat()))
 		setPosition(handX, handY)
-		spectatorLabel.isVisible = room.isGameStarted && game.user.name !in room.gameState!!.players
+		spectatorLabel.isVisible = tabletop.isGameStarted && game.user.name !in tabletop.gameState!!.players
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean = gObject is Card || gObject is CardGroup
@@ -77,13 +77,13 @@ class MyHand(private val room: RoomScreen) : Hand(room), DragTarget
 			if ((cardGroup.cards.size - 1)*defaultSeparation < max) defaultSeparation else max/(cardGroup.cards.size - 1)
 		cardGroup.arrange(sort)
 		
-		if (room.isGameStarted)
+		if (tabletop.isGameStarted)
 		{
-			room.apply {
+			tabletop.apply {
 				if (gameState!!.drawCount >= gameState!!.ruleset.maxDrawCount && gameState!!.currentPlayer == game.user.name)
 				{
 					passButton.isVisible = true
-					tabletop.drawStackHolder!!.touchable = Touchable.disabled
+					drawStackHolder.touchable = Touchable.disabled
 				}
 			}
 			rememberCards()
@@ -106,7 +106,7 @@ class MyHand(private val room: RoomScreen) : Hand(room), DragTarget
 	
 	private fun rememberCards()
 	{
-		if (!room.isGameStarted)
+		if (!tabletop.isGameStarted)
 			return
 		cardGroup.cards.forEach { memory += it as Card }
 	}

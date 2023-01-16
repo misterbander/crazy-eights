@@ -9,6 +9,7 @@ import ktx.actors.then
 import misterbander.crazyeights.RoomScreen
 import misterbander.crazyeights.scene2d.Card
 import misterbander.crazyeights.scene2d.CardGroup
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.gframework.util.shuffle
 
 class ShuffleAction(
@@ -16,6 +17,8 @@ class ShuffleAction(
 	private val seed: Long
 ) : RunnableAction()
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
 	private var finished = false
 	
 	override fun act(delta: Float): Boolean
@@ -36,7 +39,7 @@ class ShuffleAction(
 		
 		cardGroup += repeat(
 			cards.size, delay(0.01F, Actions.run {
-				val card = room.tabletop.idToGObjectMap[(cards[i] as Card).id] as Card
+				val card = tabletop.idToGObjectMap[(cards[i] as Card).id] as Card
 				if (i%2 == 0)
 					room.cardSlide.play()
 				card.smoothMovable.x += if (i%2 == 0) -150 else 150
@@ -44,7 +47,7 @@ class ShuffleAction(
 			})
 		) along delay(
 			0.2F, repeat(cards.size, delay(0.01F, Actions.run {
-					val card = room.tabletop.idToGObjectMap[(cards[j] as Card).id] as Card
+					val card = tabletop.idToGObjectMap[(cards[j] as Card).id] as Card
 					card.smoothMovable.setPosition(-j.toFloat(), j.toFloat())
 					card.zIndex = j
 					j++

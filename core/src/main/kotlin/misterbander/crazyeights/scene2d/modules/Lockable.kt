@@ -5,9 +5,9 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import ktx.actors.setScrollFocus
 import ktx.collections.*
 import misterbander.crazyeights.CrazyEights
-import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.ObjectLockEvent
 import misterbander.crazyeights.net.packets.ObjectUnlockEvent
+import misterbander.crazyeights.net.server.User
 import misterbander.gframework.scene2d.GActorGestureListener
 import misterbander.gframework.scene2d.GObject
 import misterbander.gframework.scene2d.module.GModule
@@ -24,11 +24,14 @@ open class Lockable(
 		get() = parent.game
 	var lockHolder: User? = lockHolder
 		private set
-	
 	val isLocked: Boolean
 		get() = lockHolder != null
 	val isLockHolder: Boolean
 		get() = lockHolder == game.user
+	open val canTouchDown: Boolean
+		get() = true
+	open val canLock: Boolean
+		get() = !isLocked && parent.getModule<Draggable>()?.canDrag ?: true
 	var justLongPressed = false
 	
 	init
@@ -67,11 +70,6 @@ open class Lockable(
 	}
 	
 	open fun longPress(): Boolean = false
-	
-	open val canTouchDown: Boolean
-		get() = true
-	open val canLock: Boolean
-		get() = !isLocked && parent.getModule<Draggable>()?.canDrag ?: true
 	
 	open fun lock(user: User)
 	{

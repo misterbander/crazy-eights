@@ -9,18 +9,21 @@ import ktx.scene2d.*
 import misterbander.crazyeights.FORM_TEXT_FIELD_STYLE
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.game.Ruleset
-import misterbander.crazyeights.model.ServerCard.Rank
 import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.NewGameEvent
 import misterbander.crazyeights.net.packets.ResetDeckEvent
 import misterbander.crazyeights.net.packets.RulesetUpdateEvent
+import misterbander.crazyeights.net.server.ServerCard.Rank
+import misterbander.crazyeights.net.server.game.Ruleset
+import misterbander.crazyeights.scene2d.Tabletop
 import misterbander.gframework.scene2d.GTextWidget
 import misterbander.gframework.scene2d.UnfocusListener
 import misterbander.gframework.scene2d.gTextField
 
 class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room, "Game Settings")
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
 	private val items = GdxArray(Rank.values())
 		.filter { it != Rank.EIGHT }
 		.map { if (it == Rank.NO_RANK) "Off" else it.toString() }
@@ -33,7 +36,7 @@ class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room,
 			if (text.isEmpty())
 				text = "0"
 			game.client?.sendTCP(RulesetUpdateEvent(
-				room.ruleset.copy(maxDrawCount = if (text == "0") Int.MAX_VALUE else text.toInt()), game.user.name
+				tabletop.ruleset.copy(maxDrawCount = if (text == "0") Int.MAX_VALUE else text.toInt()), game.user.name
 			))
 		}
 	}
@@ -42,7 +45,7 @@ class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room,
 		selected = Rank.TWO.toString()
 		selection.setProgrammaticChangeEvents(false)
 		onChange {
-			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(drawTwos = selected?.toRank()), game.user.name))
+			game.client?.sendTCP(RulesetUpdateEvent(tabletop.ruleset.copy(drawTwos = selected?.toRank()), game.user.name))
 		}
 	}
 	private val skipsSelectBox = scene2d.selectBox<String> {
@@ -50,7 +53,7 @@ class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room,
 		selected = Rank.QUEEN.toString()
 		selection.setProgrammaticChangeEvents(false)
 		onChange {
-			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(skips = selected?.toRank()), game.user.name))
+			game.client?.sendTCP(RulesetUpdateEvent(tabletop.ruleset.copy(skips = selected?.toRank()), game.user.name))
 		}
 	}
 	private val reversesSelectBox = scene2d.selectBox<String> {
@@ -58,7 +61,7 @@ class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room,
 		selected = Rank.ACE.toString()
 		selection.setProgrammaticChangeEvents(false)
 		onChange {
-			game.client?.sendTCP(RulesetUpdateEvent(room.ruleset.copy(reverses = selected?.toRank()), game.user.name))
+			game.client?.sendTCP(RulesetUpdateEvent(tabletop.ruleset.copy(reverses = selected?.toRank()), game.user.name))
 		}
 	}
 	private val addAiButton = scene2d.textButton("Add AI") {
@@ -133,13 +136,13 @@ class GameSettingsDialog(private val room: RoomScreen) : CrazyEightsDialog(room,
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		newGameButton.isDisabled = room.isGameStarted || room.tabletop.users.size == 1
-		addAiButton.isDisabled = room.isGameStarted || room.tabletop.users.size >= 6
-		resetDeckButton.isDisabled = room.isGameStarted
-		maxDrawCountTextField.isDisabled = room.isGameStarted
-		drawTwosSelectBox.isDisabled = room.isGameStarted
-		skipsSelectBox.isDisabled = room.isGameStarted
-		reversesSelectBox.isDisabled = room.isGameStarted
+		newGameButton.isDisabled = tabletop.isGameStarted || tabletop.userCount == 1
+		addAiButton.isDisabled = tabletop.isGameStarted || tabletop.userCount >= 6
+		resetDeckButton.isDisabled = tabletop.isGameStarted
+		maxDrawCountTextField.isDisabled = tabletop.isGameStarted
+		drawTwosSelectBox.isDisabled = tabletop.isGameStarted
+		skipsSelectBox.isDisabled = tabletop.isGameStarted
+		reversesSelectBox.isDisabled = tabletop.isGameStarted
 	}
 	
 	fun updateRuleset(ruleset: Ruleset)

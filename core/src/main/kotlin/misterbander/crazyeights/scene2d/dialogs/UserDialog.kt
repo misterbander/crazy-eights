@@ -5,12 +5,15 @@ import ktx.actors.txt
 import ktx.scene2d.*
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.User
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
+import misterbander.crazyeights.net.server.User
+import misterbander.crazyeights.scene2d.Tabletop
 
 class UserDialog(private val room: RoomScreen) : RebuildableDialog(room, "User Info")
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
 	var user = User("")
 		private set
 	private val swapSeatsButton = scene2d.textButton("Swap Seats") {
@@ -54,7 +57,7 @@ class UserDialog(private val room: RoomScreen) : RebuildableDialog(room, "User I
 	override fun act(delta: Float)
 	{
 		super.act(delta)
-		swapSeatsButton.isDisabled = room.isGameStarted
-		removeButton.isDisabled = room.isGameStarted
+		swapSeatsButton.isDisabled = tabletop.isGameStarted
+		removeButton.isDisabled = tabletop.isGameStarted
 	}
 }

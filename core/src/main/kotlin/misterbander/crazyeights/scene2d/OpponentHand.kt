@@ -19,8 +19,8 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.LABEL_SMALL_STYLE
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCardGroup
-import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.server.ServerCardGroup
+import misterbander.crazyeights.net.server.User
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.gframework.util.tempVec
 import space.earlygrey.shapedrawer.ShapeDrawer
@@ -29,7 +29,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class OpponentHand(
-	private val room: RoomScreen,
+	room: RoomScreen,
 	var realX: Float = 0F,
 	var realY: Float = 0F,
 	rotation: Float = 0F,
@@ -120,7 +120,7 @@ class OpponentHand(
 		time += delta
 		time = time.mod(1F)
 		yellowTargetAlpha = min(0.75F - time*(time - 1), 1F)
-		yellow.a = if (room.gameState?.currentPlayer == user.name)
+		yellow.a = if (tabletop.gameState?.currentPlayer == user.name)
 			yellowTargetAlpha
 		else
 			max(yellow.a - 1.5F*delta, 0F)

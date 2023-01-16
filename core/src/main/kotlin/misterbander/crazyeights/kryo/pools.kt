@@ -2,7 +2,7 @@ package misterbander.crazyeights.kryo
 
 import com.esotericsoftware.kryo.util.Pool
 import ktx.log.debug
-import misterbander.crazyeights.model.CursorPosition
+import misterbander.crazyeights.net.packets.CursorPosition
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
 import misterbander.crazyeights.net.packets.ObjectRotateEvent
 

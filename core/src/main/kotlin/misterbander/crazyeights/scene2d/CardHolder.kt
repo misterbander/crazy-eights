@@ -14,8 +14,8 @@ import ktx.scene2d.*
 import ktx.style.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCardGroup
-import misterbander.crazyeights.model.User
+import misterbander.crazyeights.net.server.ServerCardGroup
+import misterbander.crazyeights.net.server.User
 import misterbander.crazyeights.scene2d.modules.Draggable
 import misterbander.crazyeights.scene2d.modules.Highlightable
 import misterbander.crazyeights.scene2d.modules.Lockable
@@ -34,6 +34,9 @@ class CardHolder(
 	lockHolder: User? = null
 ) : GObject<CrazyEights>(room), DragTarget
 {
+	private val tabletop: Tabletop
+		get() = room.tabletop
+	
 	private val holderDrawable: Drawable = Scene2DSkin.defaultSkin["card_holder"]
 	private val holderOverDrawable: Drawable = Scene2DSkin.defaultSkin["card_holder_over"]
 	private val holderImage = scene2d.image(holderDrawable) { setPosition(0F, 0F, Align.center) }
@@ -108,7 +111,7 @@ class CardHolder(
 	}
 	
 	override fun canAccept(gObject: GObject<CrazyEights>): Boolean =
-		!room.isGameStarted && cardGroup != null && (gObject is Card || gObject is CardGroup)
+		!tabletop.isGameStarted && cardGroup != null && (gObject is Card || gObject is CardGroup)
 	
 	override fun accept(gObject: GObject<CrazyEights>) = cardGroup!!.accept(gObject)
 	

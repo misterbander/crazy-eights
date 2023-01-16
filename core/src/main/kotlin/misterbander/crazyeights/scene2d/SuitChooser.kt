@@ -12,14 +12,16 @@ import ktx.actors.onClick
 import ktx.actors.plusAssign
 import ktx.scene2d.*
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.model.ServerCard.Suit
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
+import misterbander.crazyeights.net.server.ServerCard.Suit
 import misterbander.crazyeights.scene2d.SuitChooser.SuitButton.Type
 import space.earlygrey.shapedrawer.ShapeDrawer
 import space.earlygrey.shapedrawer.scene2d.ShapeDrawerDrawable
 
 class SuitChooser(private val room: RoomScreen, isTouchable: Boolean) : Group()
 {
+	private val tabletop
+		get() = room.tabletop
 	private val diamondsButton = SuitButton(this, Type.TOP_LEFT, Suit.DIAMONDS, room.game.shapeDrawer)
 	private val clubsButton = SuitButton(this, Type.TOP_RIGHT, Suit.CLUBS, room.game.shapeDrawer)
 	private val heartsButton = SuitButton(this, Type.BOTTOM_LEFT, Suit.HEARTS, room.game.shapeDrawer)
@@ -32,7 +34,7 @@ class SuitChooser(private val room: RoomScreen, isTouchable: Boolean) : Group()
 			field = value
 			if (value == null)
 				return
-			room.tabletop.persistentPowerCardEffects += PowerCardEffectRing(room)
+			tabletop.persistentPowerCardEffects += PowerCardEffectRing(room)
 			for (button in buttons)
 			{
 				button.clearActions()
@@ -53,7 +55,7 @@ class SuitChooser(private val room: RoomScreen, isTouchable: Boolean) : Group()
 	
 	init
 	{
-		val discardPileHolder = room.tabletop.discardPileHolder!!
+		val discardPileHolder = tabletop.discardPileHolder
 		setPosition(discardPileHolder.x, discardPileHolder.y)
 		
 		this += scene2d.table {

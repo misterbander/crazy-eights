@@ -13,12 +13,9 @@ import ktx.collections.*
 import ktx.log.info
 import misterbander.crazyeights.DEFAULT_TCP_PORT
 import misterbander.crazyeights.DEFAULT_UDP_PORT
-import misterbander.crazyeights.kryo.objectMoveEventPool
-import misterbander.crazyeights.kryo.objectRotateEventPool
+import misterbander.crazyeights.kryo.KryoPoolable
 import misterbander.crazyeights.kryo.registerClasses
 import misterbander.crazyeights.net.ListenerContainer
-import misterbander.crazyeights.net.packets.ObjectMoveEvent
-import misterbander.crazyeights.net.packets.ObjectRotateEvent
 import java.net.ConnectException
 import java.net.DatagramPacket
 import java.security.MessageDigest
@@ -145,10 +142,7 @@ class CrazyEightsClient
 		for (packet: Any in outgoingPacketBuffer)
 		{
 			sendTCP(packet)
-			if (packet is ObjectMoveEvent)
-				objectMoveEventPool.free(packet)
-			else if (packet is ObjectRotateEvent)
-				objectRotateEventPool.free(packet)
+			(packet as? KryoPoolable)?.free()
 		}
 		if (!isEmpty)
 			sendTCP(BufferEnd)

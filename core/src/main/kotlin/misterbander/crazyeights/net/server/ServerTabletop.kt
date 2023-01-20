@@ -16,8 +16,6 @@ import ktx.async.KtxAsync
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
-import misterbander.crazyeights.kryo.objectMoveEventPool
-import misterbander.crazyeights.kryo.objectRotateEventPool
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
@@ -360,7 +358,7 @@ class ServerTabletop(
 				toMove.type = ServerCardGroup.Type.STACK
 		}
 		parent.server.sendToAllExceptTCP(connection.id, event)
-		objectMoveEventPool.free(event)
+		event.free()
 	}
 	
 	fun onObjectRotate(connection: Connection, event: ObjectRotateEvent)
@@ -375,7 +373,7 @@ class ServerTabletop(
 			toRotate.justRotated = true
 		toRotate.rotation = rotation
 		parent.server.sendToAllExceptTCP(connection.id, event)
-		objectRotateEventPool.free(event)
+		event.free()
 	}
 	
 	fun onCardGroupCreate(event: CardGroupCreateEvent)

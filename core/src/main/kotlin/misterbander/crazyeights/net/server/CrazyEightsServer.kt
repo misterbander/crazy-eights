@@ -13,7 +13,6 @@ import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.VERSION_STRING
-import misterbander.crazyeights.kryo.cursorPositionPool
 import misterbander.crazyeights.kryo.registerClasses
 import misterbander.crazyeights.net.client.CrazyEightsClient
 import misterbander.crazyeights.net.packets.ActionLockReleaseEvent
@@ -220,7 +219,7 @@ class CrazyEightsServer(private val roomCode: String)
 				is CursorPosition ->
 				{
 					server.sendToAllExceptTCP(connection.id, `object`)
-					cursorPositionPool.free(`object`)
+					`object`.free()
 				}
 				is TouchUpEvent -> server.sendToAllExceptTCP(connection.id, `object`)
 				is ObjectLockEvent -> tabletop.onObjectLock(`object`) // User attempts to lock an object

@@ -23,9 +23,6 @@ import ktx.math.component2
 import ktx.scene2d.*
 import misterbander.crazyeights.CrazyEights
 import misterbander.crazyeights.RoomScreen
-import misterbander.crazyeights.kryo.cursorPositionPool
-import misterbander.crazyeights.kryo.objectMoveEventPool
-import misterbander.crazyeights.kryo.objectRotateEventPool
 import misterbander.crazyeights.net.packets.*
 import misterbander.crazyeights.net.server.*
 import misterbander.crazyeights.net.server.game.Ruleset
@@ -366,7 +363,7 @@ class Tabletop(val room: RoomScreen) : Group()
 			room.addUprightGObject(cursor)
 			cursor.snapPosition(x, y)
 		}
-		cursorPositionPool.free(cursorPosition)
+		cursorPosition.free()
 	}
 	
 	fun onTouchUp(event: TouchUpEvent)
@@ -442,14 +439,14 @@ class Tabletop(val room: RoomScreen) : Group()
 			toMove.type = ServerCardGroup.Type.STACK
 			toMove.arrange()
 		}
-		objectMoveEventPool.free(event)
+		event.free()
 	}
 	
 	fun onObjectRotate(event: ObjectRotateEvent)
 	{
 		val (id, rotation) = event
 		idToGObjectMap[id]!!.getModule<SmoothMovable>()?.rotation = rotation
-		objectRotateEventPool.free(event)
+		event.free()
 	}
 	
 	fun hitDragTarget(x: Float, y: Float): DragTarget? = hitDragTarget(cards, x, y) ?: hitDragTarget(cardHolders, x, y)

@@ -1,6 +1,7 @@
 package misterbander.crazyeights.net.packets
 
 import misterbander.crazyeights.kryo.KryoPoolable
+import misterbander.crazyeights.kryo.cursorPositionPool
 
 data class CursorPosition(
 	var username: String = "",
@@ -9,6 +10,8 @@ data class CursorPosition(
 	var pointer: Int = -1
 ) : KryoPoolable
 {
+	override fun free() = cursorPositionPool.free(this)
+	
 	override fun reset()
 	{
 		username = ""

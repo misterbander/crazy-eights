@@ -1,6 +1,7 @@
 package misterbander.crazyeights.kryo
 
 import com.esotericsoftware.kryo.util.Pool
+import com.esotericsoftware.kryo.util.Pool.Poolable
 import ktx.log.debug
 import misterbander.crazyeights.net.packets.CursorPosition
 import misterbander.crazyeights.net.packets.ObjectMoveEvent
@@ -8,7 +9,10 @@ import misterbander.crazyeights.net.packets.ObjectRotateEvent
 
 typealias KryoPool<T> = Pool<T>
 
-typealias KryoPoolable = Pool.Poolable
+interface KryoPoolable : Poolable
+{
+	fun free()
+}
 
 inline fun <reified Type> kryoPool(crossinline provider: () -> Type): KryoPool<Type> =
 	object : Pool<Type>( true, false)

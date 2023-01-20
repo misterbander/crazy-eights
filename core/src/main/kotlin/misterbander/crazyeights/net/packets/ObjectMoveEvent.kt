@@ -1,6 +1,7 @@
 package misterbander.crazyeights.net.packets
 
 import misterbander.crazyeights.kryo.KryoPoolable
+import misterbander.crazyeights.kryo.objectMoveEventPool
 
 data class ObjectMoveEvent(
 	var id: Int = -1,
@@ -8,6 +9,8 @@ data class ObjectMoveEvent(
 	var y: Float = 0F
 ) : KryoPoolable
 {
+	override fun free() = objectMoveEventPool.free(this)
+	
 	override fun reset()
 	{
 		id = -1

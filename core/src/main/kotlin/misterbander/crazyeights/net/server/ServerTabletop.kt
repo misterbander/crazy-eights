@@ -139,7 +139,7 @@ class ServerTabletop(
 		handsDebugString = "Hands:\n$handsStr"
 	}
 	
-	private fun addUser(user: User)
+	fun addUser(user: User)
 	{
 		users[user.name] = user
 		hands.getOrPut(user.name) { GdxArray() }

@@ -104,7 +104,7 @@ class Tabletop(val room: RoomScreen) : Group()
 	@Suppress("UNCHECKED_CAST")
 	fun setState(state: TabletopState)
 	{
-		val (users,	serverObjects, hands) = state
+		val (users, serverObjects, hands) = state
 		
 		// Add users and cursors
 		users.forEach { addUser(it.value) }
@@ -171,7 +171,17 @@ class Tabletop(val room: RoomScreen) : Group()
 				idToGObjectMap[cardId] = card
 				cards += card
 			}
-			val cardGroup = CardGroup(room, id, x, y, rotation, spreadSeparation, spreadCurvature, cards, type, lockHolder?.let { users[it] ?: User(it) })
+			val cardGroup = CardGroup(
+				room,
+				id,
+				x,
+				y,
+				rotation,
+				spreadSeparation,
+				spreadCurvature,
+				cards,
+				type,
+				lockHolder?.let { users[it] ?: User(it) })
 			idToGObjectMap[id] = cardGroup
 			cardGroup
 		}
@@ -195,7 +205,8 @@ class Tabletop(val room: RoomScreen) : Group()
 				type = type
 			)
 			idToGObjectMap[cardGroupId] = cardGroup
-			val cardHolder = CardHolder(room, id, x, y, rotation, cardGroup, lockHolder = lockHolder?.let { users[it] ?: User(it) })
+			val cardHolder =
+				CardHolder(room, id, x, y, rotation, cardGroup, lockHolder = lockHolder?.let { users[it] ?: User(it) })
 			idToGObjectMap[id] = cardHolder
 			cardHolders += cardHolder
 			cardHolder
@@ -705,7 +716,10 @@ class Tabletop(val room: RoomScreen) : Group()
 		passButton.isVisible = false
 		powerCardEffects.clearChildren()
 		powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
-			Actions.targeting(powerLabelGroup, Actions.fadeOut(0.5F)) along Actions.run { powerCardEffects += suitChooser }
+			Actions.targeting(
+				powerLabelGroup,
+				Actions.fadeOut(0.5F)
+			) along Actions.run { powerCardEffects += suitChooser }
 		}
 		persistentPowerCardEffects += PowerCardEffectRing(room)
 	}

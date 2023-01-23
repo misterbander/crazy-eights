@@ -32,7 +32,8 @@ class ServerGameState(
 	drawCount: Int = 0,
 	declaredSuit: Suit? = null,
 	drawTwoEffectCardCount: Int = 0,
-	private var isFirstMove: Boolean = true
+	private var isFirstMove: Boolean = true,
+	private val onPlayerChanged: (Player) -> Unit = {}
 )
 {
 	/** Top card of the discard pile. */
@@ -76,7 +77,6 @@ class ServerGameState(
 	val moves = GdxArray<Move>()
 	
 	var hasPlayerChanged = false
-	var onPlayerChanged: (Player) -> Unit = {}
 	
 	init
 	{
@@ -137,14 +137,14 @@ class ServerGameState(
 		updateMoves()
 		
 		val allPlayerCardCount = playerHands.values().sumOf { it.size }
-		val discardedCardCount = discardPile.size
 		val drawStackCardCount = drawStack.size
+		val discardedCardCount = discardPile.size
 		val totalCardCount = allPlayerCardCount + discardedCardCount + drawStackCardCount
 		assert(totalCardCount == 52) {
 			"Cards magically appeared/disappeared! $totalCardCount\n" +
-				"Discards($discardedCardCount) = ${discardPile.joinToString { it.name }}\n" +
 				"Hands = ${playerHands.joinToString(separator = "\n\t") { (player, hand) -> "${player.name}(${hand!!.size}) ${hand.joinToString { it.name }}" }}\n" +
 				"Drawstack($drawStackCardCount) = ${drawStack.joinToString { it.name }}\n" +
+				"Discards($discardedCardCount) = ${discardPile.joinToString { it.name }}\n" +
 				"currentPlayer = ${currentPlayer.name}"
 		}
 		

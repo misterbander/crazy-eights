@@ -62,8 +62,9 @@ import kotlin.math.round
 
 class ServerTabletop(
 	val parent: CrazyEightsServer,
-	private val drawStackHolder: ServerCardHolder,
-	private val discardPileHolder: ServerCardHolder
+	hands: Map<User, GdxArray<ServerObject>> = emptyMap(),
+	val drawStackHolder: ServerCardHolder,
+	val discardPileHolder: ServerCardHolder
 )
 {
 	val idToObjectMap = IntMap<ServerObject>()
@@ -81,7 +82,7 @@ class ServerTabletop(
 	val serverObjects = GdxArray<ServerObject>()
 	
 	private var ruleset = Ruleset(firstDiscardOnDealTriggersPower = true)
-	private var serverGameState: ServerGameState? = null
+	var serverGameState: ServerGameState? = null
 	private val isGameStarted: Boolean
 		get() = serverGameState != null
 	private var lastPowerCardPlayedEvent: PowerCardPlayedEvent? = null
@@ -91,6 +92,17 @@ class ServerTabletop(
 		private set
 	@Volatile var handsDebugString: String = ""
 		private set
+	
+	init
+	{
+		for ((user, hand) in hands)
+		{
+			users[user.name] = user
+			this.hands[user.name] = hand.onEach { idToObjectMap[it.id] = it }
+		}
+		addServerObject(drawStackHolder)
+		addServerObject(discardPileHolder)
+	}
 	
 	fun addServerObject(serverObject: ServerObject, insertAtIndex: Int = -1)
 	{
@@ -451,7 +463,6 @@ class ServerTabletop(
 		parent.server.sendToAllExceptTCP(connection.id, event)
 	}
 	
-	@Suppress("UNCHECKED_CAST")
 	fun onNewGame(connection: Connection)
 	{
 		if (actionLocks.isNotEmpty())
@@ -475,22 +486,11 @@ class ServerTabletop(
 		val topCard: ServerCard = drawStack.cards.peek()
 		topCard.setServerCardGroup(this, discardPile)
 		topCard.isFaceUp = true
-		
-		// Set game state and action lock
-		val playerHands = OrderedMap<Player, GdxArray<ServerCard>>()
-		for ((username, hand) in hands)
-		{
-			val user = users[username]!!
-			if (user.isAi)
-				playerHands[IsmctsAgent(username)] = GdxArray(hand) as GdxArray<ServerCard>
-			else
-				playerHands[user] = GdxArray(hand) as GdxArray<ServerCard>
-		}
 		acquireActionLocks()
-		val serverGameState =
-			ServerGameState(ruleset, playerHands, GdxArray(drawStack.cards), GdxArray(discardPile.cards))
+		
+		// Set game state
+		val serverGameState = createGameState(::onPlayerChanged)
 		this.serverGameState = serverGameState
-		serverGameState.onPlayerChanged = ::onPlayerChanged
 		val firstPlayer = serverGameState.currentPlayer.name
 		
 		parent.server.sendToAllTCP(
@@ -525,6 +525,29 @@ class ServerTabletop(
 			if (users[serverGameState.currentPlayer.name].isAi)
 				onPlayerChanged(serverGameState.currentPlayer)
 		}
+	}
+	
+	@Suppress("UNCHECKED_CAST")
+	fun createGameState(onPlayerChanged: (Player) -> Unit = {}): ServerGameState
+	{
+		val playerHands = OrderedMap<Player, GdxArray<ServerCard>>()
+		val drawStack = drawStackHolder.cardGroup
+		val discardPile = discardPileHolder.cardGroup
+		for ((username, hand) in hands)
+		{
+			val user = users[username]!!
+			if (user.isAi)
+				playerHands[IsmctsAgent(username)] = GdxArray(hand) as GdxArray<ServerCard>
+			else
+				playerHands[user] = GdxArray(hand) as GdxArray<ServerCard>
+		}
+		return ServerGameState(
+			ruleset,
+			playerHands,
+			GdxArray(drawStack.cards),
+			GdxArray(discardPile.cards),
+			onPlayerChanged = onPlayerChanged
+		)
 	}
 	
 	/**

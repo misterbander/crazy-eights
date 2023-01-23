@@ -8,7 +8,6 @@ import com.esotericsoftware.kryonet.ServerDiscoveryHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import ktx.async.newSingleThreadAsyncContext
-import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
 import misterbander.crazyeights.DEFAULT_UDP_PORT
@@ -40,8 +39,6 @@ import misterbander.crazyeights.net.packets.RulesetUpdateEvent
 import misterbander.crazyeights.net.packets.SuitDeclareEvent
 import misterbander.crazyeights.net.packets.SwapSeatsEvent
 import misterbander.crazyeights.net.packets.TouchUpEvent
-import misterbander.crazyeights.net.server.ServerCard.Rank
-import misterbander.crazyeights.net.server.ServerCard.Suit
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
@@ -77,17 +74,7 @@ class CrazyEightsServer(private val roomCode: String)
 	
 	init
 	{
-		val deck = GdxArray<ServerCard>()
-		for (suit in Suit.values())
-		{
-			if (suit == Suit.NO_SUIT || suit == Suit.JOKER)
-				continue
-			for (rank in Rank.values())
-			{
-				if (rank != Rank.NO_RANK)
-					deck += ServerCard(newId(), rank = rank, suit = suit)
-			}
-		}
+		val deck = newDeck(::newId)
 		val drawStackHolder =
 			ServerCardHolder(newId(), x = 540F, y = 360F, cardGroup = ServerCardGroup(newId(), cards = deck))
 		val discardPileHolder = ServerCardHolder(
@@ -96,9 +83,7 @@ class CrazyEightsServer(private val roomCode: String)
 			y = 360F,
 			cardGroup = ServerCardGroup(newId(), type = ServerCardGroup.Type.PILE)
 		)
-		tabletop = ServerTabletop(this, drawStackHolder, discardPileHolder)
-		tabletop.addServerObject(drawStackHolder)
-		tabletop.addServerObject(discardPileHolder)
+		tabletop = ServerTabletop(this, drawStackHolder = drawStackHolder, discardPileHolder = discardPileHolder)
 		
 		debug("Server | DEBUG") { "Initialized Room server" }
 	}
@@ -239,7 +224,8 @@ class CrazyEightsServer(private val roomCode: String)
 				is PassEvent -> tabletop.pass()
 				is SuitDeclareEvent -> tabletop.onSuitDeclare(connection, `object`)
 				is ResetDeckEvent -> tabletop.onResetDeck()
-				is CrazyEightsClient.BufferEnd -> tabletop.runLater.remove((connection.arbitraryData as User).name)?.values()
+				is CrazyEightsClient.BufferEnd -> tabletop.runLater.remove((connection.arbitraryData as User).name)
+					?.values()
 					?.forEach {
 						it.runnable()
 					}

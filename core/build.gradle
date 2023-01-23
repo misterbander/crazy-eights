@@ -27,7 +27,10 @@ dependencies {
 	api "io.github.libktx:ktx-scene2d:$ktxVersion"
 	api "io.github.libktx:ktx-style:$ktxVersion"
 	api "space.earlygrey:shapedrawer:$shapeDrawerVersion"
+	testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+	testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 	testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+	testImplementation "io.mockk:mockk:$mockkVersion"
 }
 
 test {

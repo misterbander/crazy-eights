@@ -167,7 +167,7 @@ class ServerTabletop(
 		if (hand.isEmpty)
 			hands.remove(user.name)
 		runLater.remove(user.name)?.values()?.forEach { it.runnable() }
-		for (serverObject: ServerObject in GdxArray(serverObjects))
+		for (serverObject: ServerObject in idToObjectMap.values())
 		{
 			if (serverObject is ServerLockable && serverObject.lockHolder == user.name)
 			{

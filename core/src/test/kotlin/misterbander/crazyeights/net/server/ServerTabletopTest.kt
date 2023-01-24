@@ -203,7 +203,7 @@ class ServerTabletopTest
 	{
 		var id = 0
 		val tabletop = newServerTabletop(server, playerHands = mapOf(User("alice") to arrayOf("J♡"))) { id++ }
-		val card = tabletop.idToObjectMap[0] as ServerCard
+		val card = tabletop.findObjectById<ServerCard>(0)
 		
 		tabletop.onObjectDisown(
 			aliceConnection,
@@ -303,7 +303,7 @@ class ServerTabletopTest
 			)
 		)
 		
-		val newCardGroup = tabletop.idToObjectMap[6] as ServerCardGroup
+		val newCardGroup = tabletop.findObjectById<ServerCardGroup>(6)
 		assertEquals(
 			expected = ServerCardGroup(
 				id = 6,
@@ -436,8 +436,8 @@ class ServerTabletopTest
 		
 		tabletop.onCardGroupDismantle(aliceConnection, CardGroupDismantleEvent(4))
 		
-		val card = tabletop.idToObjectMap[5] as ServerCard
-		val card2 = tabletop.idToObjectMap[6] as ServerCard
+		val card = tabletop.findObjectById<ServerCard>(5)
+		val card2 = tabletop.findObjectById<ServerCard>(6)
 		
 		assertEquals(expected = ServerCard(id = 5, x = 10F, y = 20F, rotation = 30F), actual = card)
 		assertEquals(expected = ServerCard(id = 6, x = 9F, y = 21F, rotation = 30F), actual = card2)

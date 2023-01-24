@@ -101,6 +101,9 @@ class Tabletop(val room: RoomScreen) : Group()
 		this += myCursors
 	}
 	
+	inline fun <reified T : GObject<CrazyEights>> findGObjectById(id: Int): T = idToGObjectMap[id] as? T
+		?: throw IllegalStateException("Expected ${T::class.java} with id = $id, found ${idToGObjectMap[id]}")
+	
 	@Suppress("UNCHECKED_CAST")
 	fun setState(state: TabletopState)
 	{
@@ -278,9 +281,9 @@ class Tabletop(val room: RoomScreen) : Group()
 	
 	private fun removeUser(user: User)
 	{
-		users.remove(user.name)
+		users.remove(user.name) ?: throw IllegalStateException("Can't find user ${user.name}")
 		userToCursorsMap.remove(user.name)?.apply { values().forEach { it.remove() } }
-		val hand = userToHandMap[user.name]!!
+		val hand = userToHandMap[user.name] ?: throw IllegalStateException("Can't find hand for user $user.name")
 		if (hand.cardGroup.cards.isEmpty && (!isGameStarted || user.name !in gameState!!.players) || user.isAi)
 		{
 			userToHandMap.remove(user.name)
@@ -362,13 +365,15 @@ class Tabletop(val room: RoomScreen) : Group()
 	fun onCursorMoved(cursorPosition: CursorPosition)
 	{
 		val (username, x, y, pointer) = cursorPosition
-		val cursorsMap = userToCursorsMap[username]!!
+		val user = users[username] ?: throw IllegalStateException("Can't find user $username")
+		val cursorsMap =
+			userToCursorsMap[username] ?: throw IllegalStateException("Can't find cursor for user $username")
 		cursorsMap[-1]?.remove()
 		if (pointer in cursorsMap)
 			cursorsMap[pointer]!!.setPosition(x, y)
 		else
 		{
-			val cursor = CrazyEightsCursor(room, users[username]!!)
+			val cursor = CrazyEightsCursor(room, user)
 			cursorsMap[pointer] = cursor
 			cursors += cursor
 			room.addUprightGObject(cursor)
@@ -386,8 +391,9 @@ class Tabletop(val room: RoomScreen) : Group()
 	fun onObjectLock(event: ObjectLockEvent)
 	{
 		val (id, lockerUsername) = event
-		val toLock = idToGObjectMap[id]!!
-		toLock.getModule<Lockable>()?.lock(users[lockerUsername]!!)
+		val toLock = findGObjectById<GObject<CrazyEights>>(id)
+		val locker = users[lockerUsername] ?: throw IllegalStateException("Can't find user $lockerUsername")
+		toLock.getModule<Lockable>()?.lock(locker)
 		
 		if (isGameStarted && toLock is Card && toLock.cardGroup == drawStack)
 			gameState!!.drawCount++
@@ -398,12 +404,12 @@ class Tabletop(val room: RoomScreen) : Group()
 		idToGObjectMap[event.id]?.getModule<Lockable>()?.unlock()
 	}
 	
-	@Suppress("UNCHECKED_CAST")
 	fun onObjectOwn(event: ObjectOwnEvent)
 	{
 		val (id, ownerUsername) = event
-		val toOwn = idToGObjectMap[id] as Groupable<CardGroup>
-		val hand = userToHandMap[ownerUsername]!!
+		val toOwn = findGObjectById<Groupable<CardGroup>>(id)
+		val hand =
+			userToHandMap[ownerUsername] ?: throw IllegalStateException("Can't find hand for user $ownerUsername")
 		toOwn.getModule<Lockable>()?.unlock()
 		(toOwn.parent as? CardGroup)?.minusAssign(toOwn)
 		hand += toOwn
@@ -418,19 +424,20 @@ class Tabletop(val room: RoomScreen) : Group()
 			hand.arrange()
 	}
 	
-	@Suppress("UNCHECKED_CAST")
 	fun onObjectDisown(event: ObjectDisownEvent)
 	{
 		val (id, x, y, rotation, isFaceUp, disownerUsername) = event
-		val toDisown = idToGObjectMap[id] as Groupable<CardGroup>
-		val hand = userToHandMap[disownerUsername]!!
+		val toDisown = findGObjectById<Groupable<CardGroup>>(id)
+		val disowner = users[disownerUsername] ?: throw IllegalStateException("Can't find user $disownerUsername")
+		val hand =
+			userToHandMap[disownerUsername] ?: throw IllegalStateException("Can't find hand for user $disownerUsername")
 		hand -= toDisown
 		hand.arrange()
 		toDisown.getModule<SmoothMovable>()?.apply {
 			setPosition(x, y)
 			this.rotation = rotation
 		}
-		toDisown.getModule<Lockable>()?.lock(users[disownerUsername]!!)
+		toDisown.getModule<Lockable>()?.lock(disowner)
 		if (toDisown is Card)
 			toDisown.isFaceUp = isFaceUp
 	}
@@ -443,7 +450,7 @@ class Tabletop(val room: RoomScreen) : Group()
 	fun onObjectMove(event: ObjectMoveEvent)
 	{
 		val (id, x, y) = event
-		val toMove = idToGObjectMap[id]!!
+		val toMove = findGObjectById<GObject<CrazyEights>>(id)
 		toMove.getModule<SmoothMovable>()?.setPosition(x, y)
 		if (toMove is CardGroup && toMove.type == ServerCardGroup.Type.PILE)
 		{
@@ -456,7 +463,7 @@ class Tabletop(val room: RoomScreen) : Group()
 	fun onObjectRotate(event: ObjectRotateEvent)
 	{
 		val (id, rotation) = event
-		idToGObjectMap[id]!!.getModule<SmoothMovable>()?.rotation = rotation
+		findGObjectById<GObject<CrazyEights>>(id).getModule<SmoothMovable>()?.rotation = rotation
 		event.free()
 	}
 	
@@ -483,14 +490,14 @@ class Tabletop(val room: RoomScreen) : Group()
 	
 	fun onCardFlip(event: CardFlipEvent)
 	{
-		val card = idToGObjectMap[event.id] as Card
+		val card = findGObjectById<Card>(event.id)
 		card.isFaceUp = !card.isFaceUp
 	}
 	
 	fun onCardGroupCreate(event: CardGroupCreateEvent)
 	{
 		val (id, serverCards) = event
-		val cards = serverCards.map { idToGObjectMap[it.id] as Card }
+		val cards = serverCards.map { findGObjectById<Card>(it.id) }
 		val firstX = cards.first().smoothMovable.x
 		val firstY = cards.first().smoothMovable.y
 		val firstRotation = cards.first().smoothMovable.rotation
@@ -511,10 +518,10 @@ class Tabletop(val room: RoomScreen) : Group()
 		val (cards, newCardGroupId, changerUsername) = event
 		if (changerUsername != game.user.name || newCardGroupId != -1)
 		{
-			val newCardGroup = if (newCardGroupId != -1) idToGObjectMap[newCardGroupId] as CardGroup else null
+			val newCardGroup = if (newCardGroupId != -1) findGObjectById<CardGroup>(newCardGroupId) else null
 			for ((id, x, y, rotation, _, _, isFaceUp) in cards)
 			{
-				val card = idToGObjectMap[id] as Card
+				val card = findGObjectById<Card>(id)
 				val oldCardGroup = card.cardGroup
 				card.cardGroup = newCardGroup
 				card.smoothMovable.setPosition(x, y)
@@ -530,7 +537,7 @@ class Tabletop(val room: RoomScreen) : Group()
 	fun onCardGroupDetach(event: CardGroupDetachEvent)
 	{
 		val (cardHolderId, replacementCardGroupId, changerUsername) = event
-		val cardHolder = idToGObjectMap[cardHolderId] as CardHolder
+		val cardHolder = findGObjectById<CardHolder>(cardHolderId)
 		if (changerUsername != game.user.name)
 		{
 			val cardGroup = cardHolder.cardGroup!!
@@ -542,10 +549,7 @@ class Tabletop(val room: RoomScreen) : Group()
 		cardHolder += replacementCardGroup
 	}
 	
-	fun onCardGroupDismantle(event: CardGroupDismantleEvent)
-	{
-		(idToGObjectMap[event.id] as CardGroup).dismantle()
-	}
+	fun onCardGroupDismantle(event: CardGroupDismantleEvent) = findGObjectById<CardGroup>(event.id).dismantle()
 	
 	fun onNewGame(event: NewGameEvent)
 	{
@@ -560,7 +564,8 @@ class Tabletop(val room: RoomScreen) : Group()
 		drawStack.flip(false)
 		
 		val userToHandMap = userToHandMap
-		for (username: String in userToHandMap.orderedKeys().toArray(String::class.java)) // Remove hands of offline users
+		// Remove hands of offline users
+		for (username: String in userToHandMap.orderedKeys().toArray(String::class.java))
 		{
 			val hand = userToHandMap[username]
 			if (username !in users)
@@ -743,7 +748,7 @@ class Tabletop(val room: RoomScreen) : Group()
 	fun onDrawTwoPenalty(event: DrawTwoPenaltyEvent)
 	{
 		val (victimUsername, drawCardCount) = event
-		val hand = userToHandMap[victimUsername]!!
+		val hand = userToHandMap[victimUsername] ?: throw IllegalStateException("Can't find user $victimUsername")
 		val drawTwoEffectText = powerCardEffects.children.firstOrNull { it is EffectText } as? EffectText
 		drawTwoEffectText?.moveToHand(hand)
 		
@@ -760,12 +765,11 @@ class Tabletop(val room: RoomScreen) : Group()
 	
 	fun onSkipsPlayed(event: SkipsPlayedEvent)
 	{
+		val victimHand = userToHandMap[event.victimUsername] ?: throw IllegalStateException("Can't find hand for user ${event.victimUsername}")
 		powerCardEffects.clearChildren()
 		powerCardEffects += PowerCardEffect(room, discardPile!!.cards.peek() as Card) {
 			defaultAction along Actions.run {
-				powerCardEffects += EffectText(
-					room, gameState!!.ruleset.skips?.toString() ?: "Q", userToHandMap[event.victimUsername]!!
-				)
+				powerCardEffects += EffectText(room, gameState!!.ruleset.skips?.toString() ?: "Q", victimHand)
 			}
 		}
 		persistentPowerCardEffects += PowerCardEffectRing(room)

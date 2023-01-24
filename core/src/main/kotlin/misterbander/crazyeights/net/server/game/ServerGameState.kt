@@ -46,7 +46,7 @@ class ServerGameState(
 	var currentPlayer: Player = currentPlayer
 		private set
 	val currentPlayerHand: GdxArray<ServerCard>
-		get() = playerHands[currentPlayer]!!
+		get() = playerHands[currentPlayer] ?: throw IllegalStateException("Can't find player $currentPlayer")
 	val nextPlayer: Player
 		get()
 		{
@@ -311,7 +311,11 @@ class ServerGameState(
 			return false
 		}
 	
-	fun getResult(player: Player): Int = if (playerHands[player]!!.isEmpty) 1 else 0
+	fun getResult(player: Player): Int
+	{
+		val hand = playerHands[player] ?: throw IllegalArgumentException("Can't find player $player")
+		return if (hand.isEmpty) 1 else 0
+	}
 	
 	fun toGameState(powerCardPlayedEvent: PowerCardPlayedEvent? = null): GameState = GameState(
 		ruleset,

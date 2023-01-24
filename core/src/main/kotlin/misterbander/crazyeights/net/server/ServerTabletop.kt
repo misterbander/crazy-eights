@@ -104,6 +104,9 @@ class ServerTabletop(
 		addServerObject(discardPileHolder)
 	}
 	
+	inline fun <reified T : ServerObject> findObjectById(id: Int): T = idToObjectMap[id] as? T
+		?: throw IllegalArgumentException("Expected ${T::class.java} with id = $id, found ${idToObjectMap[id]}")
+	
 	fun addServerObject(serverObject: ServerObject, insertAtIndex: Int = -1)
 	{
 		idToObjectMap[serverObject.id] = serverObject
@@ -150,8 +153,8 @@ class ServerTabletop(
 	
 	fun removeUser(user: User)
 	{
-		users.remove(user.name)
-		val hand = hands[user.name]!!
+		users.remove(user.name) ?: throw IllegalArgumentException("Can't find user ${user.name}")
+		val hand = hands[user.name] ?: throw IllegalStateException("Can't find hand for ${user.name}")
 		if (user.isAi)
 		{
 			hands.remove(user.name)
@@ -167,17 +170,19 @@ class ServerTabletop(
 		for (serverObject: ServerObject in GdxArray(serverObjects))
 		{
 			if (serverObject is ServerLockable && serverObject.lockHolder == user.name)
-				serverObject.lockHolder = null
-			if (serverObject is ServerCard)
 			{
-				serverObject.justMoved = false
-				serverObject.justRotated = false
-				if (isGameStarted && serverObject.lastOwner == user.name)
+				serverObject.lockHolder = null
+				if (serverObject is ServerCard)
 				{
-					serverObject.isFaceUp = true
-					serverObject.lockHolder = null
-					serverObject.setOwner(this, user.name)
-					parent.server.sendToAllTCP(ObjectOwnEvent(serverObject.id, user.name))
+					serverObject.justMoved = false
+					serverObject.justRotated = false
+					if (isGameStarted && serverObject.lastOwner == user.name)
+					{
+						serverObject.isFaceUp = true
+						serverObject.lockHolder = null
+						serverObject.setOwner(this, user.name)
+						parent.server.sendToAllTCP(ObjectOwnEvent(serverObject.id, user.name))
+					}
 				}
 			}
 		}
@@ -205,6 +210,10 @@ class ServerTabletop(
 		val keys: GdxArray<String> = hands.orderedKeys()
 		val index1 = keys.indexOf(user1, false)
 		val index2 = keys.indexOf(user2, false)
+		if (index1 == -1)
+			throw IllegalArgumentException("Can't find user $user1")
+		if (index2 == -1)
+			throw IllegalArgumentException("Can't find user $user2")
 		keys.swap(index1, index2)
 		parent.server.sendToAllTCP(event)
 		info("Server | INFO") { "$user1 swapped seats with $user2" }
@@ -225,7 +234,7 @@ class ServerTabletop(
 		aiCount--
 		if (!event.username.startsWith("AI "))
 			aiNames += event.username
-		removeUser(users[event.username]!!)
+		removeUser(users[event.username] ?: throw IllegalArgumentException("Can't find user ${event.username}"))
 	}
 	
 	fun onObjectLock(event: ObjectLockEvent)
@@ -233,8 +242,8 @@ class ServerTabletop(
 		if (actionLocks.isNotEmpty())
 			return
 		val (id, lockerUsername) = event
-		val toLock = idToObjectMap[id]!!
-		if (toLock !is ServerLockable || !toLock.canLock) // Only unlocked draggables can be locked
+		val toLock = findObjectById<ServerLockable>(id)
+		if (!toLock.canLock) // Only unlocked draggables can be locked
 			return
 		if (isGameStarted)
 		{
@@ -243,7 +252,7 @@ class ServerTabletop(
 				return
 			if (toLock is ServerCard && toLock.cardGroupId != -1)
 			{
-				val cardGroup = idToObjectMap[toLock.cardGroupId] as ServerCardGroup
+				val cardGroup = findObjectById<ServerCardGroup>(toLock.cardGroupId)
 				if (cardGroup.cardHolderId == drawStackHolder.id)
 				{
 					if (serverGameState.drawCount >= serverGameState.ruleset.maxDrawCount)
@@ -270,8 +279,8 @@ class ServerTabletop(
 	fun onObjectUnlock(event: ObjectUnlockEvent)
 	{
 		val (id, unlockerUsername, sideEffects) = event
-		val toUnlock = idToObjectMap[id] ?: return
-		if (toUnlock !is ServerLockable || toUnlock.lockHolder != unlockerUsername)
+		val toUnlock = findObjectById<ServerLockable>(id)
+		if (toUnlock.lockHolder != unlockerUsername)
 			return
 		debug("Server | DEBUG") { "${toUnlock.lockHolder} unlocks $toUnlock" }
 		toUnlock.lockHolder = null
@@ -279,7 +288,7 @@ class ServerTabletop(
 		{
 			if (toUnlock.cardGroupId != -1)
 			{
-				val cardGroup = idToObjectMap[toUnlock.cardGroupId] as ServerCardGroup
+				val cardGroup = findObjectById<ServerCardGroup>(toUnlock.cardGroupId)
 				if (isGameStarted && cardGroup.cardHolderId == drawStackHolder.id)
 				{
 					parent.server.sendToAllTCP(event)
@@ -324,14 +333,16 @@ class ServerTabletop(
 	fun onObjectOwn(connection: Connection, event: ObjectOwnEvent)
 	{
 		val (id, ownerUsername) = event
-		(idToObjectMap[id] as ServerOwnable).setOwner(this, ownerUsername)
+		findObjectById<ServerOwnable>(id).setOwner(this, ownerUsername)
 		parent.server.sendToAllExceptTCP(connection.id, event)
 	}
 	
 	fun onObjectDisown(connection: Connection, event: ObjectDisownEvent)
 	{
 		val (id, x, y, rotation, isFaceUp, disownerUsername) = event
-		val toDisown = idToObjectMap[id]!!
+		val toDisown = findObjectById<ServerOwnable>(id)
+		val disownerHand =
+			hands[disownerUsername] ?: throw IllegalArgumentException("Can't find hand for user $disownerUsername")
 		toDisown.x = x
 		toDisown.y = y
 		toDisown.rotation = rotation
@@ -339,8 +350,8 @@ class ServerTabletop(
 			toDisown.lockHolder = disownerUsername
 		if (toDisown is ServerCard)
 			toDisown.isFaceUp = isFaceUp
+		disownerHand.removeValue(toDisown, true)
 		serverObjects += toDisown
-		hands[disownerUsername]!!.removeValue(toDisown, true)
 		parent.server.sendToAllExceptTCP(connection.id, event)
 	}
 	
@@ -357,8 +368,8 @@ class ServerTabletop(
 		if (actionLocks.isNotEmpty())
 			return
 		val (id, x, y) = event
-		val toMove = idToObjectMap[id]!!
-		if (toMove !is ServerLockable || toMove.lockHolder?.let { users[it] } != connection.arbitraryData)
+		val toMove = findObjectById<ServerLockable>(id)
+		if (toMove.lockHolder?.let { users[it] } != connection.arbitraryData)
 			return
 		toMove.x = x
 		toMove.y = y
@@ -378,8 +389,8 @@ class ServerTabletop(
 		if (actionLocks.isNotEmpty())
 			return
 		val (id, rotation) = event
-		val toRotate = idToObjectMap[id]!!
-		if (toRotate !is ServerLockable || toRotate.lockHolder?.let { users[it] } != connection.arbitraryData)
+		val toRotate = findObjectById<ServerLockable>(id)
+		if (toRotate.lockHolder?.let { users[it] } != connection.arbitraryData)
 			return
 		if (toRotate is ServerCard)
 			toRotate.justRotated = true
@@ -395,7 +406,7 @@ class ServerTabletop(
 		val cardGroup = ServerCardGroup(parent.newId(), firstX, firstY, firstRotation)
 		val insertAtIndex = serverObjects.indexOfFirst { it.id == firstId }
 		cards.forEachIndexed { index, (id, x, y, rotation) ->
-			val card = idToObjectMap[id] as ServerCard
+			val card = findObjectById<ServerCard>(id)
 			serverObjects.removeValue(card, true)
 			card.x = x
 			card.y = y
@@ -411,7 +422,7 @@ class ServerTabletop(
 	fun onCardGroupChange(event: CardGroupChangeEvent)
 	{
 		val (cards, newCardGroupId, changerUsername) = event
-		val newCardGroup = if (newCardGroupId != -1) idToObjectMap[newCardGroupId] as ServerCardGroup else null
+		val newCardGroup = if (newCardGroupId != -1) findObjectById<ServerCardGroup>(newCardGroupId) else null
 		
 		if (isGameStarted && newCardGroup?.cardHolderId == discardPileHolder.id) // User discards a card
 		{
@@ -420,7 +431,7 @@ class ServerTabletop(
 		}
 		
 		cards.forEachIndexed { index, (id, _, _, rotation) ->
-			val card = idToObjectMap[id] as ServerCard
+			val card = findObjectById<ServerCard>(id)
 			card.rotation = rotation
 			card.setServerCardGroup(this, newCardGroup)
 			cards[index] = card
@@ -434,7 +445,7 @@ class ServerTabletop(
 	fun onCardGroupDetach(event: CardGroupDetachEvent)
 	{
 		val (cardHolderId, _, changerUsername) = event
-		val cardHolder = idToObjectMap[cardHolderId] as ServerCardHolder
+		val cardHolder = findObjectById<ServerCardHolder>(cardHolderId)
 		val cardGroup = cardHolder.cardGroup
 		cardGroup.apply {
 			x = cardHolder.x
@@ -452,7 +463,7 @@ class ServerTabletop(
 	
 	fun onCardGroupDismantle(connection: Connection, event: CardGroupDismantleEvent)
 	{
-		val cardGroup = idToObjectMap[event.id] as ServerCardGroup
+		val cardGroup = findObjectById<ServerCardGroup>(event.id)
 		while (cardGroup.cards.isNotEmpty())
 		{
 			val card: ServerCard = cardGroup.cards.removeIndex(0)
@@ -535,7 +546,7 @@ class ServerTabletop(
 		val discardPile = discardPileHolder.cardGroup
 		for ((username, hand) in hands)
 		{
-			val user = users[username]!!
+			val user = users[username] ?: throw IllegalStateException("Can't find user $username")
 			if (user.isAi)
 				playerHands[IsmctsAgent(username)] = GdxArray(hand) as GdxArray<ServerCard>
 			else
@@ -595,8 +606,9 @@ class ServerTabletop(
 	{
 		val (cards, newCardGroupId, playerUsername) = cardGroupChangeEvent
 		assert(cards.size == 1) { "Playing more than 1 card: $cards" }
-		val discardPile = idToObjectMap[newCardGroupId] as ServerCardGroup
-		val card = idToObjectMap[cards.first().id] as ServerCard
+		val discardPile = findObjectById<ServerCardGroup>(newCardGroupId)
+		val card = findObjectById<ServerCard>(cards.first().id)
+		val playerHand = hands[playerUsername] ?: throw IllegalStateException("Can't find hand for user $playerUsername")
 		val serverGameState = serverGameState!!
 		val extraPackets = GdxArray<Any>()
 		
@@ -645,7 +657,7 @@ class ServerTabletop(
 		}
 		if (card.rank != Rank.EIGHT)
 			suitChooser = null
-		if (hands[playerUsername]!!.removeValue(card, true))
+		if (playerHand.removeValue(card, true))
 			extraPackets += CardSlideSoundEvent
 		card.rotation = cards[0].rotation
 		card.isFaceUp = true
@@ -655,7 +667,7 @@ class ServerTabletop(
 		discardPile.arrange()
 		parent.server.sendToAllTCP(cardGroupChangeEvent)
 		
-		if (hands[playerUsername].isEmpty) // Winner!
+		if (playerHand.isEmpty) // Winner!
 		{
 			this.serverGameState = null
 			aiJobs.forEach { it.cancel() }
@@ -702,12 +714,12 @@ class ServerTabletop(
 				{
 					is PlayMove ->
 					{
-						val card = idToObjectMap[move.card.id] as ServerCard
+						val card = findObjectById<ServerCard>(move.card.id)
 						play(CardGroupChangeEvent(gdxArrayOf(card), discardPile.id, player.name))
 					}
 					is ChangeSuitMove ->
 					{
-						val card = idToObjectMap[move.card.id] as ServerCard
+						val card = findObjectById<ServerCard>(move.card.id)
 						play(CardGroupChangeEvent(gdxArrayOf(card), discardPile.id, player.name))
 						delay(3000)
 						onSuitDeclare(event = SuitDeclareEvent(move.declaredSuit))

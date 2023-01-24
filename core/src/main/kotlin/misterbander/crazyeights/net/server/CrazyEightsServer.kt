@@ -194,43 +194,49 @@ class CrazyEightsServer(private val roomCode: String)
 
 //			if (`object` !is FrameworkMessage.KeepAlive && `object` !is CursorPosition && `object` !is ObjectMoveEvent && `object` !is ObjectRotateEvent)
 //				println("Server $`object`")
-			when (`object`)
+			try
 			{
-				is User -> tabletop.onUserJoined(connection, `object`) // A new user tries to join
-				is SwapSeatsEvent -> tabletop.onSwapSeats(`object`)
-				is AiAddEvent -> tabletop.onAiAdd()
-				is AiRemoveEvent -> tabletop.onAiRemove(`object`)
-				is Chat -> server.sendToAllTCP(`object`)
-				is CursorPosition ->
+				when (`object`)
 				{
-					server.sendToAllExceptTCP(connection.id, `object`)
-					`object`.free()
-				}
-				is TouchUpEvent -> server.sendToAllExceptTCP(connection.id, `object`)
-				is ObjectLockEvent -> tabletop.onObjectLock(`object`) // User attempts to lock an object
-				is ObjectUnlockEvent -> tabletop.onObjectUnlock(`object`) // User unlocks an object
-				is ObjectOwnEvent -> tabletop.onObjectOwn(connection, `object`)
-				is ObjectDisownEvent -> tabletop.onObjectDisown(connection, `object`)
-				is HandUpdateEvent -> tabletop.onHandUpdate(connection, `object`)
-				is ObjectMoveEvent -> tabletop.onObjectMove(connection, `object`)
-				is ObjectRotateEvent -> tabletop.onObjectRotate(connection, `object`)
-				is CardGroupCreateEvent -> tabletop.onCardGroupCreate(`object`)
-				is CardGroupChangeEvent -> tabletop.onCardGroupChange(`object`)
-				is CardGroupDetachEvent -> tabletop.onCardGroupDetach(`object`)
-				is CardGroupDismantleEvent -> tabletop.onCardGroupDismantle(connection, `object`)
-				is NewGameEvent -> tabletop.onNewGame(connection)
-				is ActionLockReleaseEvent -> tabletop.onActionLockReleaseEvent(connection)
-				is RulesetUpdateEvent -> tabletop.onRulesetUpdate(`object`)
-				is PassEvent -> tabletop.pass()
-				is SuitDeclareEvent -> tabletop.onSuitDeclare(connection, `object`)
-				is ResetDeckEvent -> tabletop.onResetDeck()
-				is CrazyEightsClient.BufferEnd -> tabletop.runLater.remove((connection.arbitraryData as User).name)
-					?.values()
-					?.forEach {
-						it.runnable()
+					is User -> tabletop.onUserJoined(connection, `object`) // A new user tries to join
+					is SwapSeatsEvent -> tabletop.onSwapSeats(`object`)
+					is AiAddEvent -> tabletop.onAiAdd()
+					is AiRemoveEvent -> tabletop.onAiRemove(`object`)
+					is Chat -> server.sendToAllTCP(`object`)
+					is CursorPosition ->
+					{
+						server.sendToAllExceptTCP(connection.id, `object`)
+						`object`.free()
 					}
+					is TouchUpEvent -> server.sendToAllExceptTCP(connection.id, `object`)
+					is ObjectLockEvent -> tabletop.onObjectLock(`object`) // User attempts to lock an object
+					is ObjectUnlockEvent -> tabletop.onObjectUnlock(`object`) // User unlocks an object
+					is ObjectOwnEvent -> tabletop.onObjectOwn(connection, `object`)
+					is ObjectDisownEvent -> tabletop.onObjectDisown(connection, `object`)
+					is HandUpdateEvent -> tabletop.onHandUpdate(connection, `object`)
+					is ObjectMoveEvent -> tabletop.onObjectMove(connection, `object`)
+					is ObjectRotateEvent -> tabletop.onObjectRotate(connection, `object`)
+					is CardGroupCreateEvent -> tabletop.onCardGroupCreate(`object`)
+					is CardGroupChangeEvent -> tabletop.onCardGroupChange(`object`)
+					is CardGroupDetachEvent -> tabletop.onCardGroupDetach(`object`)
+					is CardGroupDismantleEvent -> tabletop.onCardGroupDismantle(connection, `object`)
+					is NewGameEvent -> tabletop.onNewGame(connection)
+					is ActionLockReleaseEvent -> tabletop.onActionLockReleaseEvent(connection)
+					is RulesetUpdateEvent -> tabletop.onRulesetUpdate(`object`)
+					is PassEvent -> tabletop.pass()
+					is SuitDeclareEvent -> tabletop.onSuitDeclare(connection, `object`)
+					is ResetDeckEvent -> tabletop.onResetDeck()
+					is CrazyEightsClient.BufferEnd -> tabletop.runLater.remove((connection.arbitraryData as User).name)
+						?.values()
+						?.forEach {
+							it.runnable()
+						}
+				}
 			}
-			
+			catch (e: IllegalArgumentException)
+			{
+				e.printStackTrace()
+			}
 			tabletop.updateDebugStrings()
 		}
 	}

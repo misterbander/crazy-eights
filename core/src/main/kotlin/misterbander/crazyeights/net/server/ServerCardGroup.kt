@@ -36,7 +36,7 @@ data class ServerCardGroup(
 		cards += card
 		if (type == Type.PILE)
 		{
-			val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
+			val cardHolder = if (cardHolderId != -1) tabletop.findObjectById<ServerCardHolder>(cardHolderId) else null
 			if (cards.size == 1)
 			{
 				card.x = 0F
@@ -61,7 +61,7 @@ data class ServerCardGroup(
 	
 	fun removeCard(tabletop: ServerTabletop, card: ServerCard)
 	{
-		val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
+		val cardHolder = if (cardHolderId != -1) tabletop.findObjectById<ServerCardHolder>(cardHolderId) else null
 		cards -= card
 		card.x += x + (cardHolder?.x ?: 0F)
 		card.y += y + (cardHolder?.y ?: 0F)
@@ -93,7 +93,7 @@ data class ServerCardGroup(
 	
 	fun shuffle(tabletop: ServerTabletop, seed: Long)
 	{
-		val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
+		val cardHolder = if (cardHolderId != -1) tabletop.findObjectById<ServerCardHolder>(cardHolderId) else null
 		cardHolder?.toFront(tabletop) ?: toFront(tabletop)
 		cards.shuffle(seed)
 	}

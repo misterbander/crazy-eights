@@ -21,7 +21,7 @@ data class ServerCard(
 		get() = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
 	
 	private fun getServerCardGroup(tabletop: ServerTabletop): ServerCardGroup? =
-		if (cardGroupId != -1) tabletop.idToObjectMap[cardGroupId] as ServerCardGroup else null
+		if (cardGroupId != -1) tabletop.findObjectById(cardGroupId) else null
 	
 	fun setServerCardGroup(tabletop: ServerTabletop, cardGroup: ServerCardGroup?)
 	{
@@ -37,7 +37,8 @@ data class ServerCard(
 	
 	override fun setOwner(tabletop: ServerTabletop, ownerUsername: String)
 	{
-		(tabletop.idToObjectMap[cardGroupId] as? ServerCardGroup)?.removeCard(tabletop, this)
+		if (cardGroupId != -1)
+			tabletop.findObjectById<ServerCardGroup>(cardGroupId).removeCard(tabletop, this)
 		lastOwner = ownerUsername
 		super.setOwner(tabletop, ownerUsername)
 	}

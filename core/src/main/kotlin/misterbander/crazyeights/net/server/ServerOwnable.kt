@@ -1,10 +1,31 @@
 package misterbander.crazyeights.net.server
 
-interface ServerOwnable : ServerObject
+import ktx.collections.*
+
+interface ServerOwnable : ServerLockable
 {
-	fun setOwner(tabletop: ServerTabletop, ownerUsername: String)
+	var lastOwner: String?
+	
+	fun getOwner(tabletop: ServerTabletop): String? = tabletop.hands.firstOrNull { this in it.value }?.key
+	
+	fun setOwner(tabletop: ServerTabletop, ownerUsername: String?)
 	{
-		tabletop.hands[ownerUsername]?.add(this) ?: throw IllegalArgumentException("Can't find hand for user $ownerUsername")
-		tabletop.serverObjects.removeValue(this, true)
+		val currentOwner = getOwner(tabletop)
+		val newOwnerHand = if (ownerUsername != null)
+			tabletop.hands[ownerUsername] ?: throw IllegalArgumentException("Can't find hand for user $ownerUsername")
+		else
+			null
+		if (currentOwner != null)
+		{
+			tabletop.hands[currentOwner]!!.removeValue(this, true)
+			lastOwner = currentOwner
+		}
+		if (newOwnerHand != null)
+		{
+			newOwnerHand += this
+			tabletop.serverObjects.removeValue(this, true)
+		}
+		else
+			tabletop.serverObjects += this
 	}
 }

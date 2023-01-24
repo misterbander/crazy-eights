@@ -185,25 +185,45 @@ class ServerTabletopTest
 	}
 	
 	@Test
-	fun `onObjectOwn() owns a card`()
+	fun `onObjectOwn() owns an unowned card`()
 	{
 		var id = 0
-		val tabletop = newServerTabletop(server, playerHands = mapOf(User("alice") to emptyArray())) { id++ }
+		val tabletop = newServerTabletop(
+			server,
+			playerHands = mapOf(User("alice") to emptyArray(), User("bob") to emptyArray())
+		) { id++ }
 		val card = ServerCard(id++)
 		tabletop.addServerObject(card)
 		
 		tabletop.onObjectOwn(aliceConnection, ObjectOwnEvent(4, "alice"))
 		
+		assertEquals(expected = "alice", actual = card.getOwner(tabletop))
 		assertTrue { card !in tabletop.serverObjects }
-		assertTrue { card in tabletop.hands["alice"] }
+		
+		tabletop.onObjectOwn(bobConnection, ObjectOwnEvent(4, "bob"))
+		
+		assertEquals(expected = "alice", actual = card.getOwner(tabletop))
+		assertTrue { card !in tabletop.serverObjects }
 	}
 	
 	@Test
-	fun `onObjectDisown() disowns a card`()
+	fun `onObjectDisown() by the owner disowns a card`()
 	{
 		var id = 0
-		val tabletop = newServerTabletop(server, playerHands = mapOf(User("alice") to arrayOf("J♡"))) { id++ }
+		val tabletop = newServerTabletop(
+			server,
+			playerHands = mapOf(User("alice") to arrayOf("J♡"), User("bob") to emptyArray())
+		) { id++ }
 		val card = tabletop.findObjectById<ServerCard>(0)
+		
+		tabletop.onObjectDisown(
+			bobConnection,
+			ObjectDisownEvent(id = 4, x = 17F, y = 34F, rotation = 50F, isFaceUp = true, disownerUsername = "bob")
+		)
+		
+		assertEquals(expected = ServerCard(0, rank = Rank.JACK, suit = Suit.HEARTS), actual = card)
+		assertEquals(expected = "alice", actual = card.getOwner(tabletop))
+		assertTrue { card !in tabletop.serverObjects }
 		
 		tabletop.onObjectDisown(
 			aliceConnection,
@@ -219,12 +239,13 @@ class ServerTabletopTest
 				rank = Rank.JACK,
 				suit = Suit.HEARTS,
 				isFaceUp = true,
-				lockHolder = "alice"
+				lockHolder = "alice",
+				lastOwner = "alice"
 			),
 			actual = card
 		)
+		assertEquals(expected = null, actual = card.getOwner(tabletop))
 		assertTrue { card in tabletop.serverObjects }
-		assertTrue { card !in tabletop.hands["alice"] }
 	}
 	
 	@Test

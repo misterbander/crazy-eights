@@ -11,11 +11,11 @@ data class ServerCard(
 	val suit: Suit = Suit.NO_SUIT,
 	var isFaceUp: Boolean = false,
 	override var lockHolder: String? = null,
-	var lastOwner: String? = null,
+	override var lastOwner: String? = null,
 	var cardGroupId: Int = -1,
 	var justMoved: Boolean = false,
 	var justRotated: Boolean = false
-) : ServerLockable, ServerOwnable
+) : ServerOwnable
 {
 	val name: String
 		get() = if (suit == Suit.JOKER) "JOKER" else "$rank$suit"
@@ -35,11 +35,10 @@ data class ServerCard(
 			tabletop.serverObjects += this
 	}
 	
-	override fun setOwner(tabletop: ServerTabletop, ownerUsername: String)
+	override fun setOwner(tabletop: ServerTabletop, ownerUsername: String?)
 	{
 		if (cardGroupId != -1)
 			tabletop.findObjectById<ServerCardGroup>(cardGroupId).removeCard(tabletop, this)
-		lastOwner = ownerUsername
 		super.setOwner(tabletop, ownerUsername)
 	}
 	

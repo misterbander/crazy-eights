@@ -38,9 +38,11 @@ class Ownable(
 		val (screenX, screenY) = parent.localToScreenCoordinates(tempVec.set(x, y))
 		val (_, uiStageY) = room.uiStage.screenToStageCoordinates(tempVec.set(screenX, screenY))
 		
+		val shouldOwn = uiStageY <= 92 + tabletop.myHand.offsetCenterY
+		val shouldDisown = uiStageY > 98 + tabletop.myHand.offsetCenterY
 		if (isOwned)
 		{
-			if (uiStageY > 98 + tabletop.myHand.offsetCenterY) // Should disown it from hand?
+			if (shouldDisown)
 			{
 				val smoothMovable = parent.getModule<SmoothMovable>()!!
 				tabletop.myHand -= parent as Groupable<CardGroup>
@@ -57,7 +59,7 @@ class Ownable(
 				}
 			}
 		}
-		else if (uiStageY <= 92 + tabletop.myHand.offsetCenterY) // Should own it in hand?
+		else if (shouldOwn)
 		{
 			tabletop.myHand += parent as Groupable<CardGroup>
 			tabletop.myHand.arrange()

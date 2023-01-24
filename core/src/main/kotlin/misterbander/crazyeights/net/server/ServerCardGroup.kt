@@ -19,8 +19,9 @@ data class ServerCardGroup(
 	val cards: GdxArray<ServerCard> = GdxArray(),
 	var type: Type = Type.STACK,
 	override var lockHolder: String? = null,
+	override var lastOwner: String? = null,
 	var cardHolderId: Int = -1
-) : ServerLockable, ServerOwnable
+) : ServerOwnable
 {
 	override val canLock: Boolean
 		get() = !isLocked && (cards.isEmpty || !cards.peek().isLocked)

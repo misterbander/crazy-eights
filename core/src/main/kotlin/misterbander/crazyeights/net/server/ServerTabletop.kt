@@ -333,7 +333,10 @@ class ServerTabletop(
 	fun onObjectOwn(connection: Connection, event: ObjectOwnEvent)
 	{
 		val (id, ownerUsername) = event
-		findObjectById<ServerOwnable>(id).setOwner(this, ownerUsername)
+		val toOwn = findObjectById<ServerOwnable>(id)
+		if (toOwn.getOwner(this) != null)
+			return
+		toOwn.setOwner(this, ownerUsername)
 		parent.server.sendToAllExceptTCP(connection.id, event)
 	}
 	
@@ -341,17 +344,17 @@ class ServerTabletop(
 	{
 		val (id, x, y, rotation, isFaceUp, disownerUsername) = event
 		val toDisown = findObjectById<ServerOwnable>(id)
-		val disownerHand =
-			hands[disownerUsername] ?: throw IllegalArgumentException("Can't find hand for user $disownerUsername")
-		toDisown.x = x
-		toDisown.y = y
-		toDisown.rotation = rotation
-		if (toDisown is ServerLockable)
-			toDisown.lockHolder = disownerUsername
-		if (toDisown is ServerCard)
-			toDisown.isFaceUp = isFaceUp
-		disownerHand.removeValue(toDisown, true)
-		serverObjects += toDisown
+		if (toDisown.getOwner(this) != disownerUsername)
+			return
+		toDisown.setOwner(this, null)
+		findObjectById<ServerOwnable>(id).apply {
+			this.x = x
+			this.y = y
+			this.rotation = rotation
+			lockHolder = disownerUsername
+			if (this is ServerCard)
+				this.isFaceUp = isFaceUp
+		}
 		parent.server.sendToAllExceptTCP(connection.id, event)
 	}
 	
@@ -788,6 +791,7 @@ class ServerTabletop(
 			{
 				discard.setServerCardGroup(this, drawStack)
 				discard.isFaceUp = false
+				discard.lastOwner = null
 			}
 		}
 		
@@ -883,6 +887,7 @@ class ServerTabletop(
 				if (serverObject.cardGroupId != drawStack.id)
 					serverObject.setServerCardGroup(this, drawStack)
 				serverObject.isFaceUp = false
+				serverObject.lastOwner = null
 			}
 		}
 		for (serverObject: ServerObject in serverObjects) // Remove all empty card groups

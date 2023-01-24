@@ -31,7 +31,7 @@ data class ServerCardGroup(
 		arrange()
 	}
 	
-	fun plusAssign(tabletop: ServerTabletop, card: ServerCard)
+	fun addCard(tabletop: ServerTabletop, card: ServerCard)
 	{
 		cards += card
 		if (type == Type.PILE)
@@ -59,7 +59,7 @@ data class ServerCardGroup(
 		card.cardGroupId = id
 	}
 	
-	fun minusAssign(tabletop: ServerTabletop, card: ServerCard)
+	fun removeCard(tabletop: ServerTabletop, card: ServerCard)
 	{
 		val cardHolder = tabletop.idToObjectMap[cardHolderId] as? ServerCardHolder
 		cards -= card

@@ -401,7 +401,7 @@ class ServerTabletop(
 			card.y = y
 			card.rotation = rotation
 			cards[index] = card
-			cardGroup.plusAssign(this, card)
+			cardGroup.addCard(this, card)
 		}
 		cardGroup.arrange()
 		addServerObject(cardGroup, insertAtIndex)

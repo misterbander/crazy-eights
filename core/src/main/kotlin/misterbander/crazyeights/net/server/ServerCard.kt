@@ -25,10 +25,10 @@ data class ServerCard(
 	
 	fun setServerCardGroup(tabletop: ServerTabletop, cardGroup: ServerCardGroup?)
 	{
-		getServerCardGroup(tabletop)?.minusAssign(tabletop, this)
+		getServerCardGroup(tabletop)?.removeCard(tabletop, this)
 		if (cardGroup != null)
 		{
-			cardGroup.plusAssign(tabletop, this)
+			cardGroup.addCard(tabletop, this)
 			tabletop.serverObjects.removeValue(this, true)
 		}
 		else
@@ -37,7 +37,7 @@ data class ServerCard(
 	
 	override fun setOwner(tabletop: ServerTabletop, ownerUsername: String)
 	{
-		(tabletop.idToObjectMap[cardGroupId] as? ServerCardGroup)?.minusAssign(tabletop, this)
+		(tabletop.idToObjectMap[cardGroupId] as? ServerCardGroup)?.removeCard(tabletop, this)
 		lastOwner = ownerUsername
 		super.setOwner(tabletop, ownerUsername)
 	}

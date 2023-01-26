@@ -15,9 +15,9 @@ class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 		if (moves.size == 1) // No need for tree search if there is only one move
 			return moves[0]
 		
-		val rootNode = Node()
+		val rootNode = RootNode()
 		repeat(2500) {
-			var node = rootNode
+			var node: Node = rootNode
 			
 			// Determinize
 			val observedState = state.observedState
@@ -28,7 +28,7 @@ class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 			{
 				// Node is fully expanded and non-terminal
 				node = node.selectUCB1(observedMoves)
-				observedState.doMove(node.moveToNode!!)
+				observedState.doMove(node.moveToNode)
 			}
 			
 			// Expand
@@ -54,11 +54,11 @@ class IsmctsAgent(override val name: String = "IsmctsAgent") : Agent
 			while (true) // Backpropagate from the expanded node and work back to the root node
 			{
 				node.update(observedState)
-				node = node.parentNode ?: break
+				node = if (node is ChildNode) node.parentNode else break
 			}
 		}
 		
 		// Return the move that was most visited
-		return rootNode.children.maxByOrNull { node: Node -> node.visits }!!.moveToNode!!
+		return rootNode.children.maxByOrNull { node: Node -> node.visits }!!.moveToNode
 	}
 }

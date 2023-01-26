@@ -9,21 +9,14 @@ import kotlin.math.sqrt
 
 /**
  * A node in the game tree. Note that `wins` is always from the viewpoint of `playerJustMoved`.
- * @property parentNode null for the root node
- * @property moveToNode the move that got us to this node. Null for the root node
- * @property playerJustMoved The only part of the state that the Node needs later
  */
-class Node(
-	val parentNode: Node? = null,
-	val moveToNode: Move? = null,
-	private val playerJustMoved: Player? = null
-)
+sealed class Node
 {
-	val children = GdxArray<Node>()
-	private var wins = 0
+	val children = GdxArray<ChildNode>()
+	protected var wins = 0
 	var visits = 0
 		private set
-	private var availability = 1
+	protected var availability = 1
 	
 	/**
 	 * Return the elements of `legalMoves` for which this node does not have children.
@@ -31,7 +24,7 @@ class Node(
 	fun getUntriedMoves(legalMoves: GdxArray<Move>): GdxArray<Move>
 	{
 		// Find all moves for which this node *does* have children
-		val triedMoves: GdxArray<Move> = children.map { it.moveToNode!! }
+		val triedMoves: GdxArray<Move> = children.map { it.moveToNode }
 		
 		// Return all moves that are legal but have not been tried yet
 		val untriedMoves = GdxArray(legalMoves)
@@ -43,11 +36,11 @@ class Node(
 	 * Use the UCB1 formula to select a child node, filtered by the given list of legal moves.
 	 * exploration is a constant balancing between exploitation and exploration, with default value 0.7 (approximately sqrt(2) / 2)
 	 */
-	fun selectUCB1(legalMoves: GdxArray<Move>, exploration: Float = 0.7F): Node
+	fun selectUCB1(legalMoves: GdxArray<Move>, exploration: Float = 0.7F): ChildNode
 	{
 		// Filter the list of children by the list of legal moves
-		val legalChildren = GdxArray<Node>()
-		for (node: Node in children)
+		val legalChildren = GdxArray<ChildNode>()
+		for (node: ChildNode in children)
 		{
 			if (node.moveToNode in legalMoves)
 				legalChildren += node
@@ -59,7 +52,7 @@ class Node(
 		}!!
 		
 		// Update availability counts. It is easier to do this now than during backpropagation
-		for (legalChild: Node in legalChildren)
+		for (legalChild: ChildNode in legalChildren)
 			legalChild.availability++
 		
 		return bestNode
@@ -69,9 +62,9 @@ class Node(
 	 * Add a new child node for the move m.
 	 * @return The added child node
 	 */
-	fun addChild(moveToNode: Move, playerJustMoved: Player): Node
+	fun addChild(moveToNode: Move, playerJustMoved: Player): ChildNode
 	{
-		val node = Node(this, moveToNode, playerJustMoved)
+		val node = ChildNode(this, moveToNode, playerJustMoved)
 		children += node
 		return node
 	}
@@ -79,10 +72,28 @@ class Node(
 	/**
 	 * Update this node - increment the visit count by one, and increase the win count by the result of `terminalState` for `playerJustMoved`.
 	 */
-	fun update(terminalState: ServerGameState)
+	open fun update(terminalState: ServerGameState)
 	{
 		visits++
-		if (playerJustMoved != null)
-			wins += terminalState.getResult(playerJustMoved)
+	}
+}
+
+class RootNode : Node()
+
+/**
+ * @property parentNode the parent node
+ * @property moveToNode the move that got us to this node
+ * @property playerJustMoved the only part of the state that the Node needs later
+ */
+class ChildNode(
+	val parentNode: Node,
+	val moveToNode: Move,
+	private val playerJustMoved: Player
+) : Node()
+{
+	override fun update(terminalState: ServerGameState)
+	{
+		super.update(terminalState)
+		wins += terminalState.getResult(playerJustMoved)
 	}
 }

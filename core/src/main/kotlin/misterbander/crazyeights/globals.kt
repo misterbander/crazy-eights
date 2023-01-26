@@ -15,6 +15,7 @@ val BACKGROUND_COLOR = Color(0x5B1C1CFF)
 val ACCENT_COLOR = Color(0x772D2DFF)
 val DESATURATED_RED = Color(0xC93F3FFF.toInt())
 const val ANIMATION_DURATION = 0.2F
+const val SERVER_UPDATES_PER_SECOND = 60
 
 const val LABEL_SMALL_STYLE = "label_small"
 const val LABEL_TINY_STYLE = "label_tiny"

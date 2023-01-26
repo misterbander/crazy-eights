@@ -16,6 +16,7 @@ import ktx.async.KtxAsync
 import ktx.collections.*
 import ktx.log.debug
 import ktx.log.info
+import misterbander.crazyeights.SERVER_UPDATES_PER_SECOND
 import misterbander.crazyeights.net.packets.AiRemoveEvent
 import misterbander.crazyeights.net.packets.CardFlipEvent
 import misterbander.crazyeights.net.packets.CardGroupChangeEvent
@@ -77,7 +78,6 @@ class ServerTabletop(
 	private var aiCount = 0
 	val aiJobs = Queue<Job>()
 	private val actionLocks = GdxSet<String>()
-	val runLater = GdxMap<String, IntMap<CrazyEightsServer.CancellableRunnable>>()
 	
 	val serverObjects = GdxArray<ServerObject>()
 	
@@ -166,7 +166,6 @@ class ServerTabletop(
 		actionLocks -= user.name
 		if (hand.isEmpty)
 			hands.remove(user.name)
-		runLater.remove(user.name)?.values()?.forEach { it.runnable() }
 		for (serverObject: ServerObject in idToObjectMap.values())
 		{
 			if (serverObject is ServerLockable && serverObject.lockHolder == user.name)
@@ -250,8 +249,10 @@ class ServerTabletop(
 			val serverGameState = serverGameState!!
 			if (lockerUsername != serverGameState.currentPlayer.name) // You can't lock anything if it's not your turn
 				return
-			if (toLock is ServerCard && toLock.cardGroupId != -1)
+			if (toLock is ServerCard)
 			{
+				if (toLock.cardGroupId == -1) // Stray cards cannot be locked
+					return
 				val cardGroup = findObjectById<ServerCardGroup>(toLock.cardGroupId)
 				if (cardGroup.cardHolderId == drawStackHolder.id)
 				{
@@ -302,17 +303,11 @@ class ServerTabletop(
 			{
 				// If the card is left on the table without being in someone's hand or in a card group, then it will be
 				// returned to its original owner
-				toUnlock.lockHolder = ""
-				runLater.getOrPut(unlockerUsername) { IntMap() }.put(
-					toUnlock.id,
-					CrazyEightsServer.CancellableRunnable(
-						runnable = {
-							toUnlock.lockHolder = null
-							draw(toUnlock, unlockerUsername, fireOwnEvent = true)
-						},
-						onCancel = { toUnlock.lockHolder = null }
-					)
-				)
+				KtxAsync.launch {
+					delay(1000/SERVER_UPDATES_PER_SECOND.toLong())
+					if (toUnlock.cardGroupId == -1 && toUnlock.getOwner(this@ServerTabletop) == null)
+						draw(toUnlock, toUnlock.lastOwner ?: serverGameState!!.currentPlayer.name, fireOwnEvent = true)
+				}
 			}
 			if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects && !isGameStarted)
 			{
@@ -404,6 +399,8 @@ class ServerTabletop(
 	
 	fun onCardGroupCreate(event: CardGroupCreateEvent)
 	{
+		if (isGameStarted)
+			return
 		val cards = event.cards
 		val (firstId, firstX, firstY, firstRotation) = cards[0]
 		val cardGroup = ServerCardGroup(parent.newId(), firstX, firstY, firstRotation)
@@ -424,7 +421,7 @@ class ServerTabletop(
 	
 	fun onCardGroupChange(event: CardGroupChangeEvent)
 	{
-		val (cards, newCardGroupId, changerUsername) = event
+		val (cards, newCardGroupId) = event
 		val newCardGroup = if (newCardGroupId != -1) findObjectById<ServerCardGroup>(newCardGroupId) else null
 		
 		if (isGameStarted && newCardGroup?.cardHolderId == discardPileHolder.id) // User discards a card
@@ -438,8 +435,6 @@ class ServerTabletop(
 			card.rotation = rotation
 			card.setServerCardGroup(this, newCardGroup)
 			cards[index] = card
-			if (isGameStarted) // Cancel the run later which would send the card back to its original owner
-				runLater.getOrPut(changerUsername) { IntMap() }.remove(id)?.onCancel?.invoke()
 		}
 		newCardGroup?.arrange()
 		parent.server.sendToAllTCP(event)
@@ -447,6 +442,8 @@ class ServerTabletop(
 	
 	fun onCardGroupDetach(event: CardGroupDetachEvent)
 	{
+		if (isGameStarted)
+			return
 		val (cardHolderId, _, changerUsername) = event
 		val cardHolder = findObjectById<ServerCardHolder>(cardHolderId)
 		val cardGroup = cardHolder.cardGroup
@@ -466,6 +463,8 @@ class ServerTabletop(
 	
 	fun onCardGroupDismantle(connection: Connection, event: CardGroupDismantleEvent)
 	{
+		if (isGameStarted)
+			return
 		val cardGroup = findObjectById<ServerCardGroup>(event.id)
 		while (cardGroup.cards.isNotEmpty())
 		{
@@ -593,7 +592,7 @@ class ServerTabletop(
 		{
 			if (actionLocks.isEmpty)
 				break
-			delay(1000/60)
+			delay(1000/SERVER_UPDATES_PER_SECOND.toLong())
 		}
 	}
 	
@@ -666,7 +665,6 @@ class ServerTabletop(
 		card.isFaceUp = true
 		card.setServerCardGroup(this, discardPile)
 		cards[0] = card
-		runLater.getOrPut(playerUsername) { IntMap() }.remove(card.id)?.onCancel?.invoke()
 		discardPile.arrange()
 		parent.server.sendToAllTCP(cardGroupChangeEvent)
 		

@@ -245,7 +245,7 @@ class RoomScreen(game: CrazyEights) : CrazyEightsScreen(game), ListenerContainer
 	{
 		super.render(delta)
 		timeSinceLastSync += delta
-		val shouldSyncServer = if (timeSinceLastSync > 1/40F)
+		val shouldSyncServer = if (timeSinceLastSync > 1/SERVER_UPDATES_PER_SECOND.toFloat())
 		{
 			timeSinceLastSync = 0F
 			true

@@ -13,7 +13,6 @@ import ktx.log.info
 import misterbander.crazyeights.DEFAULT_UDP_PORT
 import misterbander.crazyeights.VERSION_STRING
 import misterbander.crazyeights.kryo.registerClasses
-import misterbander.crazyeights.net.client.CrazyEightsClient
 import misterbander.crazyeights.net.packets.ActionLockReleaseEvent
 import misterbander.crazyeights.net.packets.AiAddEvent
 import misterbander.crazyeights.net.packets.AiRemoveEvent
@@ -226,11 +225,6 @@ class CrazyEightsServer(private val roomCode: String)
 					is PassEvent -> tabletop.pass()
 					is SuitDeclareEvent -> tabletop.onSuitDeclare(connection, `object`)
 					is ResetDeckEvent -> tabletop.onResetDeck()
-					is CrazyEightsClient.BufferEnd -> tabletop.runLater.remove((connection.arbitraryData as User).name)
-						?.values()
-						?.forEach {
-							it.runnable()
-						}
 				}
 			}
 			catch (e: IllegalArgumentException)
@@ -240,6 +234,4 @@ class CrazyEightsServer(private val roomCode: String)
 			tabletop.updateDebugStrings()
 		}
 	}
-	
-	class CancellableRunnable(val runnable: () -> Unit, val onCancel: () -> Unit)
 }

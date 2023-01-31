@@ -77,7 +77,7 @@ class OracleAgent(override val name: String = "OracleAgent") : Agent
 		}
 		
 		if (state.drawCount < state.ruleset.maxDrawCount)
-			return DrawMove
+			return DrawMove()
 		return PassMove
 	}
 }

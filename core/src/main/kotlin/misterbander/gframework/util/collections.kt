@@ -5,6 +5,8 @@ import com.badlogic.gdx.utils.IntIntMap
 import com.badlogic.gdx.utils.IntMap
 import ktx.collections.*
 
+private val random = RandomXS128()
+
 /**
  * @param keysToValues will be added to the map.
  * @param initialCapacity initial capacity of the map. Will be resized if necessary.
@@ -45,7 +47,7 @@ fun gdxIntIntMapOf(
  */
 fun <T> GdxArray<T>.shuffle(seed: Long)
 {
-	val random = RandomXS128(seed)
+	random.setSeed(seed)
 	val items = items
 	for (i in size - 1 downTo 0)
 	{

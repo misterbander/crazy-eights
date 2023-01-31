@@ -7,7 +7,10 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.runs
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import ktx.app.KtxApplicationAdapter
+import ktx.async.KtxAsync
 import ktx.collections.*
 import misterbander.crazyeights.kryo.objectMoveEventPool
 import misterbander.crazyeights.kryo.objectRotateEventPool
@@ -480,23 +483,134 @@ class ServerTabletopTest
 			drawStack = arrayOf("J♡", "7♣"),
 			discardPile = arrayOf("9♢", "3♢", "4♡", "2♠", "7♡")
 		) { id++ }
-		tabletop.serverGameState = tabletop.createGameState()
+		val gameState = tabletop.createGameState()
+		tabletop.serverGameState = gameState
 		
 		assertContentEquals(
 			expected = tabletop.drawStackHolder.cardGroup.cards,
-			actual = tabletop.serverGameState!!.drawStack
+			actual = gameState.drawStack
 		)
 		assertContentEquals(
 			expected = tabletop.discardPileHolder.cardGroup.cards,
-			actual = tabletop.serverGameState!!.discardPile
+			actual = gameState.discardPile
 		)
 		assertContentEquals(
 			expected = tabletop.hands["alice"],
-			actual = tabletop.serverGameState!!.playerHands[User("alice")]
+			actual = gameState.playerHands[User("alice")]
 		)
 		assertContentEquals(
 			expected = tabletop.hands["bob"],
-			actual = tabletop.serverGameState!!.playerHands[User("bob")]
+			actual = gameState.playerHands[User("bob")]
 		)
+	}
+	
+	@Test
+	fun `The tabletop state should match its game state after clicking on the draw stack`()
+	{
+		var id = 0
+		val tabletop = newServerTabletop(
+			server,
+			playerHands = mapOf(
+				User("alice") to arrayOf("7♠", "K♢", "3♠", "K♡", "3♡"),
+				User("bob") to arrayOf("9♡", "Q♢", "5♢", "10♡", "J♠", "3♣")
+			),
+			drawStack = arrayOf("J♡", "7♣"),
+			discardPile = arrayOf("9♢", "3♢", "4♡", "2♠", "7♡")
+		) { id++ }
+		val drawStack = tabletop.drawStackHolder.cardGroup.cards
+		val gameState = tabletop.createGameState()
+		tabletop.serverGameState = gameState
+		
+		val drawStackTopCardId = drawStack.peek().id
+		tabletop.onObjectLock(ObjectLockEvent(drawStackTopCardId, "alice"))
+		tabletop.onObjectUnlock(ObjectUnlockEvent(drawStackTopCardId, "alice"))
+		
+		assertEquals(expected = 1, actual = drawStack.size)
+		assertEquals(expected = gdxArrayOf<ServerObject>(
+			ServerCard(0, rank = Rank.SEVEN, suit = Suit.SPADES),
+			ServerCard(1, rank = Rank.KING, suit = Suit.DIAMONDS),
+			ServerCard(2, rank = Rank.THREE, suit = Suit.SPADES),
+			ServerCard(3, rank = Rank.KING, suit = Suit.HEARTS),
+			ServerCard(4, rank = Rank.THREE, suit = Suit.HEARTS),
+			ServerCard(14, x = -1F, y = 1F, rank = Rank.SEVEN, suit = Suit.CLUBS, isFaceUp = true),
+		), actual = tabletop.hands["alice"])
+		assertContentEquals(expected = tabletop.hands["alice"], actual = gameState.playerHands[User("alice")])
+		assertContentEquals(expected = tabletop.hands["bob"], actual = gameState.playerHands[User("bob")])
+		assertContentEquals(expected = tabletop.drawStackHolder.cardGroup.cards, actual = gameState.drawStack)
+		assertContentEquals(expected = tabletop.discardPileHolder.cardGroup.cards, actual = gameState.discardPile)
+	}
+	
+	@Test
+	fun `The tabletop state should match its game state after clicking on the draw stack when only one card is in it`()
+	{
+		var id = 0
+		val tabletop = newServerTabletop(
+			server,
+			playerHands = mapOf(
+				User("alice") to arrayOf("7♠", "K♢", "3♠", "K♡", "3♡"),
+				User("bob") to arrayOf("9♡", "Q♢", "5♢", "10♡", "J♠", "3♣")
+			),
+			drawStack = arrayOf("J♡"),
+			discardPile = arrayOf("9♢", "3♢", "4♡", "2♠", "7♡")
+		) { id++ }
+		val drawStack = tabletop.drawStackHolder.cardGroup.cards
+		val gameState = tabletop.createGameState()
+		tabletop.serverGameState = gameState
+		
+		val drawStackTopCardId = drawStack.peek().id
+		tabletop.onObjectLock(ObjectLockEvent(drawStackTopCardId, "alice"))
+		tabletop.onObjectUnlock(ObjectUnlockEvent(drawStackTopCardId, "alice"))
+		
+		assertEquals(expected = 4, actual = drawStack.size)
+		assertEquals(expected = gdxArrayOf<ServerObject>(
+			ServerCard(0, rank = Rank.SEVEN, suit = Suit.SPADES),
+			ServerCard(1, rank = Rank.KING, suit = Suit.DIAMONDS),
+			ServerCard(2, rank = Rank.THREE, suit = Suit.SPADES),
+			ServerCard(3, rank = Rank.KING, suit = Suit.HEARTS),
+			ServerCard(4, rank = Rank.THREE, suit = Suit.HEARTS),
+			ServerCard(13, rank = Rank.JACK, suit = Suit.HEARTS, isFaceUp = true),
+		), actual = tabletop.hands["alice"])
+		assertContentEquals(expected = tabletop.hands["alice"], actual = gameState.playerHands[User("alice")])
+		assertContentEquals(expected = tabletop.hands["bob"], actual = gameState.playerHands[User("bob")])
+		assertContentEquals(expected = tabletop.drawStackHolder.cardGroup.cards, actual = gameState.drawStack)
+		assertContentEquals(expected = tabletop.discardPileHolder.cardGroup.cards, actual = gameState.discardPile)
+	}
+	
+	@Test
+	fun `The tabletop state after acceptDrawTwoPenalty() should match its game state when amount of cards to draw equals the number of cards in the draw stack`()
+	{
+		KtxAsync.initiate()
+		var id = 0
+		val tabletop = newServerTabletop(
+			server,
+			playerHands = mapOf(
+				User("alice") to arrayOf("7♠", "K♢", "3♠", "K♡", "3♡"),
+				User("bob") to arrayOf("9♡", "Q♢", "5♢", "10♡", "J♠", "3♣")
+			),
+			drawStack = arrayOf("J♡", "A♣"),
+			discardPile = arrayOf("9♢", "3♢")
+		) { id++ }
+		val drawStack = tabletop.drawStackHolder.cardGroup.cards
+		val gameState = tabletop.createGameState(drawTwoEffectCardCount = 4)
+		tabletop.serverGameState = gameState
+		
+		val drawStackTopCardId = drawStack.peek().id
+		tabletop.onObjectLock(ObjectLockEvent(drawStackTopCardId, "alice"))
+		
+		runBlocking {
+			delay(100L)
+			tabletop.onActionLockReleaseEvent(aliceConnection)
+			tabletop.onActionLockReleaseEvent(bobConnection)
+			delay(100L)
+			tabletop.onActionLockReleaseEvent(aliceConnection)
+			tabletop.onActionLockReleaseEvent(bobConnection)
+			
+			assertTrue { drawStack.isEmpty }
+			assertEquals(expected = 8, actual = tabletop.hands["alice"]!!.size)
+			assertContentEquals(expected = tabletop.hands["alice"], actual = gameState.playerHands[User("alice")])
+			assertContentEquals(expected = tabletop.hands["bob"], actual = gameState.playerHands[User("bob")])
+			assertContentEquals(expected = tabletop.drawStackHolder.cardGroup.cards, actual = gameState.drawStack)
+			assertContentEquals(expected = tabletop.discardPileHolder.cardGroup.cards, actual = gameState.discardPile)
+		}
 	}
 }

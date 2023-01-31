@@ -30,7 +30,7 @@ class Ownable(
 		get() = parent.firstAscendant(MyHand::class.java)
 	val isOwned: Boolean
 		get() = myHand != null
-	var wasInHand = false
+	var justAcceptedInHand = false
 	
 	@Suppress("UNCHECKED_CAST")
 	fun updateOwnership(x: Float, y: Float)

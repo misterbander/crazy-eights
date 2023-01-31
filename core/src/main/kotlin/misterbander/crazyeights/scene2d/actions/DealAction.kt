@@ -39,7 +39,7 @@ class DealAction(private val room: RoomScreen, private val hands: Array<Hand>) :
 			{
 				hand.arrange(false)
 				card.isFaceUp = true
-				card.ownable.wasInHand = true
+				card.ownable.justAcceptedInHand = true
 			}
 			else
 				hand.arrange()

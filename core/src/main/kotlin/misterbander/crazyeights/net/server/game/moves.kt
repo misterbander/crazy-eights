@@ -1,5 +1,6 @@
 package misterbander.crazyeights.net.server.game
 
+import com.badlogic.gdx.math.MathUtils
 import misterbander.crazyeights.net.server.ServerCard
 import misterbander.crazyeights.net.server.ServerCard.Suit
 
@@ -8,7 +9,7 @@ import misterbander.crazyeights.net.server.ServerCard.Suit
  */
 sealed class Move
 
-data class PlayMove(val card: ServerCard) : Move()
+data class PlayMove(val card: ServerCard, val seed: Long = MathUtils.random.nextLong()) : Move()
 {
 	override fun toString(): String = "PLAY [${card.name}]"
 	
@@ -21,12 +22,7 @@ data class PlayMove(val card: ServerCard) : Move()
 		
 		other as PlayMove
 		
-		if (card.rank != other.card.rank)
-			return false
-		if (card.suit != other.card.suit)
-			return false
-		
-		return true
+		return card.rank == other.card.rank && card.suit == other.card.suit
 	}
 	
 	override fun hashCode(): Int
@@ -50,14 +46,7 @@ data class ChangeSuitMove(val card: ServerCard, val declaredSuit: Suit) : Move()
 		
 		other as ChangeSuitMove
 		
-		if (card.rank != other.card.rank)
-			return false
-		if (card.suit != other.card.suit)
-			return false
-		if (declaredSuit != other.declaredSuit)
-			return false
-		
-		return true
+		return card.rank == other.card.rank && card.suit == other.card.suit && declaredSuit == other.declaredSuit
 	}
 	
 	override fun hashCode(): Int
@@ -69,9 +58,13 @@ data class ChangeSuitMove(val card: ServerCard, val declaredSuit: Suit) : Move()
 	}
 }
 
-object DrawMove : Move()
+data class DrawMove(val seed: Long = MathUtils.random.nextLong()) : Move()
 {
 	override fun toString(): String = "DRAW"
+	
+	override fun equals(other: Any?): Boolean = this === other || javaClass == other?.javaClass
+	
+	override fun hashCode(): Int = 0
 }
 
 object PassMove : Move()
@@ -79,7 +72,21 @@ object PassMove : Move()
 	override fun toString(): String = "PASS"
 }
 
-data class DrawTwoEffectPenalty(val cardCount: Int) : Move()
+data class DrawTwoEffectPenalty(val cardCount: Int, val seed: Long = MathUtils.random.nextLong()) : Move()
 {
 	override fun toString(): String = "DRAW $cardCount"
+	
+	override fun equals(other: Any?): Boolean
+	{
+		if (this === other)
+			return true
+		if (javaClass != other?.javaClass)
+			return false
+		
+		other as DrawTwoEffectPenalty
+		
+		return cardCount == other.cardCount
+	}
+	
+	override fun hashCode(): Int = cardCount
 }

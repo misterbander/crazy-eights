@@ -131,7 +131,7 @@ class Tabletop(val room: RoomScreen) : Group()
 				for (serverObject: ServerObject in hand!!)
 				{
 					val gObject = serverObject.toGObject()
-					gObject.getModule<Ownable>()?.wasInHand = true
+					gObject.getModule<Ownable>()?.justAcceptedInHand = true
 					this.myHand += gObject as Groupable<CardGroup>
 				}
 			}
@@ -395,8 +395,8 @@ class Tabletop(val room: RoomScreen) : Group()
 		val locker = users[lockerUsername] ?: throw IllegalStateException("Can't find user $lockerUsername")
 		toLock.getModule<Lockable>()?.lock(locker)
 		
-		if (isGameStarted && toLock is Card && toLock.cardGroup == drawStack)
-			gameState!!.drawCount++
+//		if (isGameStarted && toLock is Card && toLock.cardGroup == drawStack)
+//			gameState!!.drawCount++
 	}
 	
 	fun onObjectUnlock(event: ObjectUnlockEvent)
@@ -415,7 +415,7 @@ class Tabletop(val room: RoomScreen) : Group()
 		hand += toOwn
 		if (hand is MyHand)
 		{
-			toOwn.getModule<Ownable>()?.wasInHand = true
+			toOwn.getModule<Ownable>()?.justAcceptedInHand = true
 			if (toOwn is Card)
 				toOwn.isFaceUp = true
 			hand.arrange(false)
@@ -557,7 +557,7 @@ class Tabletop(val room: RoomScreen) : Group()
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values()) // Unlock and disown everything
 		{
 			gObject.getModule<Lockable>()?.unlock(false)
-			gObject.getModule<Ownable>()?.wasInHand = false
+			gObject.getModule<Ownable>()?.justAcceptedInHand = false
 		}
 		onCardGroupChange(cardGroupChangeEvent!!)
 		val drawStack = drawStack!!
@@ -799,7 +799,7 @@ class Tabletop(val room: RoomScreen) : Group()
 		for (discard: Groupable<CardGroup> in discards) // Unlock and disown everything in discards
 		{
 			discard.lockable.unlock(false)
-			discard.getModule<Ownable>()?.wasInHand = false
+			discard.getModule<Ownable>()?.justAcceptedInHand = false
 		}
 		
 		onCardGroupChange(cardGroupChangeEvent!!)
@@ -833,7 +833,7 @@ class Tabletop(val room: RoomScreen) : Group()
 		for (gObject: GObject<CrazyEights> in idToGObjectMap.values()) // Unlock and disown everything
 		{
 			gObject.getModule<Lockable>()?.unlock(false)
-			gObject.getModule<Ownable>()?.wasInHand = false
+			gObject.getModule<Ownable>()?.justAcceptedInHand = false
 		}
 		onCardGroupChange(cardGroupChangeEvent!!)
 		val drawStack = drawStack!!

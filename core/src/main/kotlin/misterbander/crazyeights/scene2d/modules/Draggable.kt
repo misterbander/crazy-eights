@@ -98,8 +98,8 @@ open class Draggable(
 				currentDragTarget = null
 				
 				parent.getModule<Ownable>()?.apply {
-					if (!isOwned && wasInHand)
-						wasInHand = false
+					if (!isOwned && justAcceptedInHand)
+						justAcceptedInHand = false
 				}
 			}
 		})

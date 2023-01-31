@@ -7,15 +7,17 @@ import misterbander.crazyeights.net.packets.PowerCardPlayedEvent
 import misterbander.crazyeights.net.server.ServerCard
 import misterbander.crazyeights.net.server.ServerCard.Rank
 import misterbander.crazyeights.net.server.ServerCard.Suit
+import misterbander.gframework.util.shuffle
+import kotlin.math.min
 
 /**
  * Mutable state representing a game of Crazy Eights.
- * @property ruleset ruleset used by this game
- * @property playerHands an ordered map mapping player objects to their hands
- * @property drawStack the stack where all players can draw cards from
+ * @param ruleset ruleset used by this game
+ * @param playerHands an ordered map mapping player objects to their hands
+ * @param drawStack the stack where all players can draw cards from
  * @param discardPile all the cards in the discard pile
  * @param currentPlayer the current player
- * @property isPlayReversed true if the current direction of play is reversed
+ * @param isPlayReversed true if the current direction of play is reversed
  * @param drawCount the number of times the current player has drawn from the drawing stack. If the
  * draw count reaches 3, the player can no longer draw.
  * @param declaredSuit if not null, this is the suit the current player must follow instead of the
@@ -36,6 +38,7 @@ class ServerGameState(
 	private val onPlayerChanged: (Player) -> Unit = {}
 )
 {
+	private val initialCardCount = playerHands.values().sumOf { it.size } + drawStack.size + discardPile.size
 	/** Top card of the discard pile. */
 	val topCard: ServerCard
 		get() = discardPile.peek()
@@ -83,79 +86,6 @@ class ServerGameState(
 		updateMoves()
 	}
 	
-	/**
-	 * Executes the specified move and mutates the state.
-	 */
-	fun doMove(move: Move)
-	{
-		assert(move in moves) { "Illegal move! $currentPlayer trying to $move but legal moves are $moves" }
-		when (move)
-		{
-			is PlayMove ->
-			{
-				discard(move.card)
-				declaredSuit = null
-				if (move.card.rank == ruleset.drawTwos)
-					drawTwoEffectCardCount += 2
-				else
-					drawTwoEffectCardCount = 0
-				if (move.card.rank == ruleset.skips)
-					advanceToNextPlayer()
-				if (move.card.rank == ruleset.reverses && playerCount > 2)
-					isPlayReversed = !isPlayReversed
-				advanceToNextPlayer()
-			}
-			is DrawMove ->
-			{
-				drawOne()
-				if (ruleset.passAfterDraw)
-					advanceToNextPlayer()
-			}
-			is PassMove -> advanceToNextPlayer()
-			is ChangeSuitMove ->
-			{
-				val (card, declaredSuit) = move
-				discard(card)
-				this.declaredSuit = declaredSuit
-				advanceToNextPlayer()
-			}
-			is DrawTwoEffectPenalty ->
-			{
-				repeat(move.cardCount) {
-					if (drawStack.isNotEmpty())
-						drawOne()
-					if (drawStack.isEmpty)
-						refillDrawStack()
-				}
-				drawTwoEffectCardCount = 0
-				advanceToNextPlayer()
-			}
-		}
-		if (drawStack.isEmpty)
-			refillDrawStack()
-		
-		updateMoves()
-		
-		val allPlayerCardCount = playerHands.values().sumOf { it.size }
-		val drawStackCardCount = drawStack.size
-		val discardedCardCount = discardPile.size
-		val totalCardCount = allPlayerCardCount + discardedCardCount + drawStackCardCount
-		assert(totalCardCount == 52) {
-			"Cards magically appeared/disappeared! $totalCardCount\n" +
-				"Hands = ${playerHands.joinToString(separator = "\n\t") { (player, hand) -> "${player.name}(${hand!!.size}) ${hand.joinToString { it.name }}" }}\n" +
-				"Drawstack($drawStackCardCount) = ${drawStack.joinToString { it.name }}\n" +
-				"Discards($discardedCardCount) = ${discardPile.joinToString { it.name }}\n" +
-				"currentPlayer = ${currentPlayer.name}"
-		}
-		
-		if (hasPlayerChanged)
-		{
-			onPlayerChanged(currentPlayer)
-			hasPlayerChanged = false
-		}
-		isFirstMove = false
-	}
-	
 	fun triggerFirstPowerCard(): Rank?
 	{
 		val firstPower = when
@@ -183,6 +113,87 @@ class ServerGameState(
 		return firstPower
 	}
 	
+	/**
+	 * Executes the specified move and mutates the state.
+	 */
+	fun doMove(move: Move)
+	{
+		assert(move in moves) { "Illegal move! $currentPlayer trying to $move but legal moves are $moves" }
+		when (move)
+		{
+			is PlayMove -> doPlayMove(move)
+			is DrawMove -> doDrawMove(move)
+			is PassMove -> advanceToNextPlayer()
+			is ChangeSuitMove -> doChangeSuitMove(move)
+			is DrawTwoEffectPenalty -> doDrawTwoEffectPenalty(move)
+		}
+		
+		updateMoves()
+		
+		val allPlayerCardCount = playerHands.values().sumOf { it.size }
+		val drawStackCardCount = drawStack.size
+		val discardedCardCount = discardPile.size
+		val totalCardCount = allPlayerCardCount + discardedCardCount + drawStackCardCount
+		assert(totalCardCount == initialCardCount) {
+			"Cards magically appeared/disappeared! Expecting $initialCardCount but counted $totalCardCount\n" +
+				"Hands = ${playerHands.joinToString(separator = "\n\t") { (player, hand) -> "${player.name}(${hand!!.size}) ${hand.joinToString { it.name }}" }}\n" +
+				"Drawstack($drawStackCardCount) = ${drawStack.joinToString { it.name }}\n" +
+				"Discards($discardedCardCount) = ${discardPile.joinToString { it.name }}\n" +
+				"Discards($discardedCardCount) = ${discardPile.joinToString { it.name }}\n" +
+				"currentPlayer = ${currentPlayer.name}"
+		}
+		
+		if (hasPlayerChanged)
+		{
+			onPlayerChanged(currentPlayer)
+			hasPlayerChanged = false
+		}
+		isFirstMove = false
+	}
+	
+	private fun doPlayMove(move: PlayMove)
+	{
+		discard(move.card)
+		declaredSuit = null
+		if (move.card.rank == ruleset.drawTwos)
+			drawTwoEffectCardCount += 2
+		else
+			drawTwoEffectCardCount = 0
+		if (move.card.rank == ruleset.skips)
+			advanceToNextPlayer()
+		if (move.card.rank == ruleset.reverses && playerCount > 2)
+			isPlayReversed = !isPlayReversed
+		if (drawStack.isEmpty)
+			refillDrawStack(move.seed)
+		advanceToNextPlayer()
+	}
+	
+	private fun doDrawMove(move: DrawMove)
+	{
+		drawOne()
+		if (ruleset.passAfterDraw)
+			advanceToNextPlayer()
+		if (drawStack.isEmpty)
+			refillDrawStack(move.seed)
+	}
+	
+	private fun doChangeSuitMove(move: ChangeSuitMove)
+	{
+		val (card, declaredSuit) = move
+		discard(card)
+		this.declaredSuit = declaredSuit
+		advanceToNextPlayer()
+	}
+	
+	private fun doDrawTwoEffectPenalty(move: DrawTwoEffectPenalty)
+	{
+		if (move.cardCount >= drawStack.size)
+			refillDrawStack(move.seed)
+		repeat(min(move.cardCount, drawStack.size)) { drawOne() }
+		drawTwoEffectCardCount = 0
+		advanceToNextPlayer()
+	}
+	
 	private fun updateMoves()
 	{
 		moves.clear()
@@ -199,7 +210,7 @@ class ServerGameState(
 			return
 		}
 		
-		moves += if (drawCount < ruleset.maxDrawCount && drawStack.isNotEmpty()) DrawMove else PassMove
+		moves += if (drawCount < ruleset.maxDrawCount && drawStack.isNotEmpty()) DrawMove() else PassMove
 		for (card: ServerCard in currentPlayerHand)
 		{
 			if (card.rank == Rank.EIGHT)
@@ -235,11 +246,11 @@ class ServerGameState(
 		drawCount++
 	}
 	
-	private fun refillDrawStack()
+	private fun refillDrawStack(seed: Long)
 	{
 		val topCard = this.topCard
 		discardPile -= topCard
-		discardPile.shuffle()
+		discardPile.shuffle(seed)
 		drawStack += discardPile
 		discardPile.clear()
 		discardPile += topCard

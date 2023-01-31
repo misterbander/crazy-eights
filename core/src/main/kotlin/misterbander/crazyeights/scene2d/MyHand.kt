@@ -46,9 +46,9 @@ class MyHand(room: RoomScreen) : Hand(room), DragTarget
 		if (gObject is Card)
 		{
 			arrange()
-			if (!gObject.ownable.wasInHand)
+			if (!gObject.ownable.justAcceptedInHand)
 			{
-				gObject.ownable.wasInHand = true
+				gObject.ownable.justAcceptedInHand = true
 				gObject.isFaceUp = true
 				sendUpdates()
 			}
@@ -59,7 +59,7 @@ class MyHand(room: RoomScreen) : Hand(room), DragTarget
 			cardGroup -= gObject
 			val cards: Array<Card> = gObject.cards.toArray(Card::class.java)
 			cards.forEachIndexed { index, card ->
-				card.ownable.wasInHand = true
+				card.ownable.justAcceptedInHand = true
 				card.isFaceUp = true
 				cardGroup.insert(card, insertIndex + index)
 			}

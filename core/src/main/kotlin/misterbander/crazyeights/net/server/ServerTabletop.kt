@@ -247,6 +247,7 @@ class ServerTabletop(
 		if (isGameStarted)
 		{
 			val serverGameState = serverGameState!!
+			val refillSeed = MathUtils.random.nextLong()
 			if (lockerUsername != serverGameState.currentPlayer.name) // You can't lock anything if it's not your turn
 				return
 			if (toLock is ServerCard)
@@ -260,10 +261,10 @@ class ServerTabletop(
 						return
 					if (serverGameState.drawTwoEffectCardCount > 0)
 					{
-						acceptDrawTwoPenalty(lockerUsername)
+						acceptDrawTwoPenalty(lockerUsername, refillSeed)
 						return
 					}
-					serverGameState.doMove(DrawMove)
+					serverGameState.doMove(DrawMove(refillSeed))
 				}
 				else if (cardGroup.cardHolderId == discardPileHolder.id) // Discard pile cannot be locked
 					return
@@ -287,13 +288,20 @@ class ServerTabletop(
 		toUnlock.lockHolder = null
 		if (toUnlock is ServerCard)
 		{
+			val refillSeed = MathUtils.random.nextLong()
 			if (toUnlock.cardGroupId != -1)
 			{
 				val cardGroup = findObjectById<ServerCardGroup>(toUnlock.cardGroupId)
 				if (isGameStarted && cardGroup.cardHolderId == drawStackHolder.id)
 				{
 					parent.server.sendToAllTCP(event)
-					draw(cardGroup.cards.peek(), unlockerUsername, fireOwnEvent = true, playSound = true)
+					draw(
+						cardGroup.cards.peek(),
+						unlockerUsername,
+						fireOwnEvent = true,
+						playSound = true,
+						refillSeed = refillSeed
+					)
 					return
 				}
 				else
@@ -306,7 +314,14 @@ class ServerTabletop(
 				KtxAsync.launch {
 					delay(1000/SERVER_UPDATES_PER_SECOND.toLong())
 					if (toUnlock.cardGroupId == -1 && toUnlock.getOwner(this@ServerTabletop) == null)
-						draw(toUnlock, toUnlock.lastOwner ?: serverGameState!!.currentPlayer.name, fireOwnEvent = true)
+					{
+						draw(
+							toUnlock,
+							toUnlock.lastOwner ?: serverGameState!!.currentPlayer.name,
+							fireOwnEvent = true,
+							refillSeed = refillSeed
+						)
+					}
 				}
 			}
 			if (!toUnlock.justMoved && !toUnlock.justRotated && sideEffects && !isGameStarted)
@@ -494,7 +509,7 @@ class ServerTabletop(
 		// Deal
 		repeat(if (hands.size > 2) 5 else 7) {
 			for (username: String in hands.orderedKeys())
-				draw(drawStack.cards.peek(), username, refillIfEmpty = false)
+				draw(drawStack.cards.peek(), username)
 		}
 		val topCard: ServerCard = drawStack.cards.peek()
 		topCard.setServerCardGroup(this, discardPile)
@@ -502,7 +517,7 @@ class ServerTabletop(
 		acquireActionLocks()
 		
 		// Set game state
-		val serverGameState = createGameState(::onPlayerChanged)
+		val serverGameState = createGameState(onPlayerChanged = ::onPlayerChanged)
 		this.serverGameState = serverGameState
 		val firstPlayer = serverGameState.currentPlayer.name
 		
@@ -541,7 +556,10 @@ class ServerTabletop(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	fun createGameState(onPlayerChanged: (Player) -> Unit = {}): ServerGameState
+	fun createGameState(
+		drawTwoEffectCardCount: Int = 0,
+		onPlayerChanged: (Player) -> Unit = {}
+	): ServerGameState
 	{
 		val playerHands = OrderedMap<Player, GdxArray<ServerCard>>()
 		val drawStack = drawStackHolder.cardGroup
@@ -559,6 +577,7 @@ class ServerTabletop(
 			playerHands,
 			GdxArray(drawStack.cards),
 			GdxArray(discardPile.cards),
+			drawTwoEffectCardCount = drawTwoEffectCardCount,
 			onPlayerChanged = onPlayerChanged
 		)
 	}
@@ -612,6 +631,7 @@ class ServerTabletop(
 		val card = findObjectById<ServerCard>(cards.first().id)
 		val playerHand = hands[playerUsername] ?: throw IllegalStateException("Can't find hand for user $playerUsername")
 		val serverGameState = serverGameState!!
+		val seed = MathUtils.random.nextLong()
 		val extraPackets = GdxArray<Any>()
 		
 		// Ignore if it's not the user's turn, or if the suit chooser is active and suit has not been declared yet,
@@ -621,7 +641,7 @@ class ServerTabletop(
 			|| actionLocks.isNotEmpty())
 			return
 		val move =
-			if (card.rank == Rank.EIGHT) ChangeSuitMove(card, Suit.DIAMONDS) else PlayMove(card)
+			if (card.rank == Rank.EIGHT) ChangeSuitMove(card, Suit.DIAMONDS) else PlayMove(card, seed)
 		if (move !in serverGameState.moves)
 			return
 		when
@@ -685,7 +705,7 @@ class ServerTabletop(
 		
 		val drawStack = drawStackHolder.cardGroup
 		if (drawStack.cards.isEmpty && card.rank != Rank.EIGHT)
-			refillDrawStack()
+			refillDrawStack(seed)
 	}
 	
 	private fun onPlayerChanged(player: Player)
@@ -729,10 +749,10 @@ class ServerTabletop(
 					{
 						val drawnCard: ServerCard = drawStack.cards.peek()
 						serverGameState.doMove(move)
-						draw(drawnCard, player.name, fireOwnEvent = true, playSound = true)
+						draw(drawnCard, player.name, fireOwnEvent = true, playSound = true, refillSeed = move.seed)
 						justDrew = true
 					}
-					is DrawTwoEffectPenalty -> acceptDrawTwoPenalty(player.name)
+					is DrawTwoEffectPenalty -> acceptDrawTwoPenalty(player.name, move.seed)
 					is PassMove -> pass()
 				}
 			}
@@ -748,7 +768,7 @@ class ServerTabletop(
 		ownerUsername: String,
 		fireOwnEvent: Boolean = false,
 		playSound: Boolean = false,
-		refillIfEmpty: Boolean = true
+		refillSeed: Long? = null
 	)
 	{
 		card.isFaceUp = true
@@ -759,8 +779,8 @@ class ServerTabletop(
 			parent.server.sendToAllTCP(CardSlideSoundEvent)
 		
 		val drawStack = drawStackHolder.cardGroup
-		if (drawStack.cards.isEmpty && refillIfEmpty)
-			refillDrawStack()
+		if (drawStack.cards.isEmpty && refillSeed != null)
+			refillDrawStack(refillSeed)
 	}
 	
 	fun pass()
@@ -771,12 +791,11 @@ class ServerTabletop(
 		lastPowerCardPlayedEvent = null
 	}
 	
-	private fun refillDrawStack()
+	private fun refillDrawStack(seed: Long)
 	{
 		val drawStack = drawStackHolder.cardGroup
 		val discardPileHolder = discardPileHolder
 		val discardPile = discardPileHolder.cardGroup
-		val serverGameState = serverGameState!!
 		
 		// Recall all discards
 		val discards = GdxArray(discardPile.cards)
@@ -796,7 +815,6 @@ class ServerTabletop(
 		val cardGroupChangeEvent = CardGroupChangeEvent(GdxArray(drawStack.cards), drawStack.id, "")
 		
 		// Shuffle draw stack
-		val seed = MathUtils.random.nextLong()
 		debug("Server | DEBUG") { "Shuffling with seed = $seed" }
 		drawStack.shuffle(this, seed)
 		
@@ -809,12 +827,6 @@ class ServerTabletop(
 		
 		// Set game state and action lock
 		acquireActionLocks()
-		serverGameState.drawStack.clear()
-		serverGameState.drawStack += drawStack.cards
-		serverGameState.discardPile.clear()
-		serverGameState.discardPile += topCard
-		serverGameState.currentPlayerHand.clear()
-		hands[serverGameState.currentPlayer.name]!!.forEach { serverGameState.currentPlayerHand += it as ServerCard }
 		
 		parent.server.sendToAllTCP(DrawStackRefillEvent(cardGroupChangeEvent, seed))
 	}
@@ -827,9 +839,9 @@ class ServerTabletop(
 			val topCard: ServerCard = discardPileHolder.cardGroup.cards.peek()
 			delay(1000)
 			serverGameState.doMove(ChangeSuitMove(topCard, event.suit))
-			val drawStack = drawStackHolder.cardGroup
-			if (drawStack.cards.isEmpty)
-				refillDrawStack()
+//			val drawStack = drawStackHolder.cardGroup
+//			if (drawStack.cards.isEmpty)
+//				refillDrawStack()
 			parent.server.sendToAllTCP(serverGameState.toGameState())
 		}
 		if (connection == null)
@@ -838,24 +850,24 @@ class ServerTabletop(
 			parent.server.sendToAllExceptTCP(connection.id, event)
 	}
 	
-	private fun acceptDrawTwoPenalty(acceptorUsername: String)
+	private fun acceptDrawTwoPenalty(acceptorUsername: String, seed: Long)
 	{
 		val serverGameState = serverGameState!!
 		val drawStack = drawStackHolder.cardGroup
 		
 		KtxAsync.launch {
-			if (drawStack.cards.size < serverGameState.drawTwoEffectCardCount)
-				refillDrawStack()
+			if (serverGameState.drawTwoEffectCardCount >= drawStack.cards.size)
+				refillDrawStack(seed)
 			waitForActionLocks()
 			
 			acquireActionLocks()
 			val drawCount = min(drawStack.cards.size, serverGameState.drawTwoEffectCardCount)
-			repeat(drawCount) { draw(drawStack.cards.peek(), acceptorUsername, refillIfEmpty = false) }
+			repeat(drawCount) { draw(drawStack.cards.peek(), acceptorUsername) }
 			parent.server.sendToAllTCP(DrawTwoPenaltyEvent(acceptorUsername, drawCount))
 			lastPowerCardPlayedEvent = null
 			
 			waitForActionLocks()
-			serverGameState.doMove(DrawTwoEffectPenalty(serverGameState.drawTwoEffectCardCount))
+			serverGameState.doMove(DrawTwoEffectPenalty(serverGameState.drawTwoEffectCardCount, seed))
 			parent.server.sendToAllTCP(serverGameState.toGameState())
 		}
 	}

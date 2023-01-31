@@ -32,7 +32,7 @@ class DrawAction(private val room: RoomScreen, private val hand: Hand, private v
 			{
 				hand.arrange(false)
 				card.isFaceUp = true
-				card.ownable.wasInHand = true
+				card.ownable.justAcceptedInHand = true
 				card.isDarkened = true
 			}
 			else

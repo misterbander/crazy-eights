@@ -145,7 +145,7 @@ class OpponentHand(
 			cardGroup -= groupable
 			val cards: Array<Card> = groupable.cards.toArray(Card::class.java)
 			cards.forEachIndexed { index, card ->
-				card.ownable.wasInHand = true
+				card.ownable.justAcceptedInHand = true
 				card.isFaceUp = true
 				cardGroup.insert(card, i + index)
 			}
